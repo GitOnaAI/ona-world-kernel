@@ -1,5 +1,12 @@
 # Deploying Eastbrook Vale on AWS
 
+> **Levy Street production** is deployed via Ansible, not this document:
+> the `eastbrook_game` role in the internal `ansible-scripts` repo runs
+> the stack on `idyllic-games-prod` behind nginx + certbot at
+> https://worldofclaudecraft.com. Re-running
+> `ansible-playbook playbooks/setup_server.yml -e target_host=idyllic-games-prod`
+> pulls and redeploys. The guide below is the generic, standalone path.
+
 One EC2 instance runs everything: the game server, Postgres, and Caddy
 (TLS reverse proxy). Sized for a small population — a `t4g.small`
 (~$14/month all-in) is comfortable for a handful of concurrent players.
