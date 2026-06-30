@@ -7862,7 +7862,9 @@ export class Hud {
     this.activeMasterRolls.set(ev.rollId, {
       event: ev,
       receivedAt: performance.now(),
-      durationMs: 60_000,
+      // The master looter's curate window is 5 minutes (sim MASTER_LOOT_TIMEOUT),
+      // longer than a need/greed roll, so the countdown bar must span the full window.
+      durationMs: 300_000,
     });
     this.renderLootRolls();
   }
