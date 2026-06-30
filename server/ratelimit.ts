@@ -11,9 +11,33 @@ import * as net from 'node:net';
 // Direct internet clients have public addresses and are never trusted, so
 // they can't spoof the header. Set TRUSTED_PROXY_IPS (comma-separated) to
 // pin an explicit proxy list instead of the private-range default.
-const WINDOW_MS = 60_000;
+export const WINDOW_MS = 60_000;
 const MAX_TRACKED_IPS = 10_000;
 const BACKSTOP_EVICT_BATCH = 512;
+
+// Injectable wall clock. Defaults to Date.now so every existing caller and test
+// is unaffected; tests can pin a deterministic clock via setRateLimitClock and
+// must restore the default with resetRateLimitClock. The eventual store-backed
+// rework (a later phase) reads the same seam, so the sliding-window math stays
+// testable across a window boundary without real timers.
+let clockNow: () => number = Date.now;
+
+/** Pin the rate-limiter clock to a deterministic source (test-only). */
+export function setRateLimitClock(now: () => number): void {
+  // Hard guard: a pinned clock must never be installable in production, where a
+  // frozen or backward clock could hold a limiter window open indefinitely and
+  // defeat rate limiting. The default Date.now path is unaffected; tests run
+  // outside NODE_ENV=production.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('setRateLimitClock is test-only and must not be called in production');
+  }
+  clockNow = now;
+}
+
+/** Restore the default Date.now clock (test-only). */
+export function resetRateLimitClock(): void {
+  clockNow = Date.now;
+}
 
 // The strictest (lowest) limit any caller passes to rateLimited(). The `attempts`
 // map is SHARED across routes — game login/register use the default 20, admin
@@ -92,7 +116,7 @@ export function requestIp(req: http.IncomingMessage): string {
 
 export function rateLimited(req: http.IncomingMessage, maxPerMinute = 20): boolean {
   const ip = requestIp(req);
-  const now = Date.now();
+  const now = clockNow();
   const windowStart = now - WINDOW_MS;
   const list = (attempts.get(ip) ?? []).filter((t) => t > windowStart);
   const updated = [...list, now];
@@ -173,7 +197,7 @@ function recordSlidingWindowAttempt<K>(
   key: K,
   maxPerMinute: number,
 ): boolean {
-  const now = Date.now();
+  const now = clockNow();
   const windowStart = now - WINDOW_MS;
   const list = (attemptsByKey.get(key) ?? []).filter((t) => t > windowStart);
   const updated = [...list, now];
@@ -353,7 +377,7 @@ function isThrottled(times: number[], windowStart: number): boolean {
 /** True once an account has hit the failed-attempt ceiling within the window. */
 export function authThrottled(username: string): boolean {
   const key = authKey(username);
-  const windowStart = Date.now() - AUTH_FAIL_WINDOW_MS;
+  const windowStart = clockNow() - AUTH_FAIL_WINDOW_MS;
   const recent = (authFailures.get(key) ?? []).filter((t) => t > windowStart);
   if (recent.length > 0) authFailures.set(key, recent);
   else authFailures.delete(key);
@@ -363,9 +387,9 @@ export function authThrottled(username: string): boolean {
 /** Record a failed login for an account (call on bad password / unknown user). */
 export function recordAuthFailure(username: string): void {
   const key = authKey(username);
-  const windowStart = Date.now() - AUTH_FAIL_WINDOW_MS;
+  const windowStart = clockNow() - AUTH_FAIL_WINDOW_MS;
   const recent = (authFailures.get(key) ?? []).filter((t) => t > windowStart);
-  recent.push(Date.now());
+  recent.push(clockNow());
   authFailures.set(key, recent);
   if (authFailures.size <= MAX_TRACKED_IPS) return;
 
