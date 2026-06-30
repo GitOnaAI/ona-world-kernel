@@ -13,7 +13,7 @@ Mark a row's Status as "In progress" or "Done" and fill Started / Completed
 | Phase | Status | Started | Completed |
 |---|---|---|---|
 | Phase 01 | Done | 2026-06-30 | 2026-06-30 |
-| Phase 01 QA | Not started |  |  |
+| Phase 01 QA | Done | 2026-06-30 | 2026-06-30 |
 | Phase 02 | Not started |  |  |
 | Phase 02 QA | Not started |  |  |
 | Phase 03 | Not started |  |  |
@@ -81,6 +81,7 @@ Notes:
 - New surface: server/ws_auth.ts (createWsAuth(deps) -> { authenticateWebSocket, onConnection, attachUpgrade(server, wss) }); server/main.ts exports startServer(): Promise<http.Server> and routeHttpRequest(req, res). NO server/http/ spine module created (that is Phase 4+).
 - Entrypoint guard: esbuild leaves import.meta EMPTY under format: 'cjs' (the bundle is the only launch path: npm run server / npm run realms both exec node dist-server/server.cjs), so the working guard is require.main === module, NOT the import.meta comparison drafted in the SPEC. Verified: build:server emits no import.meta warning; the bundled dist-server/server.cjs boots, serves GET /api/status -> 200, and stops cleanly on SIGTERM; a Vitest import() binds no socket and opens no DB connection.
 - Cleanliness pass (per user request): the WS handshake wire vocabulary (rejection strings, the 1008 close + reason, leave reasons, the 10000ms timeout, the /ws path) lives in named constants (WS_AUTH_ERROR, TOO_MANY_CONNECTIONS_CLOSE, LEAVE_REASON, AUTH_TIMEOUT_MS, WS_UPGRADE_PATH) with a single rejectHandshake(ws, error) helper, no scattered magic literals. Wire VALUES byte-identical (the 18 tests assert literal frames). The HTTP prefix ladder is intentionally left inline; Phase 4 turns it into a route table.
+- QA pass (phase-01-qa.md, 2026-06-30): 5 read-only auditors (correctness, test-coverage, dead-code, privacy-security-review, cross-platform-sync). 0 BLOCKING. cross-platform-sync verdict NO WIRE CHANGE (9 handshake frames + {t:hello} shape + 1008 close all byte-identical); privacy-security-review no CRITICAL/WARNING (check order, per-IP gate, and server authority preserved; the new console.error logs the SyntaxError not the raw token frame). Applied ALL findings (2 SHOULD-FIX + 4 nits, per user "apply everything so nothing accumulates"): strengthened the IP-gate test to assert the isConnectionRefused input bag and added real-predicate refuse + admin-bypass cases; added tests/server/route_dispatch.test.ts pinning routeHttpRequest (OPTIONS-204 short-circuit, public CORS '*', /internal + /admin/api prefix dispatch via mocked sub-dispatchers); added mutedUntil precedence/fallback, an accept-path socket-stays-open assertion, and a moderation-before-character order test; fixed the stale main().catch() comment (also clearing its em dash). The three server test files went 19 -> 28 tests. Full mirror gate green (572 files / 6033 tests, tsc, build:env, build:server, build); the bundled dist-server/server.cjs re-confirmed self-invoke -> listen -> GET /api/status 200 -> clean SIGTERM. NOTE (not a finding): main.ts carries PRE-EXISTING em dashes (dev comments + the player-facing rate-limit strings) that the SPEC defers to Phase 13/22 under a userFacingApiError matcher-lockstep constraint; left untouched on purpose.
 
 ## Phase 02: Shared test scaffolding harness (the phase the SPEC is missing)
 

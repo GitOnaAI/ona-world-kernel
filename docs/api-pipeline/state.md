@@ -11,7 +11,7 @@ workstream), NOT a gameplay change, NOT a WS wire change.
 
 ## Current phase
 
-Phase 01 (importable-spine). DONE. Next: Phase 01 QA (docs/api-pipeline/phase-01-qa.md), then Phase 02 (test-harness), which standardizes the now-created tests/server/ directory.
+Phase 01 (importable-spine) + Phase 01 QA. DONE (QA 2026-06-30: 0 blocking, all findings applied, full mirror gate + bundled-boot green). Next: Phase 02 (test-harness), which standardizes the now-created tests/server/ directory.
 
 ## Locked design decisions
 
@@ -257,7 +257,7 @@ the X-ms constant; X is TBD, see open items.)
 ## New files created per phase
 | Phase | New files |
 |---|---|
-| 01 | DONE. importable `server/ws_auth.ts` (`createWsAuth(deps)` factory -> `{ authenticateWebSocket, onConnection, attachUpgrade(server, wss) }`, wire vocabulary in named constants); in `server/main.ts`: exported `startServer(): Promise<http.Server>` + exported pure `routeHttpRequest(req, res)` dispatcher + `require.main === module` entry guard (NOT import.meta: esbuild empties it under cjs); `tests/server/` dir with `ws_auth.test.ts` + `importable_spine.test.ts`. NO `server/http/` dir this phase (that is Phase 4+). |
+| 01 | DONE. importable `server/ws_auth.ts` (`createWsAuth(deps)` factory -> `{ authenticateWebSocket, onConnection, attachUpgrade(server, wss) }`, wire vocabulary in named constants); in `server/main.ts`: exported `startServer(): Promise<http.Server>` + exported pure `routeHttpRequest(req, res)` dispatcher + `require.main === module` entry guard (NOT import.meta: esbuild empties it under cjs); `tests/server/` dir with `ws_auth.test.ts` + `importable_spine.test.ts` + `route_dispatch.test.ts` (the last added in Phase 01 QA: pins routeHttpRequest's OPTIONS-204 short-circuit + prefix dispatch by mocking the imported sub-dispatchers). NO `server/http/` dir this phase (that is Phase 4+). |
 | 02 | `tests/server/` dir; fake-http + `fakeCtx` helper; `FakeRateLimitStore`; `FakeDb` interfaces (characters/leaderboard/reports); golden-master generator + tested normalizer; parity-harness driver; registry-introspection meta-test helpers; `server/http/config.ts` (pure `loadConfig`); `now()` clock injected into `ratelimit.ts`/`ratelimit_db.ts`. |
 | 03 | Characterization/golden-master fixtures over every route + the prefix dispatch; route-count freshness gate test; content-type classification + seeded knownDeviation list. |
 | 04 | `server/http/router.ts` + `tests/server/http/router.test.ts`. |
