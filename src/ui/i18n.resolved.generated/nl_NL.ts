@@ -638,7 +638,8 @@ export const nl_NL: EnTranslations = {
       "leaderOnly": "Alleen de groepsleider kan de buitmethode wijzigen."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Tassen filteren op categorie",

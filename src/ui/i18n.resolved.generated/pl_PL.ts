@@ -638,7 +638,8 @@ export const pl_PL: EnTranslations = {
       "leaderOnly": "Tylko przywodca grupy moze zmienic metode lupow."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtruj torby według kategorii",

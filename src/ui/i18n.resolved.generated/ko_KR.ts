@@ -638,7 +638,8 @@ export const ko_KR: EnTranslations = {
       "leaderOnly": "파티장만 전리품 방식을 변경할 수 있습니다."
     },
     "party": {
-      "promoteLeader": "파티장으로 지정"
+      "promoteLeader": "파티장으로 지정",
+      "inviteUsage": "누구를 초대하시겠습니까? 사용법: /invite <이름>."
     },
     "bags": {
       "filterGroupAria": "가방을 분류별로 필터링",

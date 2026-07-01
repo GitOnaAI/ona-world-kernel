@@ -638,7 +638,8 @@ export const fr_FR: EnTranslations = {
       "leaderOnly": "Seul le chef de groupe peut changer le mode de butin."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtrer les sacs par catégorie",

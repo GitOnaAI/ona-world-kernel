@@ -638,7 +638,8 @@ export const en_XA: EnTranslations = {
       "leaderOnly": "[Óñļý ţĥé þáŕţý ļéáðéŕ çáñ çĥáñĝé ţĥé ļóóţ ɱéţĥóð.]"
     },
     "party": {
-      "promoteLeader": "[Þŕóɱóţé ţó Ļéáðéŕ]"
+      "promoteLeader": "[Þŕóɱóţé ţó Ļéáðéŕ]",
+      "inviteUsage": "[Íñʋíţé ŵĥóɱ? Úšáĝé: /íñʋíţé <ñáɱé>.]"
     },
     "bags": {
       "filterGroupAria": "[Ƒíļţéŕ ƀáĝš ƀý çáţéĝóŕý]",

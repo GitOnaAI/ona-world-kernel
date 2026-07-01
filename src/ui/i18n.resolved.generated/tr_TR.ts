@@ -638,7 +638,8 @@ export const tr_TR: EnTranslations = {
       "leaderOnly": "Ganimet yontemini yalnizca grup lideri degistirebilir."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Çantaları kategoriye göre filtrele",

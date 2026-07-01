@@ -638,7 +638,8 @@ export const es: EnTranslations = {
       "leaderOnly": "Solo el lider del grupo puede cambiar el metodo de botin."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtrar bolsas por categoría",

@@ -638,7 +638,8 @@ export const zh_TW: EnTranslations = {
       "leaderOnly": "只有隊長才能更改拾取方式。"
     },
     "party": {
-      "promoteLeader": "提升為隊長"
+      "promoteLeader": "提升為隊長",
+      "inviteUsage": "邀請誰？用法：/invite <名稱>。"
     },
     "bags": {
       "filterGroupAria": "依類別篩選背包",

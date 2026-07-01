@@ -638,7 +638,8 @@ export const vi_VN: EnTranslations = {
       "leaderOnly": "Chi truong nhom co the doi phuong thuc chien loi pham."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Lọc túi đồ theo danh mục",

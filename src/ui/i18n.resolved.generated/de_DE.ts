@@ -638,7 +638,8 @@ export const de_DE: EnTranslations = {
       "leaderOnly": "Nur der Gruppenleiter kann die Beutemethode aendern."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Taschen nach Kategorie filtern",

@@ -638,7 +638,8 @@ export const ru_RU: EnTranslations = {
       "leaderOnly": "Только лидер группы может менять способ добычи."
     },
     "party": {
-      "promoteLeader": "Назначить лидером"
+      "promoteLeader": "Назначить лидером",
+      "inviteUsage": "Кого пригласить? Использование: /invite <имя>."
     },
     "bags": {
       "filterGroupAria": "Фильтровать сумки по категории",

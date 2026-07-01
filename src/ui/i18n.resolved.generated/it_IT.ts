@@ -638,7 +638,8 @@ export const it_IT: EnTranslations = {
       "leaderOnly": "Solo il capogruppo puo cambiare il metodo bottino."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtra le borse per categoria",

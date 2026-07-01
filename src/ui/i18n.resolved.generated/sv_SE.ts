@@ -638,7 +638,8 @@ export const sv_SE: EnTranslations = {
       "leaderOnly": "Endast gruppledaren kan andra lootmetoden."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtrera väskor efter kategori",

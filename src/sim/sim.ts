@@ -1965,6 +1965,7 @@ export class Sim {
       spendResource: sim.spendResource.bind(sim),
       removeItem: sim.removeItem.bind(sim),
       partyOf: sim.partyOf.bind(sim),
+      partyInvite: (targetPid: number, pid?: number) => sim.party.partyInvite(targetPid, pid),
       removeFromParty: (pid: number, verb: string) => sim.party.removeFromParty(pid, verb),
       // dropPartyMarkers flips to the T1 marker store (targeting); lazy arrow since
       // sim.targeting is built after ctx. The T1 selectors consume isHostileTo/

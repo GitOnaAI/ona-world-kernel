@@ -638,7 +638,8 @@ export const da_DK: EnTranslations = {
       "leaderOnly": "Kun gruppelederen kan aendre lootmetoden."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filtrér tasker efter kategori",

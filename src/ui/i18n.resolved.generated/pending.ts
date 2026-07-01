@@ -13,24 +13,28 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "es_ES": [
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "fr_FR": [
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "fr_CA": [
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "en_CA": [],
@@ -38,12 +42,14 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "de_DE": [
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "zh_CN": [
@@ -62,6 +68,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader"
   ],
   "ru_RU": [
@@ -71,6 +78,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -81,6 +89,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -91,6 +100,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -101,6 +111,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -111,6 +122,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -121,6 +133,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",
@@ -131,6 +144,7 @@ export const pending: Record<string, readonly string[]> = {
     "hudChrome.itemShare.linkHint",
     "hudChrome.keybinds.discord",
     "hudChrome.options.startAttackOnAbility",
+    "hudChrome.party.inviteUsage",
     "hudChrome.party.promoteLeader",
     "hudChrome.plurals.playersMatching.few",
     "hudChrome.plurals.playersMatching.many",

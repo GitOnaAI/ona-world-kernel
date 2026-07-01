@@ -638,7 +638,8 @@ export const ja_JP: EnTranslations = {
       "leaderOnly": "分配方式を変更できるのはパーティリーダーだけです。"
     },
     "party": {
-      "promoteLeader": "パーティリーダーに指定"
+      "promoteLeader": "パーティリーダーに指定",
+      "inviteUsage": "誰を招待しますか？使用法：/invite <名前>。"
     },
     "bags": {
       "filterGroupAria": "バッグをカテゴリーで絞り込む",

@@ -678,6 +678,9 @@ export const hudChromeStrings = {
   // itself is a sim emit re-localized through localizeSystemText (hud.logs.partyLeader).
   party: {
     promoteLeader: 'Promote to Leader',
+    // The global "/invite <name>" usage hint shown when the command is typed
+    // without a name (the invite itself has no proximity gate).
+    inviteUsage: 'Invite whom? Usage: /invite <name>.',
   },
   // Modular bag filtering controls: the category chips, sort dropdown, and live
   // search above the bag grid, plus the "no items match" empty state.

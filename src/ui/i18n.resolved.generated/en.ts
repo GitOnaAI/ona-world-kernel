@@ -638,7 +638,8 @@ export const en: EnTranslations = {
       "leaderOnly": "Only the party leader can change the loot method."
     },
     "party": {
-      "promoteLeader": "Promote to Leader"
+      "promoteLeader": "Promote to Leader",
+      "inviteUsage": "Invite whom? Usage: /invite <name>."
     },
     "bags": {
       "filterGroupAria": "Filter bags by category",
