@@ -697,6 +697,11 @@ export class Renderer {
   // so sync() can re-drape the ring over the terrain without allocating.
   selectionRingLocalXZ: Float32Array;
   selectionRingDrapeY: Float32Array;
+  // last drape anchor: the drape is a pure function of (x, z, scale), so a
+  // stationary target skips the per-vertex groundHeight resample entirely.
+  private selRingX = Number.NaN;
+  private selRingZ = Number.NaN;
+  private selRingScale = Number.NaN;
   // Dev-only Tab-target cone overlay (enabled via ?targetcone=1 in main.ts).
   // Null until enabled; once built it is re-draped over the terrain in front of
   // the local player every frame. See target_cone_debug.ts.
@@ -3817,13 +3822,29 @@ export class Renderer {
       const e = sim.entities.get(id);
       if (!e) continue;
       // form swaps (polymorph sheep, druid forms) — computed up front because
-      // the shadow gates below must not run the base rig's proxy under a form
-      const polyed = e.auras.some((a) => a.kind === 'polymorph');
-      const bear = !polyed && e.auras.some((a) => a.kind === 'form_bear');
-      const ghostWolf = !polyed && !bear && e.auras.some((a) => a.id === 'ghost_wolf');
-      const cat = !polyed && !bear && (ghostWolf || e.auras.some((a) => a.kind === 'form_cat'));
-      const travel = !polyed && !bear && !cat && e.auras.some((a) => a.kind === 'form_travel');
-      const _stealthed = e.auras.some((a) => a.kind === 'stealth');
+      // the shadow gates below must not run the base rig's proxy under a form.
+      // One pass over the aura list instead of six .some() scans per entity per
+      // frame; the flag combination below preserves the original precedence.
+      let hasPoly = false;
+      let hasBear = false;
+      let hasGhostWolf = false;
+      let hasCatForm = false;
+      let hasTravelForm = false;
+      let hasStealth = false;
+      for (const a of e.auras) {
+        if (a.kind === 'polymorph') hasPoly = true;
+        if (a.kind === 'form_bear') hasBear = true;
+        if (a.id === 'ghost_wolf') hasGhostWolf = true;
+        if (a.kind === 'form_cat') hasCatForm = true;
+        if (a.kind === 'form_travel') hasTravelForm = true;
+        if (a.kind === 'stealth') hasStealth = true;
+      }
+      const polyed = hasPoly;
+      const bear = !polyed && hasBear;
+      const ghostWolf = !polyed && !bear && hasGhostWolf;
+      const cat = !polyed && !bear && (ghostWolf || hasCatForm);
+      const travel = !polyed && !bear && !cat && hasTravelForm;
+      const _stealthed = hasStealth;
       // distance cull: far rigs are invisible specks but cost real draw calls
       const cdx = e.pos.x - p.pos.x,
         cdz = e.pos.z - p.pos.z;
@@ -3915,9 +3936,8 @@ export class Renderer {
         v.group.visible = vis;
         if (v.sparkle && vis) {
           // sub-pixel beyond ~45u but still a full transparent draw each
-          const sdx = e.pos.x - p.pos.x,
-            sdz = e.pos.z - p.pos.z;
-          v.sparkle.visible = sdx * sdx + sdz * sdz < SPARKLE_DRAW_RANGE_SQ;
+          // (d2 is this entity's player distance, computed once above)
+          v.sparkle.visible = d2 < SPARKLE_DRAW_RANGE_SQ;
           const pulse = 0.75 + Math.sin(this.time * 3 + e.id) * 0.25;
           v.sparkle.scale.set(pulse, pulse, 1);
           v.sparkle.material.rotation = this.time * 0.8;
@@ -4149,28 +4169,36 @@ export class Renderer {
       if (tv) {
         const cx = tv.group.position.x;
         const cz = tv.group.position.z;
-        const seed = this.sim.cfg.seed;
         // anchor the reticle to the ground under the unit (a classic decal: it
         // stays grounded even if the target jumps) and drape it over the slope.
-        const gy = groundHeight(cx, cz, seed);
-        this.selectionRing.position.set(cx, gy, cz);
-        this.selectionRing.scale.setScalar(target.scale);
-        const drape = drapeRingLocalY(
-          this.selectionRingLocalXZ,
-          cx,
-          cz,
-          gy,
-          target.scale,
-          0.08,
-          (sx, sz) => groundHeight(sx, sz, seed),
-          this.selectionRingDrapeY,
-        );
-        const ringPos = this.selectionRingMesh.geometry.getAttribute(
-          'position',
-        ) as THREE.BufferAttribute;
-        for (let i = 0; i < drape.length; i++) ringPos.setY(i, drape[i]);
-        ringPos.needsUpdate = true;
-        this.selectionRingTicks.position.y = 0.08; // ticks float just above the footing
+        // The drape is a pure function of (cx, cz, scale) and nothing else writes
+        // the ring's position attribute, so a stationary target reuses last
+        // frame's per-vertex groundHeight samples untouched.
+        if (cx !== this.selRingX || cz !== this.selRingZ || target.scale !== this.selRingScale) {
+          this.selRingX = cx;
+          this.selRingZ = cz;
+          this.selRingScale = target.scale;
+          const seed = this.sim.cfg.seed;
+          const gy = groundHeight(cx, cz, seed);
+          this.selectionRing.position.set(cx, gy, cz);
+          this.selectionRing.scale.setScalar(target.scale);
+          const drape = drapeRingLocalY(
+            this.selectionRingLocalXZ,
+            cx,
+            cz,
+            gy,
+            target.scale,
+            0.08,
+            (sx, sz) => groundHeight(sx, sz, seed),
+            this.selectionRingDrapeY,
+          );
+          const ringPos = this.selectionRingMesh.geometry.getAttribute(
+            'position',
+          ) as THREE.BufferAttribute;
+          for (let i = 0; i < drape.length; i++) ringPos.setY(i, drape[i]);
+          ringPos.needsUpdate = true;
+          this.selectionRingTicks.position.y = 0.08; // ticks float just above the footing
+        }
         this.selectionRingTicks.rotation.y += dt * SELECTION_RING_SPIN; // slow reticle spin
         const ringMat = this.selectionRingMat;
         ringMat.color.setHex(this.isHostileSelectionTarget(target) ? 0xcc2222 : 0xd4af37);
