@@ -415,6 +415,22 @@ describe('owner sheet handler', () => {
     // Owner visibility carries the private stats block (absent on the public sheet).
     expect(bodyRecord(res.body).stats).toBeDefined();
   });
+
+  it('200s an owner sheet with rank:null when the character has no lifetime-XP rank', async () => {
+    // toSheetRank(null) -> null: a guild-less, rank-less owned character still serializes.
+    setCharactersDbForTests({
+      guildNameForCharacter: async () => null,
+      lifetimeXpRankForCharacter: async () => null,
+    });
+    const row = charRow({ id: 4, name: 'Rankless', level: 5, state: st({ skin: 0 }) });
+    const res = await callHandler('GET', '/api/characters/:id/sheet', {
+      account: { accountId: 7, scope: 'full' },
+      state: stateWith(row),
+    });
+    expect(res.status).toBe(200);
+    expect(bodyRecord(res.body).rank).toBeNull();
+    expect(bodyRecord(res.body).guild).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -558,6 +574,61 @@ describe('create handler', () => {
     expect(r.status).toBe(500);
     expect(bodyRecord(r.body).code).toBe('internal.error');
   });
+
+  it('400s the character limit when the reclaimed retry also hits the cap (retry null)', async () => {
+    // First create collides (23505), the name is reclaimed, but the RETRY create then
+    // hits the per-account cap: the second-attempt null must map to 400, not a throw.
+    const createCharacterCapped = vi
+      .fn()
+      .mockRejectedValueOnce({ code: '23505' })
+      .mockResolvedValueOnce(null);
+    setCharactersDbForTests({ createCharacterCapped, reclaimDeactivatedName: async () => true });
+    const res = await callHandler('POST', '/api/characters', {
+      account: { accountId: 7, scope: 'full' },
+      body: { name: 'Valid', class: 'warrior' },
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'character limit reached' });
+    expect(createCharacterCapped).toHaveBeenCalledTimes(2);
+  });
+
+  it('rethrows a non-unique error on the reclaimed retry (500 through withErrors)', async () => {
+    // First create collides (23505), the name is reclaimed, but the RETRY create throws
+    // a non-unique db error: it must be rethrown (500), never swallowed as a stale 409.
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const createCharacterCapped = vi
+      .fn()
+      .mockRejectedValueOnce({ code: '23505' })
+      .mockRejectedValueOnce(new Error('db exploded on retry'));
+    authedDb({ createCharacterCapped, reclaimDeactivatedName: async () => true });
+    const r = await runRoute('POST', '/api/characters', {
+      body: { name: 'Valid', class: 'warrior' },
+    });
+    expect(r.status).toBe(500);
+    expect(bodyRecord(r.body).code).toBe('internal.error');
+    expect(createCharacterCapped).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [99, 7],
+    [-3, 0],
+    ['not-a-number', 0],
+  ])('clamps skin %o into [0, MAX_SKIN] for create (-> %i)', async (input, expected) => {
+    // The created row carries no state, so respondCreated echoes back the CLAMPED input
+    // skin (c.state?.skin ?? skin), and the same clamp is threaded to initialCharacterState.
+    const initialCharacterState = vi.fn(() => st());
+    installRuntime({ initialCharacterState });
+    setCharactersDbForTests({
+      createCharacterCapped: async () => charRow({ id: 12, name: 'Clamped', state: null }),
+    });
+    const res = await callHandler('POST', '/api/characters', {
+      account: { accountId: 7, scope: 'full' },
+      body: { name: 'Clamped', class: 'warrior', skin: input },
+    });
+    expect(res.status).toBe(200);
+    expect(bodyRecord(res.body).skin).toBe(expected);
+    expect(initialCharacterState).toHaveBeenCalledWith('warrior', 'Clamped', expected);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -600,6 +671,39 @@ describe('rename handler', () => {
     });
     expect(rekeyMarketSeller).toHaveBeenCalledWith(5, 'Oldname', 'Newname');
     expect(saveMarket).toHaveBeenCalledTimes(1);
+  });
+
+  it('400s an invalid new name (normalizeCharName -> null) before the force_rename gate', async () => {
+    // The owned character IS force_rename-flagged, so a bad name must be rejected on
+    // its own merits (400), never let through by the flag. renameCharacter must not run.
+    const renameCharacter = vi.fn(async () => charRow());
+    setCharactersDbForTests({ renameCharacter });
+    const character = charRow({ id: 5, name: 'Oldname', force_rename: true });
+    const res = await callHandler('POST', '/api/characters/:id/rename', {
+      account: { accountId: 7, scope: 'full' },
+      state: stateWith(character),
+      body: { name: 'A' }, // one letter fails the 2-16 shape
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'invalid character name (2-16 letters)' });
+    expect(renameCharacter).not.toHaveBeenCalled();
+  });
+
+  it('400s a disallowed (offensive) new name on the owned rename path', async () => {
+    // The API is the real moderation boundary: a force_rename'd player must not be
+    // able to rename to an offensive name, so the offensiveName re-check stands here
+    // just as it does on create.
+    const renameCharacter = vi.fn(async () => charRow());
+    setCharactersDbForTests({ renameCharacter });
+    const character = charRow({ id: 5, name: 'Oldname', force_rename: true });
+    const res = await callHandler('POST', '/api/characters/:id/rename', {
+      account: { accountId: 7, scope: 'full' },
+      state: stateWith(character),
+      body: { name: 'Hitler' }, // in the built-in banlist
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'character name is not allowed' });
+    expect(renameCharacter).not.toHaveBeenCalled();
   });
 
   it('403s when the character is not flagged force_rename', async () => {
@@ -915,6 +1019,28 @@ describe('character-mutation limiters (newLimiterCharacterMutations 429)', () =>
     const opts = { params: { id: '1' }, body: { name: 'Confirmme' } };
     await drainToLimit('DELETE', '/api/characters/:id', opts);
     expectLimited(await runRoute('DELETE', '/api/characters/:id', opts));
+  });
+
+  it('keys each limiter BY ACTION: fully throttling create leaves delete unaffected', async () => {
+    // The whole point of the `${action}:` bucket prefix: create/rename/delete/takeover
+    // never share a window. Drive create to a hard 429, then prove a first delete (same
+    // IP AND account) still succeeds, since it hits its OWN delete:<key> bucket.
+    authedDb({
+      createCharacterCapped: async () => charRow({ id: 10, name: 'Valid', state: st({ skin: 0 }) }),
+      getCharacter: async () => charRow({ id: 1, name: 'Confirmme' }),
+      deleteCharacter: async () => true,
+    });
+    installRuntime({ isCharacterOnline: () => false });
+    const createOpts = { body: { name: 'Valid', class: 'warrior' } };
+    await drainToLimit('POST', '/api/characters', createOpts);
+    expectLimited(await runRoute('POST', '/api/characters', createOpts));
+    // create is fully throttled; delete has an independent bucket, so it still 200s.
+    const del = await runRoute('DELETE', '/api/characters/:id', {
+      params: { id: '1' },
+      body: { name: 'Confirmme' },
+    });
+    expect(del.status).toBe(200);
+    expect(del.body).toEqual({ ok: true });
   });
 });
 

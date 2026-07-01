@@ -36,6 +36,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   resetAuthFailures,
   resetCardUploadRateLimits,
+  resetCharacterMutationRateLimits,
   resetDiscordRateLimits,
   resetPublicReadRateLimits,
   resetRateLimitClock,
@@ -257,6 +258,10 @@ function isolate(): void {
   resetDiscordRateLimits();
   resetWocBalanceRateLimits();
   resetPublicReadRateLimits();
+  // Keep in lockstep with isolatePass: the Phase 12 per-account character-mutation
+  // buckets are separate, so a create/rename/delete/takeover 429 on one pass must not
+  // bleed into the next (harmless today, since no captureBothModes case mutates).
+  resetCharacterMutationRateLimits();
   resetAuthFailures();
   resetRateLimitClock();
 }
