@@ -95,6 +95,61 @@ describe('the World Market — the Merchant', () => {
     expect(sim.marketInfoFor(seller)!.totalCount).toBe(all.totalCount);
   });
 
+  it('paginates other sellers server-side, keeping the viewer own listings on every page', () => {
+    const sim = makeWorld();
+    const viewer = sim.addPlayer('warrior', 'Viewer');
+    standAtMerchant(sim, viewer);
+    const book = sim.market.marketListings;
+    book.length = 0; // drop the seeded house stock so the page math is exact
+
+    // 60 other sellers' listings of one item: same name, so they sort by price, which
+    // puts the 50 cheapest on page 0 and the last 10 on page 1.
+    for (let i = 0; i < 60; i++) {
+      book.push({
+        id: 100 + i,
+        sellerKey: 'rival',
+        sellerName: 'Rival',
+        itemId: 'bone_fragments',
+        count: 1,
+        price: 100 + i,
+        expiresAt: Number.POSITIVE_INFINITY,
+        house: false,
+      });
+    }
+    // One listing owned by the viewer (their stable seller key), which must ride on top
+    // of every page for quick reclaim rather than sorting off into the pages of others.
+    book.push({
+      id: 1,
+      sellerKey: marketSellerKey(viewer),
+      sellerName: 'Viewer',
+      itemId: 'wolf_fang',
+      count: 1,
+      price: 500,
+      expiresAt: Number.POSITIVE_INFINITY,
+      house: false,
+    });
+
+    const p0 = sim.marketInfoFor(viewer)!;
+    expect(p0.page).toBe(0);
+    expect(p0.pageCount).toBe(2); // 60 others / 50 per page
+    expect(p0.totalCount).toBe(61); // 60 others + 1 own (the full match count)
+    const othersP0 = p0.listings.filter((l) => !l.mine);
+    expect(othersP0).toHaveLength(50);
+    expect(othersP0[0].price).toBe(100); // sorted by price within the same item name
+    expect(p0.listings.some((l) => l.mine && l.itemId === 'wolf_fang')).toBe(true);
+
+    // Page 1: the viewer own listing still rides on top; only the last 10 others remain.
+    sim.marketSearch(q('', { page: 1 }), viewer);
+    const p1 = sim.marketInfoFor(viewer)!;
+    expect(p1.page).toBe(1);
+    expect(p1.listings.filter((l) => !l.mine)).toHaveLength(10);
+    expect(p1.listings.some((l) => l.mine && l.itemId === 'wolf_fang')).toBe(true);
+
+    // An out-of-range page clamps to the last page.
+    sim.marketSearch(q('', { page: 99 }), viewer);
+    expect(sim.marketInfoFor(viewer)!.page).toBe(1);
+  });
+
   it("lists a stack from a seller's bags into escrow", () => {
     const sim = makeWorld();
     const seller = sim.addPlayer('warrior', 'Seller');

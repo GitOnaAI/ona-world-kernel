@@ -171,10 +171,11 @@ describe('market_view: browse states', () => {
   it("always shows the viewer's own listings on top without counting them in the range", () => {
     // Own listings ride on every page for quick reclaim; the range/pageCount track the
     // paged OTHER listings only.
+    // totalCount is the full match count the server sends: one own + one other.
     const body = buildMarketBrowse(
       info({
         listings: [listing('keen_dirk', { mine: true }), listing('greyjaw_pelt_cloak')],
-        totalCount: 1,
+        totalCount: 2,
         page: 0,
         pageCount: 1,
       }),
@@ -182,6 +183,7 @@ describe('market_view: browse states', () => {
     );
     if (body.state !== 'list') throw new Error('expected list');
     expect(body.page.items.map((r) => r.listing.mine)).toEqual([true, false]);
+    expect(body.page.total).toBe(1); // only the OTHER listing counts toward the range
     expect(body.page.start).toBe(0);
     expect(body.page.end).toBe(1); // one OTHER listing on the page; the mine row is extra
   });

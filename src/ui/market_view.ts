@@ -127,8 +127,9 @@ function filtersActive(filters: MarketFilters): boolean {
  * Build the Browse tab body. The server already filtered (search + type/subtype/
  * rarity) and paginated, so `info.listings` IS the page to show: the viewer's own
  * listings (always wired, for reclaim) plus one page of other sellers' listings.
- * `info.page` / `info.pageCount` drive the pager; `info.totalCount` is the count of
- * matching OTHER listings being paged. `filters` only chooses the empty-state copy.
+ * `info.page` / `info.pageCount` drive the pager; `info.totalCount` is the full match
+ * count (the viewer's own listings plus all others). `filters` only chooses the
+ * empty-state copy.
  */
 export function buildMarketBrowse(info: MarketInfo, filters: MarketFilters): MarketBrowseBody {
   const rows: MarketBrowseRow[] = [];
@@ -141,8 +142,13 @@ export function buildMarketBrowse(info: MarketInfo, filters: MarketFilters): Mar
     const reason = info.filter.trim() ? 'search' : filtersActive(filters) ? 'filtered' : 'browse';
     return { state: 'empty', reason };
   }
-  // The range note describes the paged OTHERS; own rows ride on top of every page.
+  // The pager and range note describe the paged OTHER listings; the viewer's own
+  // listings ride on top of every page and are not counted in the range. The server
+  // wires all of the viewer's own matches on every page, so subtracting them from
+  // totalCount (mine + others) yields the true count of paged others.
   const othersOnPage = rows.reduce((n, r) => n + (r.listing.mine ? 0 : 1), 0);
+  const mineOnPage = rows.length - othersOnPage;
+  const othersTotal = info.totalCount - mineOnPage;
   const start = info.page * MARKET_PAGE_SIZE;
   return {
     state: 'list',
@@ -150,7 +156,7 @@ export function buildMarketBrowse(info: MarketInfo, filters: MarketFilters): Mar
       items: rows,
       page: info.page,
       pageCount: info.pageCount,
-      total: info.totalCount,
+      total: othersTotal,
       start,
       end: start + othersOnPage,
     },
