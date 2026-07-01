@@ -1,10 +1,13 @@
-// Game-side reader for an editor play-test handoff. The map editor (a separate
-// dev-only entry) serializes a custom world into sessionStorage and navigates to
-// the game page; this reads it back so the offline boot can run that world.
+// Game-side reader for an editor play-test handoff. The map editor (its own
+// entry at /editor) serializes a custom world into sessionStorage and navigates
+// to the game page; this reads it back so the OFFLINE boot can run that world.
+// Playtest never touches the server or the authoritative world: it only shapes
+// the local offline Sim, so it ships enabled (same-origin sessionStorage is the
+// player's own data, and offline progress is per-session anyway).
 //
 // Deliberately depends ONLY on sim types (WorldContent), never on src/editor, so
-// the editor's code never enters the shipped game bundle. DEV-gated and defensive:
-// any malformed blob yields null and the normal start screen runs instead.
+// the editor's code never enters the shipped game bundle. Defensive: any
+// malformed blob yields null and the normal start screen runs instead.
 
 import type { PlayerClass, WorldContent } from '../sim/types';
 
@@ -53,9 +56,8 @@ function looksLikeWorldContent(c: unknown): c is WorldContent {
 }
 
 // Read AND consume a pending play-test request (removed so a later refresh shows
-// the normal menu). Returns null outside DEV, with no request, or on bad data.
+// the normal menu). Returns null with no request or on bad data.
 export function takeEditorPlaytestRequest(): EditorPlaytestRequest | null {
-  if (!import.meta.env.DEV) return null;
   let raw: string | null = null;
   try {
     raw = sessionStorage.getItem(EDITOR_PLAYTEST_KEY);

@@ -29,7 +29,7 @@ import {
 import type { DelveModuleId } from '../sim/delve_layout';
 import type { BiomeId } from '../sim/types';
 import { ALL_CLASSES, type Entity, type SimEvent } from '../sim/types';
-import { groundHeight, WATER_LEVEL, zoneBiomeAt } from '../sim/world';
+import { groundHeight, waterLevel, zoneBiomeAt } from '../sim/world';
 import { attachAvatarFallback } from '../ui/avatar_fallback';
 import { tEntity } from '../ui/entity_i18n';
 import type { IWorld } from '../world_api';
@@ -76,7 +76,7 @@ import {
   isProjectedNameplateAnchorVisible,
   nameplateScreenTransform,
 } from './nameplate_projection';
-import { buildPlacedAssets } from './placed_assets';
+import { PlacedAssetsView } from './placed_assets';
 import { buildComposer, type PostPipeline } from './post';
 import { buildPropMaterialPrewarmGroup, buildProps } from './props';
 import { buildGroundQuestObject } from './quest_objects';
@@ -800,6 +800,9 @@ export class Renderer {
   private clouds: THREE.Sprite[] = [];
   private waterView: WaterView;
   private terrainView: TerrainView;
+  // Map-editor placed GLB assets; null when the world has none and the editor
+  // never asked for the view (the shipped game with the built-in world).
+  private placedAssetsView: PlacedAssetsView | null = null;
   private foliage: FoliageView;
   private fish: FishView;
   private critters: CritterField;
@@ -1185,12 +1188,14 @@ export class Renderer {
     this.propsView = props;
 
     // Map-editor play-test: freely placed GLB models (cosmetic, render-only). Loads
-    // async and pops in; absent for the built-in world.
+    // async and pops in; absent for the built-in world. The view supports live
+    // editing (add/move/remove/reSeat), reached through the editor-only
+    // `placedAssets` getter below; the shipped game only ever builds it here.
     const placements = this.sim.cfg.world?.placements;
     if (placements && placements.length > 0) {
-      const placed = buildPlacedAssets(placements, this.sim.cfg.seed);
-      setRenderCategory(placed, 'props');
-      this.scene.add(placed);
+      this.placedAssetsView = new PlacedAssetsView(placements, this.sim.cfg.seed);
+      setRenderCategory(this.placedAssetsView.group, 'props');
+      this.scene.add(this.placedAssetsView.group);
     }
 
     // selection ring — a classic target reticle: a base ring plus four
@@ -1406,8 +1411,8 @@ export class Renderer {
   // Surface under (x,z) for footstep timbre. Sampled only at a footfall (cheap).
   private surfaceAt(x: number, z: number, y: number): Surface {
     if (x > DUNGEON_X_THRESHOLD) return 'stone'; // dungeon interiors are stone halls
-    if (groundHeight(x, z, this.sim.cfg.seed) < WATER_LEVEL && y <= WATER_LEVEL + 0.3)
-      return 'water';
+    const wl = waterLevel();
+    if (groundHeight(x, z, this.sim.cfg.seed) < wl && y <= wl + 0.3) return 'water';
     const biome = zoneBiomeAt(z);
     if (biome === 'vale') return 'grass';
     if (biome === 'marsh') return 'dirt';
@@ -3552,7 +3557,7 @@ export class Renderer {
           ? 'nythraxis'
           : inside
             ? 'dungeon'
-            : camY < WATER_LEVEL - 0.05
+            : camY < waterLevel() - 0.05
               ? 'underwater'
               : 'outdoor';
     const fog = this.scene.fog as THREE.Fog;
@@ -3995,8 +4000,8 @@ export class Renderer {
       // majority (everyone on land) skip groundHeight() entirely each frame.
       const swimming =
         !e.dead &&
-        e.pos.y <= WATER_LEVEL - 0.5 &&
-        groundHeight(e.pos.x, e.pos.z, this.sim.cfg.seed) < WATER_LEVEL - 0.8;
+        e.pos.y <= waterLevel() - 0.5 &&
+        groundHeight(e.pos.x, e.pos.z, this.sim.cfg.seed) < waterLevel() - 0.8;
 
       // lazy form visuals, swapped by visibility like the old sheep/bear rigs
       if (polyed && !v.sheepVisual) {
@@ -4648,11 +4653,18 @@ export class Renderer {
 
   /**
    * Re-mesh the terrain from the current active world content (after a sculpt or
-   * biome-paint edit). Disposes the old chunk geometries and the one shared
-   * material (and its build-specific normal map) exactly once, but never the
-   * shared splat/detail textures. Editor-only.
+   * biome-paint edit). With a `region` (world-space bounds of the edit), only the
+   * chunks intersecting it re-mesh in place (cheap enough for a live brush drag);
+   * the macro normal map is left stale until rebakeTerrainNormals at stroke end.
+   * Without one it is the full rebuild (map load): dispose the old chunk
+   * geometries and the one shared material (and its build-specific normal map)
+   * exactly once, but never the shared splat/detail textures. Editor-only.
    */
-  rebuildTerrain(): void {
+  rebuildTerrain(region?: { minX: number; minZ: number; maxX: number; maxZ: number }): void {
+    if (region) {
+      this.terrainView.rebuildRegion(region.minX, region.minZ, region.maxX, region.maxZ);
+      return;
+    }
     const old = this.terrainView.group;
     this.scene.remove(old);
     const firstMesh = old.children.find((c) => (c as THREE.Mesh).isMesh) as THREE.Mesh | undefined;
@@ -4671,6 +4683,52 @@ export class Renderer {
     this.terrainView = buildTerrain(this.sim.cfg.seed);
     setRenderCategory(this.terrainView.group, 'terrain');
     this.scene.add(this.terrainView.group);
+  }
+
+  /**
+   * Rebake the macro normal DataTexture over the edited region (the per-pixel
+   * relief that goes stale after a sculpt). Debounce to stroke END in the
+   * editor: it re-uploads the texture, so never call it per drag sample.
+   * Editor-only.
+   */
+  rebakeTerrainNormals(region: { minX: number; minZ: number; maxX: number; maxZ: number }): void {
+    this.terrainView.rebakeNormalRegion(region.minX, region.minZ, region.maxX, region.maxZ);
+  }
+
+  /**
+   * Re-seat the water surface at the ACTIVE waterLevel() and recompute the
+   * shoreline depth attribute from the current terrain (after a water-level
+   * edit or a shoreline sculpt). Editor-only.
+   */
+  rebuildWater(): void {
+    this.waterView.setLevel();
+  }
+
+  /**
+   * Project the editor brush ring onto the terrain at world (x, z). Uniform
+   * writes only; call per pointer-move. Editor-only.
+   */
+  setEditorBrush(x: number, z: number, radius: number, color?: THREE.ColorRepresentation): void {
+    this.terrainView.setBrush(x, z, radius, color);
+  }
+
+  /** Hide the editor brush ring. Editor-only. */
+  clearEditorBrush(): void {
+    this.terrainView.clearBrush();
+  }
+
+  /**
+   * The placed-GLB-asset view for live editing (add/move/remove/select/reSeat/
+   * footprints). Created lazily so a map that starts with zero placements still
+   * gets a live view; the shipped game never calls this. Editor-only.
+   */
+  get placedAssets(): PlacedAssetsView {
+    if (!this.placedAssetsView) {
+      this.placedAssetsView = new PlacedAssetsView([], this.sim.cfg.seed);
+      setRenderCategory(this.placedAssetsView.group, 'props');
+      this.scene.add(this.placedAssetsView.group);
+    }
+    return this.placedAssetsView;
   }
 
   private updateCamera(selfPos: THREE.Vector3, dt: number): void {
@@ -4776,7 +4834,7 @@ export class Renderer {
               : null;
       // Only at the water's edge / in it — sampled at the player, so a loose
       // threshold made the loop bleed across the low marsh from far off.
-      const nearWater = !inDungeon && groundHeight(px, pz, seed) < WATER_LEVEL + 0.4;
+      const nearWater = !inDungeon && groundHeight(px, pz, seed) < waterLevel() + 0.4;
       sink.ambience(biome, inDungeon, precip, nearWater);
     }
   }

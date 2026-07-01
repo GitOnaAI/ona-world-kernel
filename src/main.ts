@@ -7304,7 +7304,7 @@ function fadeOutHomepageMusic(durationMs = 1600): void {
 })();
 
 // Editor play-test handoff: if the map editor stored a custom world and sent us
-// here (DEV only), boot straight into that world and skip the start screen. Any
+// here, boot straight into that offline world and skip the start screen. Any
 // malformed/absent request falls through to the normal home flow.
 const editorPlaytest = takeEditorPlaytestRequest();
 if (editorPlaytest) {

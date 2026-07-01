@@ -1,7 +1,7 @@
 // Editor -> game play-test handoff. Stashes a WorldContent (built from the current
 // CustomMap via custom_map.customMapToWorldContent) in sessionStorage and navigates
-// to the game page, which boots offline into that world (see game/editor_playtest.ts
-// + main.ts). DEV-only path; in production the game ignores the stored request.
+// to the game page, which boots OFFLINE into that world (see game/editor_playtest.ts
+// + main.ts). Offline-only: playtest never talks to the server.
 
 import { EDITOR_PLAYTEST_KEY } from '../game/editor_playtest';
 import type { WorldContent } from '../sim/types';
