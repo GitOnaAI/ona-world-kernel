@@ -22,7 +22,7 @@ import {
   playerPortraitDataUrl,
   visualPortraitDataUrl,
 } from '../render/characters/portrait';
-import { isFriendlyPet, mobNameColor } from '../render/reaction';
+import { isFriendlyPet, mobTooltipConColor } from '../render/reaction';
 import type { Renderer } from '../render/renderer';
 import { type AugmentCategory, augmentCategory } from '../sim/content/augments';
 import {
@@ -3208,10 +3208,10 @@ export class Hud {
   // finds a hovered mob; gated on a small key (not just the id) so re-hovering the
   // same mob each frame does not rebuild the HTML, yet a mid-hover change that
   // moves the rendered model (the mob aggros so hostile flips, the mob or the
-  // viewer dings a level so the con-color shifts) still repaints. Mirrors the
-  // nameplate's con-color (mobNameColor) so the tooltip name reads the same color
-  // as the mob's overhead label. Shown at a fixed spot (right of the health bars,
-  // see paintTooltipNearPlayerFrame) rather than following the cursor.
+  // viewer dings a level so the con-color shifts) still repaints. Colored by the
+  // tooltip's own classic con spread (mobTooltipConColor), deliberately independent
+  // of the overhead nameplate bands (mobNameColor). Shown at a fixed spot (right of
+  // the health bars, see paintTooltipNearPlayerFrame) rather than following the cursor.
   showMobHoverTooltip(entity: Entity, pvpOpponents: ReadonlySet<number>): void {
     const key = `${entity.id}:${entity.level}:${entity.hostile ? 1 : 0}:${this.sim.player.level}`;
     if (key === this.lastMobTooltipId) return;
@@ -3231,7 +3231,7 @@ export class Hud {
       name: mobDisplayName(entity.templateId),
       level: entity.level,
       familyLabel,
-      color: mobNameColor(diff, entity.dead, friendlyPet),
+      color: mobTooltipConColor(diff, entity.dead, friendlyPet),
       hostile: entity.hostile,
     };
     this.paintTooltipNearPlayerFrame(mobTooltipHtml(model, MOB_TOOLTIP_VIEW_DEPS));

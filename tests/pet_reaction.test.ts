@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { isFriendlyPet, isOwnedPetHostile, mobNameColor } from '../src/render/reaction';
+import {
+  isFriendlyPet,
+  isOwnedPetHostile,
+  mobNameColor,
+  mobTooltipConColor,
+} from '../src/render/reaction';
 
 const ME = 7;
 const ENEMY = 9;
@@ -59,23 +64,18 @@ describe('mobNameColor', () => {
     // diff of +5 would otherwise be the scary red (#ff4444) — the original bug.
     expect(mobNameColor(5, false, true)).toBe('#9fdc7f');
   });
-  it('preserves the classic con colors for wild mobs', () => {
-    expect(mobNameColor(7, false, false)).toBe('#ff4444');
-    expect(mobNameColor(4, false, false)).toBe('#ffaa33');
-    expect(mobNameColor(2, false, false)).toBe('#ffe97a');
-    // A same-level mob cons yellow (the classic even band), not green.
+  it('preserves the classic con colors for wild mobs (unchanged shipped nameplate bands)', () => {
+    expect(mobNameColor(5, false, false)).toBe('#ff4444');
+    expect(mobNameColor(2, false, false)).toBe('#ffaa33');
     expect(mobNameColor(0, false, false)).toBe('#ffe97a');
-    expect(mobNameColor(-4, false, false)).toBe('#7fdc4f');
+    expect(mobNameColor(-3, false, false)).toBe('#7fdc4f');
     expect(mobNameColor(-9, false, false)).toBe('#9d9d9d');
   });
-  it('pins the exact con-bucket boundaries', () => {
-    // >=5 red; >=3 orange; -2..+2 yellow; -5..-3 green; below grey.
-    expect(mobNameColor(5, false, false)).toBe('#ff4444');
-    expect(mobNameColor(4, false, false)).toBe('#ffaa33');
-    expect(mobNameColor(3, false, false)).toBe('#ffaa33');
-    expect(mobNameColor(2, false, false)).toBe('#ffe97a');
+  it('pins the exact nameplate con-bucket boundaries', () => {
+    // >=3 red; >=1 orange; >=-2 yellow; >=-5 green; below grey.
+    expect(mobNameColor(3, false, false)).toBe('#ff4444');
+    expect(mobNameColor(1, false, false)).toBe('#ffaa33');
     expect(mobNameColor(-2, false, false)).toBe('#ffe97a');
-    expect(mobNameColor(-3, false, false)).toBe('#7fdc4f');
     expect(mobNameColor(-5, false, false)).toBe('#7fdc4f');
     expect(mobNameColor(-6, false, false)).toBe('#9d9d9d');
   });
@@ -84,5 +84,37 @@ describe('mobNameColor', () => {
   });
   it('dead wins over the con color for a wild mob too', () => {
     expect(mobNameColor(5, true, false)).toBe('#999');
+  });
+});
+
+describe('mobTooltipConColor', () => {
+  it('uses the classic con SPREAD, distinct from the nameplate bands', () => {
+    // red only at 5+ above (nameplate goes red at 3+); orange 3-4; yellow across
+    // the even band -2..+2; green -3..-5; grey 6+ below.
+    expect(mobTooltipConColor(6, false, false)).toBe('#ff4444');
+    expect(mobTooltipConColor(4, false, false)).toBe('#ffaa33');
+    expect(mobTooltipConColor(0, false, false)).toBe('#ffe97a');
+    expect(mobTooltipConColor(-4, false, false)).toBe('#7fdc4f');
+    expect(mobTooltipConColor(-9, false, false)).toBe('#9d9d9d');
+  });
+  it('pins the exact tooltip con-bucket boundaries', () => {
+    // >=5 red; >=3 orange; >=-2 yellow; >=-5 green; below grey.
+    expect(mobTooltipConColor(5, false, false)).toBe('#ff4444');
+    expect(mobTooltipConColor(4, false, false)).toBe('#ffaa33');
+    expect(mobTooltipConColor(3, false, false)).toBe('#ffaa33');
+    expect(mobTooltipConColor(2, false, false)).toBe('#ffe97a');
+    expect(mobTooltipConColor(-2, false, false)).toBe('#ffe97a');
+    expect(mobTooltipConColor(-3, false, false)).toBe('#7fdc4f');
+    expect(mobTooltipConColor(-5, false, false)).toBe('#7fdc4f');
+    expect(mobTooltipConColor(-6, false, false)).toBe('#9d9d9d');
+  });
+  it('a 4-above mob is orange in the tooltip but red on the nameplate', () => {
+    // The whole point of the split: same mob, different palette.
+    expect(mobTooltipConColor(4, false, false)).toBe('#ffaa33');
+    expect(mobNameColor(4, false, false)).toBe('#ff4444');
+  });
+  it('honors the corpse and friendly-pet overrides like the nameplate color', () => {
+    expect(mobTooltipConColor(6, true, false)).toBe('#999');
+    expect(mobTooltipConColor(6, false, true)).toBe('#9fdc7f');
   });
 });
