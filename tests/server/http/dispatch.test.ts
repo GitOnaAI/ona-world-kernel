@@ -1,0 +1,195 @@
+// Unit tests for the Phase 9 dispatcher-in-front (server/http/dispatch.ts).
+//
+// The dispatcher runs the Phase 5 onion for a registry-matched RouteDef and
+// delegates every other /api path to the legacy handleApi UNCHANGED. These tests
+// pin: a matched path runs the onion exactly once and emits exactly one response;
+// an unmatched path calls the delegate with the untouched req/res; a handler throw
+// yields exactly one problem+json response with no error leak; and selectApiEntry
+// picks the legacy vs new path from the flag (flag-off bypasses the dispatcher
+// entirely). CORS parity old-vs-new lives in the top-level main.ts wrapper, so it
+// is proven by parity.test.ts, not here.
+
+import type * as http from 'node:http';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  type ApiDelegate,
+  type ApiDispatcher,
+  createApiDispatcher,
+  selectApiEntry,
+} from '../../../server/http/dispatch';
+import type { MetricEvent, MetricSink } from '../../../server/http/middleware/metric_sink';
+import type { ApiRegistry } from '../../../server/http/registry';
+import type { MatchResult } from '../../../server/http/router';
+import type { RouteDef, RouteHandler, RouteMeta } from '../../../server/http/types';
+import { FakeRes, makeReq } from '../helpers';
+
+/** A registry stub that always returns one fixed MatchResult, isolating the dispatcher. */
+function registryReturning(result: MatchResult<RouteDef>): ApiRegistry {
+  return { resolve: () => result };
+}
+
+/** A fake /api route with an injectable handler. */
+function fakeRoute(handler: RouteHandler, meta?: RouteMeta): RouteDef {
+  return { method: 'GET', path: '/api/things/:id', surface: 'api', handler, meta };
+}
+
+/**
+ * Drive the fire-and-forget dispatcher (void runOnion) to completion by polling
+ * the response, bounded so a stuck onion fails loudly instead of hanging.
+ */
+function flush(res: FakeRes): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let ticks = 0;
+    const tick = () => {
+      // A synchronous handler ends the response before the onion unwinds (where
+      // withMetrics records), so poll via setImmediate: the check runs only after
+      // the microtask queue (the full unwind, including the metric record) drains.
+      if (res.writableEnded) return resolve();
+      if (++ticks > 1000) return reject(new Error('response never ended'));
+      setImmediate(tick);
+    };
+    setImmediate(tick);
+  });
+}
+
+describe('createApiDispatcher', () => {
+  it('runs the onion once for a registry-matched path and emits exactly one response', async () => {
+    let handlerCalls = 0;
+    let delegateCalls = 0;
+    const events: MetricEvent[] = [];
+    const sink: MetricSink = { record: (e) => events.push(e) };
+    const route = fakeRoute(async (ctx) => {
+      handlerCalls++;
+      ctx.res.writeHead(200, { 'Content-Type': 'application/json' });
+      ctx.res.end(JSON.stringify({ ok: true, id: ctx.params.id }));
+    });
+    const dispatcher = createApiDispatcher({
+      registry: registryReturning({ kind: 'matched', route, params: { id: '42' }, head: false }),
+      delegate: () => {
+        delegateCalls++;
+      },
+      metricSink: sink,
+    });
+
+    const res = new FakeRes();
+    dispatcher(
+      makeReq({ method: 'GET', url: '/api/things/42' }),
+      res as unknown as http.ServerResponse,
+    );
+    await flush(res);
+
+    expect(handlerCalls).toBe(1);
+    expect(delegateCalls).toBe(0);
+    expect(res.statusCode).toBe(200);
+    expect(res.writableEnded).toBe(true);
+    expect(JSON.parse(res.body)).toEqual({ ok: true, id: '42' });
+    // The metric hook observes the FINAL status against the :param TEMPLATE.
+    expect(events).toEqual([
+      { route: '/api/things/:id', method: 'GET', status: 200, durationMs: expect.any(Number) },
+    ]);
+  });
+
+  it('delegates an unregistered path to the legacy handleApi with req/res untouched', () => {
+    const seen: Array<{ req: http.IncomingMessage; res: http.ServerResponse }> = [];
+    const dispatcher = createApiDispatcher({
+      registry: registryReturning({ kind: 'notFound' }),
+      delegate: (req, res) => {
+        seen.push({ req, res });
+      },
+    });
+
+    const req = makeReq({ method: 'GET', url: '/api/legacy/thing' });
+    const res = new FakeRes();
+    dispatcher(req, res as unknown as http.ServerResponse);
+
+    expect(seen).toHaveLength(1);
+    // The SAME req/res objects reach the delegate, untouched (identity check).
+    expect(seen[0].req).toBe(req);
+    expect(seen[0].res).toBe(res as unknown as http.ServerResponse);
+    // The dispatcher wrote nothing: the delegate owns the response.
+    expect(res.headersSent).toBe(false);
+    expect(res.writableEnded).toBe(false);
+  });
+
+  it('delegates a known path under the wrong method (methodNotAllowed), never the onion', () => {
+    let delegateCalls = 0;
+    const dispatcher = createApiDispatcher({
+      // A path the router knows but not under this method: not a 'matched' kind, so
+      // the dispatcher delegates and never builds a ctx or runs the onion/handler.
+      registry: registryReturning({ kind: 'methodNotAllowed', allow: ['GET'] }),
+      delegate: () => {
+        delegateCalls++;
+      },
+    });
+    const res = new FakeRes();
+    dispatcher(
+      makeReq({ method: 'POST', url: '/api/things/42' }),
+      res as unknown as http.ServerResponse,
+    );
+    expect(delegateCalls).toBe(1);
+    expect(res.writableEnded).toBe(false);
+  });
+
+  it('maps a handler throw to exactly one problem+json response without leaking the error', async () => {
+    const events: MetricEvent[] = [];
+    const route = fakeRoute(async () => {
+      throw new Error('boom-secret-detail');
+    });
+    const dispatcher = createApiDispatcher({
+      registry: registryReturning({ kind: 'matched', route, params: {}, head: false }),
+      delegate: () => {},
+      metricSink: { record: (e) => events.push(e) },
+    });
+
+    const res = new FakeRes();
+    dispatcher(
+      makeReq({ method: 'GET', url: '/api/things/1' }),
+      res as unknown as http.ServerResponse,
+    );
+    await flush(res);
+
+    expect(res.statusCode).toBe(500);
+    expect(String(res.getHeader('content-type'))).toContain('application/problem+json');
+    expect(res.writableEnded).toBe(true);
+    // The 500-no-leak contract: the thrown detail never reaches the body.
+    expect(res.body).not.toContain('boom-secret-detail');
+    expect(events[0]?.status).toBe(500);
+  });
+});
+
+describe('selectApiEntry', () => {
+  it("routes through the new dispatcher when the flag is 'new'", () => {
+    const spyNew = vi.fn();
+    const spyLegacy = vi.fn();
+    const entry = selectApiEntry(
+      'new',
+      spyNew as unknown as ApiDispatcher,
+      spyLegacy as unknown as ApiDelegate,
+    );
+
+    expect(entry).toBe(spyNew as unknown as ApiDispatcher);
+    const req = makeReq();
+    const res = new FakeRes();
+    entry(req, res as unknown as http.ServerResponse);
+    expect(spyNew).toHaveBeenCalledTimes(1);
+    expect(spyLegacy).not.toHaveBeenCalled();
+  });
+
+  it("bypasses the dispatcher entirely and calls the legacy handleApi when the flag is 'legacy'", () => {
+    const spyNew = vi.fn();
+    const spyLegacy = vi.fn();
+    const entry = selectApiEntry(
+      'legacy',
+      spyNew as unknown as ApiDispatcher,
+      spyLegacy as unknown as ApiDelegate,
+    );
+
+    expect(entry).not.toBe(spyNew as unknown as ApiDispatcher);
+    const req = makeReq();
+    const res = new FakeRes();
+    entry(req, res as unknown as http.ServerResponse);
+    expect(spyLegacy).toHaveBeenCalledTimes(1);
+    expect(spyLegacy).toHaveBeenCalledWith(req, res);
+    expect(spyNew).not.toHaveBeenCalled();
+  });
+});

@@ -28,7 +28,11 @@ export interface Config {
 // the equality checks in parseDispatch narrow a raw string to the literal union.
 const DISPATCH_LEGACY = 'legacy' as const;
 const DISPATCH_NEW = 'new' as const;
-const DEFAULT_DISPATCH: Config['dispatch'] = DISPATCH_LEGACY;
+// The single source of truth for the default dispatch mode. Exported so the boot
+// wiring (server/main.ts) uses the SAME default for its pre-boot/test-import value
+// as loadConfig uses when API_DISPATCH is unset, rather than re-typing the literal.
+// Phase 25 flips this to 'new'.
+export const DEFAULT_DISPATCH: Config['dispatch'] = DISPATCH_LEGACY;
 
 // The literal env value that turns the dev-command cheats on. Anything else
 // (including unset) leaves them off; production must never set this.

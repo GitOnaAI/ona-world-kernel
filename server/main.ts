@@ -96,6 +96,9 @@ import { pruneDiscordOAuthStates, pruneDiscordPendingLogins } from './discord_db
 import { emailAccountCreated } from './email';
 import { GameServer } from './game';
 import { handleClientError } from './http/client_error';
+import { DEFAULT_DISPATCH, loadConfig } from './http/config';
+import { type ApiDispatcher, createApiDispatcher, selectApiEntry } from './http/dispatch';
+import { apiRegistry } from './http/registry';
 import { isUniqueViolation, json, readBody } from './http_util';
 import { handleInternalApi } from './internal';
 import { isConnectionRefused } from './ip_block';
@@ -1412,11 +1415,71 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
 // HTTP route dispatch
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// The /api dispatch seam (Phase 9 of docs/api-pipeline/)
+// ---------------------------------------------------------------------------
+
+// The in-house dispatcher that fronts the legacy handleApi ladder via a per-path
+// delegate. Built once; with an empty registry (this phase) every path delegates
+// to handleApi UNCHANGED, so behavior is byte-for-byte identical to today.
+const apiDispatcher = createApiDispatcher({ registry: apiRegistry, delegate: handleApi });
+
+// The bound /api entry for the current dispatch mode, recomputed only when the
+// mode changes (boot + tests), never per request. It starts at the config default
+// dispatch (DEFAULT_DISPATCH, 'legacy' today) so importing this module (e.g. in a
+// test) never depends on the environment; startServer reads the real API_DISPATCH
+// flag via loadConfig once at boot. Flipping the production default to 'new' is Phase 25.
+let apiEntry: ApiDispatcher = selectApiEntry(DEFAULT_DISPATCH, apiDispatcher, handleApi);
+
+function setApiDispatchMode(mode: 'legacy' | 'new'): void {
+  apiEntry = selectApiEntry(mode, apiDispatcher, handleApi);
+}
+
+// Test-only override so the parity harness can drive routeHttpRequest under both
+// flag values in-process. The flag is boot-time only in production (API_DISPATCH),
+// so this throws there, mirroring ratelimit.setRateLimitClock.
+export function setApiDispatchModeForTests(mode: 'legacy' | 'new'): void {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('setApiDispatchModeForTests must not be called in production');
+  }
+  setApiDispatchMode(mode);
+}
+
+/** Restore the default legacy /api dispatch after a test. */
+export function resetApiDispatchModeForTests(): void {
+  setApiDispatchMode('legacy');
+}
+
+// Single top-level source of truth for CORS + the OPTIONS-204 preflight, applied
+// BEFORE the prefix ladder so the legacy handlers AND the new /api dispatcher
+// inherit identical CORS from ONE place (a rollback can never drop preflight, and
+// the delegated and onion paths can never diverge on CORS). It applies the exact
+// CORS the ladder always did: the wide-open '*' for public read paths, the narrow
+// realm/native allowlist for other /api + /admin/api. Returns true when the
+// request was a fully-handled OPTIONS preflight, so the caller returns.
+function applyCorsAndPreflight(
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  isApi: boolean,
+  publicCorsPath: boolean,
+): boolean {
+  if (publicCorsPath) publicCors(res);
+  else if (isApi) maybeCors(req, res);
+  if (req.method === 'OPTIONS' && (isApi || publicCorsPath)) {
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
+  return false;
+}
+
 // The createServer prefix-dispatch ladder, lifted to module scope as an
 // importable pure function. Every symbol it touches (game, the imported route
-// handlers, the CORS helpers) is module-level, so it moves cleanly. The exact
-// prefix order, the url-vs-path arm asymmetry, the CORS + OPTIONS-204
-// short-circuit position, and every fire-and-forget `void` are preserved 1:1.
+// handlers, the CORS + dispatch helpers) is module-level, so it moves cleanly.
+// The exact prefix order, the url-vs-path arm asymmetry, the CORS + OPTIONS-204
+// short-circuit position, and every fire-and-forget `void` are preserved 1:1; the
+// only change from Phase 8 is the /api arm now routes through apiEntry (the flag-
+// gated dispatcher) instead of calling handleApi directly.
 export function routeHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
   const url = req.url ?? '';
   const path = url.split('?')[0];
@@ -1425,16 +1488,10 @@ export function routeHttpRequest(req: http.IncomingMessage, res: http.ServerResp
   // origin so browser-origin companion apps can call them client-side; every
   // other /api route keeps the narrow realm/native allowlist.
   const publicCorsPath = isPublicCorsPath(path);
-  if (publicCorsPath) publicCors(res);
-  else if (isApi) maybeCors(req, res);
-  if (req.method === 'OPTIONS' && (isApi || publicCorsPath)) {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
+  if (applyCorsAndPreflight(req, res, isApi, publicCorsPath)) return;
   if (url.startsWith('/internal/')) void handleInternalApi(req, res, game);
   else if (url.startsWith('/admin/api/')) void handleAdminApi(req, res, game);
-  else if (url.startsWith('/api/')) void handleApi(req, res);
+  else if (url.startsWith('/api/')) void apiEntry(req, res);
   else if (url.startsWith('/oauth/')) void handleOAuth(req, res);
   else if (req.method === 'GET' && url.startsWith('/p/')) void handleCardRoutes(req, res);
   else if (req.method === 'GET' && path.startsWith('/avatar/')) void handleAvatar(req, res);
@@ -1531,6 +1588,11 @@ export async function startServer(): Promise<http.Server> {
   warmLeaderboards();
   setInterval(warmLeaderboards, LEADERBOARD_TTL_MS).unref();
   console.log('database ready');
+
+  // Select the /api dispatch path from the single API_DISPATCH flag, read once
+  // through loadConfig (never a scattered process.env read). Default is 'legacy'
+  // (Phase 25 flips the production default to 'new'); rollback is a flag flip.
+  setApiDispatchMode(loadConfig(process.env).dispatch);
 
   const server = http.createServer(routeHttpRequest);
   server.on('clientError', handleClientError);
