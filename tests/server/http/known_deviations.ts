@@ -38,6 +38,7 @@ export const DEVIATION_ID = {
   accountBodyValidationRemap: 'account-body-validation-remap',
   rateLimitedBodyToCode: 'rate-limited-body-to-code',
   walletBodyValidationRemap: 'wallet-body-validation-remap',
+  reportsBodyValidationRemap: 'reports-body-validation-remap',
   newLimiterReportsCreate: 'new-limiter-reports-create',
   newLimiterDiscord: 'new-limiter-discord',
   discordCallbackHtmlNotRedirect: 'discord-callback-html-not-redirect',
@@ -246,19 +247,32 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
   },
   {
     id: DEVIATION_ID.validationStatusRemap,
-    routes: ['/api/register', '/api/reports', '/api/bug-reports'],
+    routes: ['/api/register'],
     currentBehavior:
-      'A well-formed but invalid body answers 400, malformed JSON answers 500, ' +
-      'and an over-cap body answers 413, inconsistently across the validating ' +
-      'routes.',
+      'On the legacy handleApi ladder POST /api/register reads its body with ' +
+      'readBody (no try/catch), so a malformed JSON body or an over-cap body ' +
+      'falls to the outer catch and answers 500 { error: "internal error" }; a ' +
+      'well-formed but semantically invalid body answers a hand-written 400.',
     intendedBehavior:
-      'Phase 7 remaps to 422 (well-formed but semantically invalid), 400 ' +
-      '(malformed JSON), and 413 (over the byte cap), uniformly.',
+      'Phase 11 serves register through the new pipeline with the Phase 8 withBody ' +
+      'middleware, so malformed JSON answers 400 (json.malformed) and an over-cap ' +
+      'body answers 413 (body.too_large), both application/problem+json; the ' +
+      'semantic 400s stay hand-written prose (the 422 prong is aspirational and not ' +
+      'yet realized). NOTE: this entry was originally seeded (Phase 3) to also cover ' +
+      '/api/reports and /api/bug-reports, but Phase 15 migrates those parity-first ' +
+      '(they self-read their body with NO withBody, so they get NO 400/413 status ' +
+      'remap: reports 500s on a bad body, bug-reports keeps its own byte-identical ' +
+      '413 { error: "bug report too large" } / 400 { error: "bad request" }); their ' +
+      'only framework-error divergence is the 500 body SHAPE, tracked by ' +
+      'reportsBodyValidationRemap. So the two routes are removed from this entry.',
     introducedInPhase: 7,
     reason:
-      'Phase 7 unifies request-validation status codes (422 for semantically ' +
-      'invalid, 400 for malformed JSON, 413 for over the byte cap); today these ' +
-      'are 400, 500, and 413.',
+      'Phase 11 realizes the withBody 400 (malformed) / 413 (over-cap) status remap ' +
+      'for register (was a generic 500); the 422-for-semantic prong stays aspirational ' +
+      '(register still hand-writes its semantic 400s). Not exercised by the valid-body ' +
+      'parity corpus, so documented here. /api/reports and /api/bug-reports were ' +
+      'removed in Phase 15 (they self-read without withBody, so they get no status ' +
+      'remap; their 500 body-shape divergence is reportsBodyValidationRemap).',
     goldenFixtures: ['tests/server/fixtures/main/register_post_empty_400.json'],
   },
   {
@@ -549,16 +563,70 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'harness.',
   },
   {
+    id: DEVIATION_ID.reportsBodyValidationRemap,
+    routes: ['/api/reports', '/api/bug-reports', '/api/perf-report', '/api/site-presence'],
+    currentBehavior:
+      'The four reports/telemetry handlers self-read their request body with readBody ' +
+      '(the report handler at the default cap; the bug-report handler at a 1 MB cap ' +
+      'with its OWN try/catch answering 413 { error: "bug report too large" } / 400 ' +
+      '{ error: "bad request" }; handlePerfReport / handleSitePresenceHeartbeat inside ' +
+      'themselves). On the legacy handleApi ladder, a readBody reject that the handler ' +
+      'does NOT catch (an over-cap or malformed body for reports / perf-report / ' +
+      "site-presence, or a non-rate-limit createBugReport throw) falls to handleApi's " +
+      'outer catch and answers 500 { error: "internal error" } (application/json).',
+    intendedBehavior:
+      'Phase 15 serves these four routes through the new pipeline. The handlers self-read ' +
+      'their body (so NO withBody middleware is composed and there is NO 400/413 status ' +
+      'remap), and every handler-owned body stays byte-identical: the report validation ' +
+      'ladder ({ error } 400/404 + 200 { ok, reportId }), the bug-report 413/400/429/200 ' +
+      'bodies, and the perf-report / site-presence 200/400/405 { ok } beacon bodies. The ' +
+      'ONLY divergence is the 500 BODY SHAPE: an unexpected throw (a readBody reject on ' +
+      'an over-cap/malformed body, or a rethrown non-rate-limit createBugReport error) ' +
+      'propagates to the Phase 8 withErrors boundary and serializes as 500 ' +
+      'application/problem+json (internal.error) instead of the legacy 500 ' +
+      '{ error: "internal error" }. Leak-free (the 500 detail is a static sentence; the ' +
+      'original error goes only to the logger). The client code-matcher for the ' +
+      'problem+json body is Phase 22; the divergence becomes the real behavior at the ' +
+      'Phase 25 flag flip.',
+    introducedInPhase: 15,
+    reason:
+      'The migrated reports/bug-report/perf-report/site-presence handlers surface an ' +
+      'unexpected body throw through the shared Phase 7/8 error-model boundary as 500 ' +
+      'problem+json instead of the legacy outer-catch 500 { error }. Same 500 STATUS, ' +
+      'different body shape; there is no status remap because these handlers self-read ' +
+      'without withBody. Exact sibling to accountBodyValidationRemap / ' +
+      'walletBodyValidationRemap. These framework-error paths are NOT exercised by the ' +
+      'db-free parity corpus (which replays valid bodies only), so the divergence is ' +
+      'documented here rather than harness-caught. Adding /api/reports and ' +
+      '/api/site-presence here also masks them in the path-scoped parity filter, so ' +
+      'their corpus fixtures (reports_post_noauth_401, site_presence_get_405) are ' +
+      're-pinned by dedicated captureBothModes assertions in parity.test.ts.',
+  },
+  {
     id: DEVIATION_ID.newLimiterReportsCreate,
     routes: ['/api/reports'],
     currentBehavior:
-      'POST /api/reports has no dedicated reports.create limiter today (it is ' +
-      'gated only by the full session).',
-    intendedBehavior: 'Phase 15 adds a reports.create limiter.',
+      'On the legacy handleApi ladder POST /api/reports has no dedicated limiter ' +
+      '(it is gated only by the full session plus the per-target 12h ' +
+      'duplicate-report window in createPlayerReport).',
+    intendedBehavior:
+      'Phase 15 serves POST /api/reports through the new pipeline with a NEW coarse ' +
+      'per-account limiter: a rateLimit(REPORTS_CREATE_POLICY) middleware (fused ' +
+      'per-IP AND per-account, REPORTS_CREATE_MAX_PER_MINUTE = 10 over the shared ' +
+      '60s window) mounted AFTER activeGuard, throwing HttpError(429, ' +
+      '"rate_limit.exceeded", { retryAfterSeconds }) serialized as RFC 9457 ' +
+      'application/problem+json. The code already exists (harvested in Phase 7, ' +
+      'reused by the Phase 12 character limiters and the Phase 14 wallet/card ' +
+      'limiters), so no catalog append is needed. The legacy arm stays unlimited ' +
+      'for the flag-off rollback until Phase 25.',
     introducedInPhase: 15,
     reason:
-      'A NEW reports.create limiter lands in Phase 15; today report creation has ' +
-      'no dedicated limiter.',
+      'A NEW per-account reports.create limiter lands in Phase 15 (report creation ' +
+      'had no dedicated limiter): a 429 is now possible where none was. Sibling to ' +
+      'newLimiterCharacterMutations. The 429 divergence is NOT exercised by the ' +
+      'db-free parity corpus (runParity resets every limiter bucket before each ' +
+      'pass, so a bucket is never drained), so it is documented here rather than ' +
+      'caught by the harness.',
   },
   {
     id: DEVIATION_ID.newLimiterDiscord,

@@ -18,6 +18,7 @@ import {
   resetPublicReadRateLimits,
   resetRateLimitClock,
   resetRateLimits,
+  resetReportsCreateRateLimits,
   resetWalletLinkRateLimits,
   resetWocBalanceRateLimits,
 } from '../../../server/ratelimit';
@@ -70,6 +71,10 @@ async function isolatePass(extraReset?: () => Promise<void> | void): Promise<voi
   // The Phase 12 per-account character-mutation limiters are separate buckets, so a
   // create/rename/delete/takeover 429 on one pass must not bleed into the next.
   resetCharacterMutationRateLimits();
+  // The Phase 15 per-account reports.create limiter is a separate bucket, so a
+  // report-create 429 on one pass must not bleed into the next (harmless today,
+  // since the reports corpus request 401s at activeGuard before the limiter runs).
+  resetReportsCreateRateLimits();
   // The per-account failed-login bucket is a SEPARATE limiter (authThrottled /
   // recordAuthFailure on the login/register path), so a pass-1 login failure
   // must not bleed into pass 2 and falsely trip the new pass on the error path.

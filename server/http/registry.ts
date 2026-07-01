@@ -26,6 +26,7 @@ import { routes as accountRoutes } from '../account';
 import { routes as authRoutes } from '../auth_routes';
 import { routes as characterRoutes } from '../characters';
 import { routes as leaderboardRoutes } from '../leaderboard';
+import { routes as reportsRoutes } from '../reports';
 import { routes as walletRoutes } from '../wallet';
 import { type CompiledPattern, compilePattern } from './path_pattern';
 import { createRouter, type MatchResult } from './router';
@@ -64,7 +65,9 @@ export interface ApiRegistry {
  * family, the companion-token method trio, and /api/email/unsubscribe). Phase 14
  * adds the wallet / card / referral surface (server/wallet.ts: the wallet-link
  * family, GET /api/wallet, the public GET /api/woc/balance, the binary POST
- * /api/card, and GET /api/referrals).
+ * /api/card, and GET /api/referrals). Phase 15 adds the reports + telemetry surface
+ * (server/reports.ts: POST /api/reports, POST /api/bug-reports, and the public
+ * beacons POST /api/perf-report and POST /api/site-presence).
  */
 export const apiRoutes: readonly RouteDef[] = [
   ...leaderboardRoutes,
@@ -72,6 +75,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...characterRoutes,
   ...accountRoutes,
   ...walletRoutes,
+  ...reportsRoutes,
 ];
 
 /**

@@ -153,6 +153,7 @@ import {
   REALM_ORIGINS,
 } from './realm';
 import { resolveReportTarget } from './report_target';
+import { configureReportsRuntime } from './reports';
 import { handleSitePresenceHeartbeat } from './site_presence';
 import { cacheControlFor, etagFor, isNotModified } from './static_cache';
 import { verifyTurnstile } from './turnstile';
@@ -1539,6 +1540,16 @@ configureAccountRuntime({
 // arms stay intact as the flag-off rollback path.
 configureWalletRuntime({
   liveLevelForCharacter: (characterId) => game.liveLevelForCharacter(characterId),
+});
+
+// Inject the one main.ts-local singleton the ported report handler
+// (server/reports.ts) needs but cannot import without a cycle: the live report
+// target for an online player id. This is the exact (pid) =>
+// game.reportTargetForPid(pid) the legacy /api/reports arm passed to
+// resolveReportTarget; the legacy reports/bug-report/perf-report/site-presence arms
+// stay intact as the flag-off rollback path.
+configureReportsRuntime({
+  reportTargetForPid: (pid) => game.reportTargetForPid(pid),
 });
 
 // The in-house dispatcher that fronts the legacy handleApi ladder via a per-path

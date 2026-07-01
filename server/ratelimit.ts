@@ -410,6 +410,37 @@ export function resetCharacterMutationRateLimits(): void {
   characterMutationAccountAttempts.clear();
 }
 
+// Player-report creation had no dedicated limiter (it was gated only by the full
+// session plus the per-target 12h duplicate-report window in moderation_db). This
+// adds a coarse per-account create limiter so a single account cannot flood the
+// moderation queue with reports against many different targets. Conservative cap;
+// the window is the shared 60s WINDOW_MS (single-sourced above), and both are
+// folded into the validated config module in Phase 24. Mirrors cardUpload: an IP
+// flood OR an account flood limits.
+export const REPORTS_CREATE_MAX_PER_MINUTE = 10;
+const reportsCreateIpAttempts = new Map<string, number[]>();
+const reportsCreateAccountAttempts = new Map<number, number[]>();
+
+export function reportsCreateRateLimited(req: http.IncomingMessage, accountId: number): boolean {
+  const ipLimited = recordSlidingWindowAttempt(
+    reportsCreateIpAttempts,
+    requestIp(req),
+    REPORTS_CREATE_MAX_PER_MINUTE,
+  );
+  const accountLimited = recordSlidingWindowAttempt(
+    reportsCreateAccountAttempts,
+    accountId,
+    REPORTS_CREATE_MAX_PER_MINUTE,
+  );
+  return ipLimited || accountLimited;
+}
+
+/** Reset report-creation throttles. Test-only: keeps scoped buckets isolated. */
+export function resetReportsCreateRateLimits(): void {
+  reportsCreateIpAttempts.clear();
+  reportsCreateAccountAttempts.clear();
+}
+
 // ---------------------------------------------------------------------------
 // Per-account failed-login throttle (#93)
 //

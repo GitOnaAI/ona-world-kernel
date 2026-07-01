@@ -168,7 +168,7 @@ describe('registry completeness: the legacy /api ladder is fully covered', () =>
   });
 });
 
-describe('registry completeness: migrated baseline (Phase 10 public reads + Phase 11 auth + Phase 12 characters + Phase 13 account + Phase 14 wallet)', () => {
+describe('registry completeness: migrated baseline (Phase 10 public reads + Phase 11 auth + Phase 12 characters + Phase 13 account + Phase 14 wallet + Phase 15 reports/telemetry)', () => {
   // The exact routes migrated onto RouteDefs so far: Phase 10 moved the public
   // reads (GET, server/leaderboard.ts), Phase 11 the auth credential surface (POST,
   // server/auth_routes.ts), Phase 12 the owner-gated character surface
@@ -229,6 +229,14 @@ describe('registry completeness: migrated baseline (Phase 10 public reads + Phas
     { method: 'GET', path: '/api/woc/balance' },
     { method: 'POST', path: '/api/card' },
     { method: 'GET', path: '/api/referrals' },
+    // Phase 15: the reports + telemetry surface (server/reports.ts). All POST; the
+    // two public beacons (perf-report, site-presence) are registered POST-only so a
+    // non-POST delegates to the retained legacy arm (perf-report's 404 fall-through,
+    // site-presence's handler-owned 405 { ok: false }).
+    { method: 'POST', path: '/api/reports' },
+    { method: 'POST', path: '/api/bug-reports' },
+    { method: 'POST', path: '/api/perf-report' },
+    { method: 'POST', path: '/api/site-presence' },
   ];
   const MIGRATED_PATHS = MIGRATED_ROUTES.map((r) => r.path);
 

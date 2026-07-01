@@ -41,6 +41,7 @@ import {
   resetPublicReadRateLimits,
   resetRateLimitClock,
   resetRateLimits,
+  resetReportsCreateRateLimits,
   resetWalletLinkRateLimits,
   resetWocBalanceRateLimits,
 } from '../../../server/ratelimit';
@@ -262,6 +263,9 @@ function isolate(): void {
   // buckets are separate, so a create/rename/delete/takeover 429 on one pass must not
   // bleed into the next (harmless today, since no captureBothModes case mutates).
   resetCharacterMutationRateLimits();
+  // The Phase 15 reports.create limiter bucket, likewise (the reports re-pin 401s at
+  // activeGuard before the limiter, so this is lockstep hygiene, not load-bearing).
+  resetReportsCreateRateLimits();
   resetAuthFailures();
   resetRateLimitClock();
 }
@@ -375,6 +379,23 @@ describe('/api dispatch parity (legacy flag vs new flag)', () => {
   it('GET /api/characters with no auth is identical old-vs-new and is a 401', async () => {
     const { oldCap, newCap } = await captureBothModes(() =>
       makeReq({ method: 'GET', url: '/api/characters' }),
+    );
+    expect(oldCap.status).toBe(401);
+    expect(newCap.status).toBe(oldCap.status);
+    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
+  });
+
+  it('POST /api/reports with no auth is identical old-vs-new and is a 401 (re-pins the masked /api/reports)', async () => {
+    // Phase 15 registers POST /api/reports behind the shared legacy-body activeGuard
+    // and lists /api/reports in the newLimiterReportsCreate + reportsBodyValidationRemap
+    // deviations, which mark the whole path as a known deviation in the aggregate
+    // filter. The reports_post_noauth_401 corpus request never reaches the limiter or
+    // the body read (activeGuard 401s first, db-free), so it must stay byte-identical
+    // old-vs-new; this dedicated assertion re-pins that identity the path-scoped filter
+    // would otherwise mask (mirrors the card no-auth 401 re-pin). A no-bearer POST 401s
+    // at activeGuard with { error: 'not authenticated' }, byte-identical on both paths.
+    const { oldCap, newCap } = await captureBothModes(() =>
+      makeReq({ method: 'POST', url: '/api/reports', body: {} }),
     );
     expect(oldCap.status).toBe(401);
     expect(newCap.status).toBe(oldCap.status);

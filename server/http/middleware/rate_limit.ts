@@ -10,6 +10,7 @@ import {
   characterMutationRateLimited,
   discordRateLimited,
   publicReadRateLimited,
+  reportsCreateRateLimited,
   WINDOW_MS,
   walletLinkRateLimited,
   wocBalanceRateLimited,
@@ -114,6 +115,19 @@ export const CHARACTER_TAKEOVER_POLICY: RateLimitPolicy = characterMutationPolic
   'character_takeover',
   'takeover',
 );
+
+// The report-creation limiter (Phase 15). 'ip+account' (so it mounts BEHIND the
+// route's auth guard, which populates ctx.account), running the fused per-IP AND
+// per-account limiter keyed on the caller. It is a NEW limiter (report creation had
+// none before): a 429 is now possible where none was, recorded as the
+// newLimiterReportsCreate known deviation. It reuses the existing
+// 'rate_limit.exceeded' code (no catalog append).
+export const REPORTS_CREATE_POLICY: RateLimitPolicy = {
+  name: 'reports_create',
+  keyClass: 'ip+account',
+  limited: (ctx) => reportsCreateRateLimited(ctx.req, ctxAccountId(ctx)),
+  retryAfterSeconds: RETRY_AFTER_SECONDS,
+};
 
 // AUTHENTICATED Discord legs only (link / status / reward). It requires
 // ctx.account (ctxAccountId 500s without it), so Phase 9 must mount it BEHIND
