@@ -36,7 +36,7 @@ Mark a row's Status as "In progress" or "Done" and fill Started / Completed
 | Phase 11 QA | Not started |  |  |
 | Phase 12 | Done | 2026-07-01 | 2026-07-01 |
 | Phase 12 QA | Done | 2026-07-01 | 2026-07-01 |
-| Phase 13 | Not started |  |  |
+| Phase 13 | Done | 2026-07-01 | 2026-07-01 |
 | Phase 13 QA | Not started |  |  |
 | Phase 14 | Not started |  |  |
 | Phase 14 QA | Not started |  |  |
@@ -814,17 +814,18 @@ Notes:
 ## Phase 13: Migrate account portal (server/account.ts) + em-dash fix
 
 Deliverables:
-- [ ] Port account/password/logout/email(+change/verify)/deactivate/export/marketing/2fa(setup/enable/disable)/companion-token/email-unsubscribe (classify unsubscribe as HTML) onto thin Ctx handlers
-- [ ] Labeled-behavioral em-dash rate-limit string fix at the re-anchored sites (now 658/664/733/748) AND the matching userFacingApiError change in src/main.ts in the SAME change (prefix unchanged so startsWith still resolves)
-- [ ] Fix the operator-facing em dashes in src/admin/i18n.locales/en_CA.ts + its resolved copy
-
-QA:
-- [ ] Fixes applied
-- [ ] Tests added
-- [ ] Dead code removed
-- [ ] Reviews clean
+- [x] Ported the account-portal surface onto `server/account.ts` `export const routes` (16 RouteDefs): GET /api/account, POST password/logout/email(410)/deactivate, companion-token POST/GET/DELETE (the legacy method-agnostic arm split into three method-specific RouteDefs), POST email/change, GET email/verify, POST export/marketing, POST 2fa/setup+enable+disable, GET /api/email/unsubscribe. Thin Ctx handlers delegate to the existing handleAccount* domain functions UNCHANGED; registry.ts spreads `...accountRoutes` into apiRoutes.
+- [x] /api/email/unsubscribe classified per its REAL Phase 3 fixture (JSON {ok:true}, NOT the planning label's HTML); serializer reproduces the bytes.
+- [x] Labeled-behavioral em-dash rate-limit fix: the four legacy handleApi 429 strings in server/main.ts swapped from a U+2014 em dash to a comma ('too many attempts, wait a minute and try again' / 'too many failed attempts, wait a few minutes and try again'), matching the Phase 11 migrated arms; userFacingApiError (src/main.ts) UNCHANGED (its startsWith prefixes sit before the comma, so resolution is neutral); no new error code. The former `authRateLimitDashToComma` known deviation is RETIRED (legacy == migrated now).
+- [x] Operator-facing em dashes in src/admin/i18n.locales/en_CA.ts swapped to commas + resolved copy regenerated via `npm run i18n:admin` (never hand-edited).
+- [x] Also cleaned the pre-existing comment em dashes in server/main.ts + src/main.ts (the Phase 13 lockstep), so `grep -rnP "\x{2014}"` over all four target files prints nothing.
 
 Notes:
+- Auth via per-route legacy-body guards (activeGuard mirrors bearerActiveAccount: 401 no-token DB-free, 403 read-only scope, 403 moderation-locked; logoutGuard mirrors the logout arm: any token that maps to an account, NO scope/moderation gate so a banned/deactivated account can still sign out), NOT the problem+json requireAccount (the no-auth goldens pin {error:'not authenticated'} and the client prose-matcher is not code-aware until Phase 22). The deactivate hooks (AccountGameHooks) are INJECTED at boot via configureAccountRuntime; the companion-token TTL (24*90) is a MOVED named constant. The account handlers SELF-READ their body (no withBody), so no stream double-read.
+- TWO new knownDeviations (both introducedInPhase 13): `companionTokenMethodFan` (the method-agnostic companion arm, split into 3 RouteDefs, now answers 405 + Allow before auth for an unsupported method where the legacy arm 404'd after auth / 401'd unauth; sibling to planned405BeforeAuth) and `accountBodyValidationRemap` (the self-reading account POST handlers surface a malformed/over-cap/null body throw as 500 problem+json vs the legacy outer-catch 500 {error:'internal error'} - same 500 STATUS, different body shape, NO 400/413 remap because there is no withBody; not corpus-tested).
+- NO error_codes append, NO S3 change, NO DDL/JSONB, NO src/sim, NO WS wire, NO IWorld/matcher-logic change.
+- Validation GREEN: tsc 0; full `npm test` 674 files / 7221 pass / 11 skip; build:env + build:server + build exit 0; check:admin 0/0; ci:changed exit 0; the acceptance grep prints nothing; Stop-hook floor clean. New tests: tests/server/account.test.ts (29) + tests/server/rate_limit_copy.test.ts (5); completeness.test.ts MIGRATED_ROUTES +16 (36 total, method-aware, companion-token path x3).
+- In-phase reviewers (all 3 in parallel; cross-platform-sync/migration-safety/architecture-reviewer correctly SKIPPED - no IWorld/wire/matcher-logic, no DDL/JSONB, no src/sim): privacy-security-review 0 CRITICAL / 0 SHOULD-FIX (all 6 security decisions + parameterized-SQL/IDOR/logging PASS; 2 INFO by-design); qa-checklist READY 0 BLOCKING / 0 SHOULD-FIX / 3 NICE; independent correctness reviewer 0 BLOCKING / 0 SHOULD-FIX (byte-parity-correct + matcher-safe, all 16 routes diffed) / 2 NICE. Applied ALL findings (apply-all): (qa) a deactivate full-chain test proving the injected AccountGameHooks fire through the handler (anyCharacterOnline consulted -> disconnectAccount on success; 409 when online, no disconnect) + the useRuntime()-null throw + the passwordHandler/logoutHandler callerToken-null defensive re-guards (+5 tests, via a per-file vi.mock spread of the deactivate-path db/auth/email reads); (correctness) tightened the companionTokenMethodFan intendedBehavior wording (the dispatcher DELEGATES a methodNotAllowed resolve to the legacy ladder, so the 405 is served only at the Phase 25 ladder deletion, same as planned405BeforeAuth); (qa) corrected the accountBodyValidationRemap currentBehavior wording (companion create/revoke self-read in the route handler, not a handleAccount* fn). Re-validated GREEN (tsc 0; full npm test 674 / 7221; ci:changed 0). Next: Phase 13 QA (phase-13-qa.md).
 
 ## Phase 14: Migrate wallet + cards (server/wallet.ts)
 
