@@ -317,6 +317,7 @@
             "damageDealt": 149,
             "damageTaken": 17
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 389,
@@ -342,6 +343,7 @@
             "damageDealt": 59,
             "damageTaken": 14
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 390,
@@ -367,6 +369,7 @@
             "damageDealt": 54,
             "damageTaken": 27
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 391,
@@ -391,6 +394,7 @@
           "counters": {
             "damageDealt": 86
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 392,
@@ -415,6 +419,7 @@
           "counters": {
             "damageDealt": 21
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 393,
@@ -1028,6 +1033,7 @@
             "damageDealt": 200,
             "damageTaken": 19
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 389,
@@ -1053,6 +1059,7 @@
             "damageDealt": 59,
             "damageTaken": 14
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 390,
@@ -1078,6 +1085,7 @@
             "damageDealt": 54,
             "damageTaken": 34
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 391,
@@ -1102,6 +1110,7 @@
           "counters": {
             "damageDealt": 86
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 392,
@@ -1126,6 +1135,7 @@
           "counters": {
             "damageDealt": 21
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 393,
@@ -1720,6 +1730,7 @@
             "damageDealt": 200,
             "damageTaken": 19
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 389,
@@ -1745,6 +1756,7 @@
             "damageDealt": 59,
             "damageTaken": 14
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 390,
@@ -1770,6 +1782,7 @@
             "damageDealt": 54,
             "damageTaken": 34
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 391,
@@ -1794,6 +1807,7 @@
           "counters": {
             "damageDealt": 86
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 392,
@@ -1818,6 +1832,7 @@
           "counters": {
             "damageDealt": 21
           },
+          "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
           "entityId": 393,
