@@ -36,6 +36,8 @@ export const DEVIATION_ID = {
   characterIdParamDecode: 'character-id-param-decode-422',
   companionTokenMethodFan: 'companion-token-method-fan-405',
   accountBodyValidationRemap: 'account-body-validation-remap',
+  rateLimitedBodyToCode: 'rate-limited-body-to-code',
+  walletBodyValidationRemap: 'wallet-body-validation-remap',
   newLimiterReportsCreate: 'new-limiter-reports-create',
   newLimiterDiscord: 'new-limiter-discord',
   discordCallbackHtmlNotRedirect: 'discord-callback-html-not-redirect',
@@ -468,6 +470,83 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'harness-caught. Sibling to authBodyValidationRemap / characterBodyValidationRemap ' +
       '(same systemic boundary; those add a 400/413 remap because they use withBody, this ' +
       'one does not).',
+  },
+  {
+    id: DEVIATION_ID.rateLimitedBodyToCode,
+    routes: ['/api/wallet/link/challenge', '/api/wallet/link', '/api/woc/balance', '/api/card'],
+    currentBehavior:
+      'On throttle, the wallet link-challenge, wallet link, woc balance, and card ' +
+      'routes answer 429 { error: "rate limited" } (application/json): the two ' +
+      'wallet routes self-limit inside handleWalletChallenge / handleWalletLink, and ' +
+      'the woc balance + card arms limit inline in server/main.ts, each returning the ' +
+      'same bare English prose body.',
+    intendedBehavior:
+      'Phase 14 serves these routes through the new pipeline, where the throttle is a ' +
+      'rateLimit(policy) middleware (WALLET_LINK_POLICY / WOC_BALANCE_POLICY / ' +
+      'CARD_UPLOAD_POLICY) that throws HttpError(429, "rate_limit.exceeded", ' +
+      '{ retryAfterSeconds }); the Phase 7/8 error boundary serializes it as RFC 9457 ' +
+      'application/problem+json carrying the stable machine code "rate_limit.exceeded" ' +
+      '(and a Retry-After header) instead of the bare { error: "rate limited" } prose. ' +
+      'The code already exists in error_codes.ts (harvested in Phase 7; reused by the ' +
+      'Phase 12 character limiters), so no catalog append is needed. The legacy arms ' +
+      'keep the prose body for the flag-off rollback until Phase 25; the client ' +
+      'code-matcher (userFacingApiError) for the problem+json body is Phase 22.',
+    introducedInPhase: 14,
+    reason:
+      'The phase gives the four previously-raw rate-limited responses a stable code via ' +
+      'the error model (the deliberate stable-code deliverable). The 429 divergence is ' +
+      'NOT exercised by the db-free parity corpus (runParity resets every limiter bucket ' +
+      'before each pass, so a bucket is never drained), so it is documented here rather ' +
+      'than caught by the harness. It is a sibling to newLimiterCharacterMutations (a 429 ' +
+      'that resolves to problem+json rate_limit.exceeded), except these four routes ' +
+      'already returned a 429 today (as prose), so this changes the BODY SHAPE, not ' +
+      'whether a 429 exists. Adding /api/card here also masks it in the path-scoped parity ' +
+      'filter, so the card pre-auth 413 + Connection: close byte-identity (the only one of ' +
+      'the four with a corpus fixture, card_too_large_413, which does NOT hit the limiter) ' +
+      'is re-pinned by a dedicated captureBothModes assertion in parity.test.ts and by the ' +
+      'card_route unit test. TELEMETRY drift (observability-only, flag-gated): on the new ' +
+      'path the rateLimit(policy) middleware throws before the handler runs, so the four ' +
+      'provider_usage counters the legacy arms record on a throttle ' +
+      '(wallet.challenge.rate_limited / wallet.link.rate_limited / woc.balance.rate_limited / ' +
+      'card.publish.rate_limited) are NOT emitted, and the wallet .request counters no longer ' +
+      'count a throttled attempt (the handler that records them runs after the limiter). The ' +
+      'rateLimit middleware is generic, so documenting the divergence is the correct ' +
+      'resolution rather than coupling it to route-specific metrics; the admin dashboard would ' +
+      'undercount throttled wallet/card/balance events once API_DISPATCH flips to new (Phase ' +
+      '25). Structured request-layer metrics are Phase 23. No response-body or security impact.',
+  },
+  {
+    id: DEVIATION_ID.walletBodyValidationRemap,
+    routes: ['/api/wallet/link/challenge', '/api/wallet/link'],
+    currentBehavior:
+      'The wallet link-challenge and link handlers self-read their request body with ' +
+      'readBody INSIDE walletChallengeCore / walletLinkCore (no withBody middleware). On the ' +
+      'legacy handleApi ladder, a malformed JSON body or an over-cap body makes readBody ' +
+      "reject, and the reject falls to handleApi's outer catch, which answers 500 " +
+      '{ error: "internal error" } (application/json); a literal JSON null body (valid JSON) ' +
+      'is dereferenced (null.address), throwing a TypeError that falls to the same generic 500.',
+    intendedBehavior:
+      'Phase 14 serves these two routes through the new pipeline. The migrated handlers call ' +
+      'the SAME limiter-free cores UNCHANGED (they self-read the body, so NO withBody ' +
+      'middleware is composed and there is NO 400/413 status remap: a malformed or over-cap ' +
+      'body still answers 500, and a null body still throws to 500). The ONLY divergence is ' +
+      'the 500 BODY SHAPE: the throw propagates to the Phase 8 withErrors boundary and ' +
+      'serializes as 500 application/problem+json (internal.error) instead of the legacy ' +
+      '500 { error: "internal error" }. Leak-free (the 500 detail is a static sentence; the ' +
+      'original error goes only to the logger). The client code-matcher for the problem+json ' +
+      'body is Phase 22; the divergence becomes the real behavior at the Phase 25 flag flip.',
+    introducedInPhase: 14,
+    reason:
+      'The migrated wallet challenge/link handlers surface an unexpected body throw (malformed ' +
+      '/ over-cap / null body) through the shared Phase 7/8 error-model boundary as 500 ' +
+      'problem+json instead of the legacy outer-catch 500 { error }. Same 500 STATUS, ' +
+      'different body shape; there is no status remap because these handlers self-read without ' +
+      'withBody. Exact sibling to accountBodyValidationRemap (the account self-read POST ' +
+      'routes); the card route does NOT get an entry because handleCardUpload CATCHES its own ' +
+      'readBinaryBody reject and answers a byte-identical 413/400 on both paths. These ' +
+      'framework-error paths are NOT exercised by the db-free parity corpus (which replays ' +
+      'valid bodies only), so the divergence is documented here rather than caught by the ' +
+      'harness.',
   },
   {
     id: DEVIATION_ID.newLimiterReportsCreate,

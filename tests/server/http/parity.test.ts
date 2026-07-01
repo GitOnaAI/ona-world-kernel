@@ -381,6 +381,44 @@ describe('/api dispatch parity (legacy flag vs new flag)', () => {
     expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
   });
 
+  it('the card pre-auth 413 + Connection: close is identical old-vs-new (re-pins the masked /api/card)', async () => {
+    // Phase 14 registers POST /api/card and lists it in the rateLimitedBodyToCode
+    // deviation (its 429 body becomes a code), which marks the whole /api/card path
+    // as a known deviation in the aggregate filter. The card_too_large_413 corpus
+    // request never hits the limiter (it 413s pre-auth on Content-Length), so it must
+    // stay byte-identical old-vs-new; this dedicated assertion re-pins that identity
+    // the path-scoped filter would otherwise mask (mirrors the characters no-auth
+    // re-pin above). The oversize Content-Length trips cardContentLengthGuard on the
+    // new path exactly as the legacy pre-auth check does: 413 { error: 'image too
+    // large' } with Connection: close, before auth and before any body read.
+    const { oldCap, newCap } = await captureBothModes(() =>
+      makeReq({
+        method: 'POST',
+        url: '/api/card',
+        headers: { [HEADER_CONTENT_LENGTH]: OVERSIZE_CONTENT_LENGTH },
+      }),
+    );
+    expect(oldCap.status).toBe(413);
+    expect(newCap.status).toBe(oldCap.status);
+    expect(oldCap.headers.connection).toBe('close');
+    expect(newCap.headers.connection).toBe('close');
+    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
+  });
+
+  it('the card no-auth 401 is identical old-vs-new (completes the masked /api/card re-pin)', async () => {
+    // The card 413 re-pin above covers the pre-auth short-circuit, but adding /api/card to the
+    // rateLimitedBodyToCode deviation masks EVERY /api/card divergence in the aggregate filter.
+    // A normal-size card POST with no bearer passes cardContentLengthGuard and 401s at
+    // activeGuard (the same shared guard as the wallet routes), byte-identical on both paths.
+    // This dedicated assertion re-pins that 401 so the masking cannot hide an auth-shape break.
+    const { oldCap, newCap } = await captureBothModes(() =>
+      makeReq({ method: 'POST', url: '/api/card' }),
+    );
+    expect(oldCap.status).toBe(401);
+    expect(newCap.status).toBe(oldCap.status);
+    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
+  });
+
   it('CORS + OPTIONS preflight is byte-identical old-vs-new for an /api route and a public-cors path', async () => {
     // Representative /api route: maybeCors reflects the Origin, the 204 short-circuit
     // returns before the ladder.

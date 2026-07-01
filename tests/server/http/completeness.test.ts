@@ -168,17 +168,21 @@ describe('registry completeness: the legacy /api ladder is fully covered', () =>
   });
 });
 
-describe('registry completeness: migrated baseline (Phase 10 public reads + Phase 11 auth + Phase 12 characters + Phase 13 account)', () => {
+describe('registry completeness: migrated baseline (Phase 10 public reads + Phase 11 auth + Phase 12 characters + Phase 13 account + Phase 14 wallet)', () => {
   // The exact routes migrated onto RouteDefs so far: Phase 10 moved the public
   // reads (GET, server/leaderboard.ts), Phase 11 the auth credential surface (POST,
   // server/auth_routes.ts), Phase 12 the owner-gated character surface
   // (server/characters.ts: the list pair, create, and the account-owned :id
-  // subroutes behind requireOwnedCharacter), and Phase 13 the account-portal surface
+  // subroutes behind requireOwnedCharacter), Phase 13 the account-portal surface
   // (server/account.ts: the /api/account/* family, the companion-token method trio,
-  // and /api/email/unsubscribe). The router owns each under flag 'new'; their legacy
-  // arms stay for rollback. Method-aware, because a route resolves per method (a POST
-  // to a GET-only path resolves methodNotAllowed, not matched), and the companion-
-  // token path appears three times (POST create, GET list, DELETE revoke).
+  // and /api/email/unsubscribe), and Phase 14 the wallet / card / referral surface
+  // (server/wallet.ts: the wallet-link family, GET /api/wallet, the public GET
+  // /api/woc/balance, the binary POST /api/card, and GET /api/referrals). The router
+  // owns each under flag 'new'; their legacy arms stay for rollback. Method-aware,
+  // because a route resolves per method (a POST to a GET-only path resolves
+  // methodNotAllowed, not matched), and both the companion-token path (POST create,
+  // GET list, DELETE revoke) and /api/wallet/link (POST link, DELETE unlink) appear
+  // more than once.
   const MIGRATED_ROUTES: readonly LadderRoute[] = [
     { method: 'GET', path: '/api/leaderboard' },
     { method: 'GET', path: '/api/arena/leaderboard' },
@@ -217,6 +221,14 @@ describe('registry completeness: migrated baseline (Phase 10 public reads + Phas
     { method: 'POST', path: '/api/account/2fa/enable' },
     { method: 'POST', path: '/api/account/2fa/disable' },
     { method: 'GET', path: '/api/email/unsubscribe' },
+    // Phase 14: the wallet / card / referral surface (server/wallet.ts).
+    { method: 'POST', path: '/api/wallet/link/challenge' },
+    { method: 'POST', path: '/api/wallet/link' },
+    { method: 'DELETE', path: '/api/wallet/link' },
+    { method: 'GET', path: '/api/wallet' },
+    { method: 'GET', path: '/api/woc/balance' },
+    { method: 'POST', path: '/api/card' },
+    { method: 'GET', path: '/api/referrals' },
   ];
   const MIGRATED_PATHS = MIGRATED_ROUTES.map((r) => r.path);
 
