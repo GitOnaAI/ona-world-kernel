@@ -209,3 +209,80 @@ describe('requireAccount: success', () => {
     expect(nextRan).toBe(true);
   });
 });
+
+// The Phase 10 authz-gap-close mode: a route serves anonymously when NO token is
+// present, but a token that IS present is still validated (an invalid token is
+// rejected, never silently treated as anonymous). Only the absent-header branch
+// changes; everything past it is the required-mode behavior.
+describe('requireAccount: optional (anonymous-friendly) mode', () => {
+  it('serves anonymously (next() runs, ctx.account undefined) when no Authorization header is present', async () => {
+    const ctx = fakeCtx({ req: makeReq({}) });
+    let nextRan = false;
+    const middleware = requireAccount({ scope: 'read', optional: true });
+    await middleware(
+      ctx,
+      nextGuard(() => {
+        nextRan = true;
+      }),
+    );
+    expect(nextRan).toBe(true);
+    expect(ctx.account).toBeUndefined();
+  });
+
+  it('still rejects a present-but-malformed Authorization header (a present token is validated)', async () => {
+    const ctx = fakeCtx({
+      req: makeReq({ headers: { authorization: 'Bearer not-a-valid-token' } }),
+    });
+    const middleware = requireAccount({ scope: 'read', optional: true });
+    await expect(middleware(ctx, nextGuard())).rejects.toMatchObject({
+      status: 401,
+      code: 'auth.token_missing',
+    });
+  });
+
+  it('still rejects a present, well-formed, but unknown token as auth.token_invalid', async () => {
+    const ctx = fakeCtx({ req: makeReq({ headers: authHeader(VALID_TOKEN) }) });
+    const middleware = requireAccount({
+      scope: 'read',
+      optional: true,
+      lookupToken: async () => null,
+    });
+    await expect(middleware(ctx, nextGuard())).rejects.toMatchObject({
+      status: 401,
+      code: 'auth.token_invalid',
+    });
+  });
+
+  it('sets ctx.account for a valid present token (a caller who authenticates still gets identified)', async () => {
+    const ctx = fakeCtx({ req: makeReq({ headers: authHeader(VALID_TOKEN) }) });
+    let nextRan = false;
+    const middleware = requireAccount({
+      scope: 'read',
+      optional: true,
+      lookupToken: async () => ({ accountId: 9, scope: 'read' }),
+      moderationStatus: async () => NOT_LOCKED,
+    });
+    await middleware(
+      ctx,
+      nextGuard(() => {
+        nextRan = true;
+      }),
+    );
+    expect(ctx.account).toEqual({ accountId: 9, scope: 'read' });
+    expect(nextRan).toBe(true);
+  });
+
+  it('still applies the moderation gate to a present valid token (banned -> 403)', async () => {
+    const ctx = fakeCtx({ req: makeReq({ headers: authHeader(VALID_TOKEN) }) });
+    const middleware = requireAccount({
+      scope: 'read',
+      optional: true,
+      lookupToken: async () => ({ accountId: 1, scope: 'read' }),
+      moderationStatus: async () => BANNED,
+    });
+    await expect(middleware(ctx, nextGuard())).rejects.toMatchObject({
+      status: 403,
+      code: 'moderation.banned',
+    });
+  });
+});

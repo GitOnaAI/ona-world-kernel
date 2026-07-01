@@ -32,6 +32,15 @@ const BEARER_PATTERN = /^Bearer ([a-f0-9]{64})$/;
  */
 export interface RequireAccountDeps {
   scope: RequiredScope;
+  /**
+   * Anonymous-friendly mode (Phase 10 authz-gap-close). When true and NO
+   * Authorization header is present, next() runs with ctx.account left undefined
+   * (the route serves anonymously). A header that IS present is still validated:
+   * a malformed or unresolvable token is rejected exactly as in required mode, so
+   * a present-but-invalid token can no longer be silently treated as anonymous.
+   * Absent by default (the required behavior is unchanged).
+   */
+  optional?: boolean;
   lookupToken?: (raw: string) => Promise<{ accountId: number; scope: TokenScope } | null>;
   moderationStatus?: (accountId: number) => Promise<AccountModerationStatus>;
 }
@@ -51,6 +60,13 @@ export function requireAccount(deps: RequireAccountDeps): Middleware {
   const requiresFull = deps.scope !== 'read';
   return async (ctx: Ctx, next: Next) => {
     const hdr = ctx.req.headers.authorization ?? '';
+    // Anonymous-friendly: a request with NO Authorization header serves without
+    // an account. A present (even malformed) header still falls through to full
+    // validation below, so an invalid token is rejected, never served as anon.
+    if (deps.optional && hdr === '') {
+      await next();
+      return;
+    }
     const m = BEARER_PATTERN.exec(hdr);
     if (!m) throw new HttpError(401, 'auth.token_missing');
     const info = await lookupToken(m[1]);
