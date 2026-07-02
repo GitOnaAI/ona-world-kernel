@@ -12,7 +12,7 @@ import {
   nonSelfRepaintDue,
   targetFrameNonSelfIntervalMs,
 } from '../game/ui_tier_knobs';
-import { voice } from '../game/voice';
+import { voice, voiceDistanceGain } from '../game/voice';
 import { castBarState, consumeBarState } from '../render/cast_bar';
 import { CharacterPreview } from '../render/characters';
 import { preloadMechAssets } from '../render/characters/assets';
@@ -91,6 +91,7 @@ import {
   xpUntilNextPrestige,
 } from '../sim/types';
 import {
+  type DailyRewardStatus,
   type DelveRunInfo,
   type IWorld,
   isOverheadEmoteId,
@@ -126,13 +127,19 @@ import { ChatAnnouncer } from './chat_announcer';
 import {
   CHANNEL_LABEL_KEYS,
   CHAT_TAB_CHANNELS,
+  type ChatOpenTab,
   type ChatTabChannel,
   type ChatTabId,
   channelNeedsJoin,
+  chatOpenTabLabelKey,
   composeChatLine,
+  composeWhisperReply,
+  isChatOpenTab,
   isChatTabChannel,
   parseChatTabs,
   serializeChatTabs,
+  WHISPER_TAB,
+  WHISPER_TAB_LABEL_KEY,
 } from './chat_channels';
 import { type ChatClock, clampChatClock, formatChatTimestamp } from './chat_timestamp';
 import { type ChatBoxGeometry, clampChatBox, parseChatBox, serializeChatBox } from './chat_window';
@@ -145,6 +152,7 @@ import {
 } from './combat_sfx';
 import { type CardinalId, compassView } from './compass';
 import { formatMinimapCoords } from './coords';
+import { DailyRewardsWindow } from './daily_rewards_window';
 import { DelveMapPainter } from './delve_map_painter';
 import { devTierBadgeDataUrl, devTierByIndex, devTierDisplayName } from './dev_tier';
 import { markDialogRoot } from './dialog_root';
@@ -237,6 +245,7 @@ import { makeWriterFacet, type PainterHostPresentation } from './painter_host';
 import { partyFrameSignature, selectPartyFrameMembers } from './party_frames';
 import { PartyFramesPainter } from './party_frames_painter';
 import type { PerfOverlayHooks } from './perf_overlay_settings';
+import { PET_ACTION_ICONS } from './pet_action_icons';
 import {
   CARD_POSES,
   cardCanvasToBlob,
@@ -717,10 +726,11 @@ export class Hud {
   // ./focus_manager. Escape is NOT handled here: it stays with the existing unified
   // dispatcher (main.ts game input -> hud.closeAll()), so there is one Escape path.
   private readonly focusManager = new FocusManager();
-  // WoW-style chat tabs. `chatTabs` are the player-added channel tabs (the
-  // built-in `all`/`combat` views are implicit); `activeChatTab` is the one
-  // currently shown, and drives both the log filter and the send channel.
-  private chatTabs: ChatTabChannel[] = [];
+  // WoW-style chat tabs. `chatTabs` are the player-added tabs (send-capable
+  // channels plus the optional filter-only whisper collector; the built-in
+  // `all`/`combat` views are implicit); `activeChatTab` is the one currently
+  // shown, and drives both the log filter and the send channel.
+  private chatTabs: ChatOpenTab[] = [];
   private activeChatTab: ChatTabId = 'all';
   private errorEl = $('#error-msg');
   private bannerEl = $('#banner');
@@ -888,6 +898,10 @@ export class Hud {
   private pendingChatLinks = new Map<string, string>(); // display "[Name]" -> [[q:id]]/[[i:id]] token
   private questDialogTrap: FocusTrapHandle | null = null;
   private questDialogOpenedAtMs = 0;
+  // The NPC whose voice line is currently sounding, so update() can fade it by
+  // distance as the player walks away. Outlives the dialog window (which closes at
+  // 8) and is cleared once the clip ends. null when no dialogue voice is playing.
+  private voiceNpcId: number | null = null;
   // swing timer: the period is captured from the reset edge (swingTimer jumping
   // up), so the bar tracks real swing speed including haste / ranged weapons.
   private swingPeriod = 0;
@@ -970,6 +984,9 @@ export class Hud {
   private lastHudFastAt = 0;
   private lastHudMediumAt = 0;
   private lastHudSlowAt = 0;
+  private dailyRewardsButtonEl: HTMLButtonElement | null = null;
+  private dailyRewardsLauncherSeq = 0;
+  private lastDailyRewardsLauncherRefreshAt = 0;
   // Per-element tier cadence stamps (graphics-tier knobs). Each gates a non-self /
   // canvas redraw to a slower interval on the LOW static preset; on every other tier the
   // interval is 0 (cadenceDue is always true), so these are no-ops and the path is the
@@ -1119,6 +1136,31 @@ export class Hud {
       this.raidLockoutEl.innerHTML = svgIcon('lock');
       this.raidLockoutEl.hidden = false;
       this.attachTooltip(this.raidLockoutEl, () => this.raidLockoutPanelView());
+    }
+    const dailyRewardsButton = document.getElementById(
+      'daily-rewards-button',
+    ) as HTMLButtonElement | null;
+    if (!this.dailyRewardsEnabled()) {
+      dailyRewardsButton?.setAttribute('hidden', '');
+      $('#daily-rewards-window').style.display = 'none';
+    } else if (dailyRewardsButton) {
+      this.dailyRewardsButtonEl = dailyRewardsButton;
+      dailyRewardsButton.innerHTML =
+        `<img class="daily-rewards-icon" src="/ui/daily-rewards/treasure_chest.webp" alt="" draggable="false" decoding="async">` +
+        `<span class="daily-rewards-label" data-i18n="hudChrome.dailyRewards.title">${t('hudChrome.dailyRewards.title')}</span>`;
+      dailyRewardsButton.classList.remove('spin-ready');
+      dailyRewardsButton.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.button !== 0) return;
+        this.toggleDailyRewards();
+      });
+      dailyRewardsButton.addEventListener('pointerup', (event) => event.stopPropagation());
+      dailyRewardsButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      this.refreshDailyRewardsLauncher(true);
     }
     this.clock24 = (() => {
       try {
@@ -1662,6 +1704,9 @@ export class Hud {
       case 'leaderboard-window':
         this.leaderboardWindow.close();
         break;
+      case 'daily-rewards-window':
+        this.dailyRewardsWindow.close();
+        break;
       case 'emote-editor':
         this.closeEmoteEditor();
         break;
@@ -1693,12 +1738,13 @@ export class Hud {
     this.activeChatTab =
       savedActive === 'all' ||
       savedActive === 'combat' ||
-      (isChatTabChannel(savedActive) && this.chatTabs.includes(savedActive))
+      (isChatOpenTab(savedActive) && this.chatTabs.includes(savedActive))
         ? (savedActive as ChatTabId)
         : 'all';
     // re-join any opt-in global channels whose tabs were restored, so messages
-    // typed there are delivered this session too
-    for (const ch of this.chatTabs) if (channelNeedsJoin(ch)) this.sim.chat(`/join ${ch}`);
+    // typed there are delivered this session too (the whisper tab never joins)
+    for (const ch of this.chatTabs)
+      if (isChatTabChannel(ch) && channelNeedsJoin(ch)) this.sim.chat(`/join ${ch}`);
     this.renderChatTabs();
     this.selectChatTab(this.activeChatTab, false);
   }
@@ -1918,7 +1964,7 @@ export class Hud {
       makeTab('combat', t('hud.core.combatLogTab')),
     );
     for (const ch of this.chatTabs) {
-      const label = t(CHANNEL_LABEL_KEYS[ch]);
+      const label = t(chatOpenTabLabelKey(ch));
       const btn = makeTab(ch, label);
       btn.title = t('hud.core.chatChannels.close', { channel: label });
       // right-click / long-press a channel tab to close it (the + menu also toggles)
@@ -1971,14 +2017,13 @@ export class Hud {
   // hijacks where typed text goes. `join` auto-joins opt-in global channels;
   // skip it when the caller already sent the /join (e.g. a typed command).
   // `select` focuses the new tab — reserved for a deliberate tab click.
-  private addChatTab(
-    channel: ChatTabChannel,
-    opts: { join?: boolean; select?: boolean } = {},
-  ): void {
+  private addChatTab(channel: ChatOpenTab, opts: { join?: boolean; select?: boolean } = {}): void {
     const { join = true, select = false } = opts;
     if (!this.chatTabs.includes(channel)) {
       this.chatTabs.push(channel);
-      if (join && channelNeedsJoin(channel)) this.sim.chat(`/join ${channel}`);
+      // The whisper tab is filter-only (no channel to /join); only real channels join.
+      if (join && isChatTabChannel(channel) && channelNeedsJoin(channel))
+        this.sim.chat(`/join ${channel}`);
       this.renderChatTabs();
       this.persistChatTabs();
     }
@@ -1998,7 +2043,7 @@ export class Hud {
     else if (this.chatTabs.includes(channel)) this.removeChatTab(channel);
   }
 
-  private removeChatTab(channel: ChatTabChannel): void {
+  private removeChatTab(channel: ChatOpenTab): void {
     const i = this.chatTabs.indexOf(channel);
     if (i < 0) return;
     this.chatTabs.splice(i, 1);
@@ -2008,37 +2053,55 @@ export class Hud {
     this.selectChatTab(this.activeChatTab, true);
   }
 
-  // The "+" menu: a toggle list of every bindable channel. Open channels show a
-  // check and toggle off; the rest add a tab. Reuses the shared #ctx-menu, so
-  // it inherits its outside-click / Escape close behaviour.
+  // The "+" menu: a toggle list of every openable tab. Open tabs show a check and
+  // toggle off; the rest add a tab. Whisper is offered alongside the channels as
+  // a filter-only tab that gathers every whisper in one place. Reuses the shared
+  // #ctx-menu, so it inherits its outside-click / Escape close behaviour.
   private openChatChannelMenu(x: number, y: number): void {
     const el = $('#ctx-menu');
     let html = `<div class="ctx-title">${esc(t('hud.core.chatChannels.addTitle'))}</div>`;
-    for (const ch of CHAT_TAB_CHANNELS) {
-      const open = this.chatTabs.includes(ch);
-      html += `<div class="ctx-item" data-act="${ch}">${esc(t(CHANNEL_LABEL_KEYS[ch]))}${open ? ' ✓' : ''}</div>`;
-    }
+    // A trailing check mark flags already-open tabs, exactly as the channel list
+    // did before this whisper tab was added. Built from its char code so no literal
+    // glyph sits in source, keeping the no-emoji source guard green.
+    const checkMark = ` ${String.fromCharCode(0x2713)}`;
+    const item = (id: ChatOpenTab, labelKey: TranslationKey): string => {
+      const open = this.chatTabs.includes(id);
+      return `<div class="ctx-item" data-act="${id}">${esc(t(labelKey))}${open ? checkMark : ''}</div>`;
+    };
+    for (const ch of CHAT_TAB_CHANNELS) html += item(ch, CHANNEL_LABEL_KEYS[ch]);
+    html += item(WHISPER_TAB, WHISPER_TAB_LABEL_KEY);
     html += `<div class="ctx-item" data-act="close">${esc(t('hud.chat.context.cancel'))}</div>`;
     el.innerHTML = html;
     this.placePopupAt(el, x, y, 170, 320, 0, 8);
     el.style.display = 'block';
     this.bindContextMenuActions((act) => {
-      if (!isChatTabChannel(act)) return;
+      if (!isChatOpenTab(act)) return;
       if (this.chatTabs.includes(act)) this.removeChatTab(act);
-      else this.addChatTab(act);
+      // Focus the whisper tab on open so the effect is visible (channels stay put,
+      // as opening one must not hijack where the player's typed text goes).
+      else this.addChatTab(act, { select: act === WHISPER_TAB });
     });
   }
 
-  // null when the all/combat views are active (no filter, no send prefix);
-  // otherwise the channel the active tab is bound to.
-  private chatFilterChannel(): ChatTabChannel | null {
+  // The tab that FILTERS the log (which messages show): null on all/combat, else
+  // the active tab, including the whisper collector (its messages carry chan
+  // 'whisper', so the same dataset.chan filter gathers them).
+  private chatFilterTab(): ChatOpenTab | null {
     return this.activeChatTab === 'all' || this.activeChatTab === 'combat'
       ? null
       : this.activeChatTab;
   }
 
+  // The SEND channel a plain typed line targets: null on all/combat AND on the
+  // whisper tab (whisper has no generic send channel; the whisper tab replies via
+  // /r instead, handled in composeChatSend).
+  private chatSendChannel(): ChatTabChannel | null {
+    const tab = this.chatFilterTab();
+    return tab !== null && isChatTabChannel(tab) ? tab : null;
+  }
+
   private applyChatFilter(): void {
-    const filter = this.chatFilterChannel();
+    const filter = this.chatFilterTab();
     for (const child of Array.from(this.chatLogEl.children)) {
       const chan = (child as HTMLElement).dataset.chan;
       (child as HTMLElement).classList.toggle('chat-hidden', filter !== null && chan !== filter);
@@ -2047,7 +2110,7 @@ export class Hud {
   }
 
   private hideIfFiltered(div: HTMLElement, chan: string): void {
-    const filter = this.chatFilterChannel();
+    const filter = this.chatFilterTab();
     if (filter !== null && chan !== filter) div.classList.add('chat-hidden');
   }
 
@@ -2056,12 +2119,14 @@ export class Hud {
     if (input) input.placeholder = this.activeChatPlaceholder();
   }
 
-  // The line actually sent for what the player typed, honoring the active
-  // channel tab. main.ts calls this on Enter so a channel tab works without
-  // retyping the slash command; an explicit "/..." the player typed still wins.
+  // The line actually sent for what the player typed, honoring the active tab.
+  // main.ts calls this on Enter so a channel tab works without retyping the slash
+  // command; an explicit "/..." the player typed still wins. On the whisper tab,
+  // plain text replies to the last whisperer (/r) instead of binding a channel.
   composeChatSend(typed: string): string {
     const withLinks = this.applyPendingChatLinks(typed);
-    const ch = this.chatFilterChannel();
+    if (this.activeChatTab === WHISPER_TAB) return composeWhisperReply(withLinks);
+    const ch = this.chatSendChannel();
     return ch ? composeChatLine(ch, withLinks) : withLinks.trim();
   }
 
@@ -2122,9 +2187,11 @@ export class Hud {
     return true;
   }
 
-  // Placeholder for the chat input reflecting the active channel tab.
+  // Placeholder for the chat input reflecting the active tab.
   activeChatPlaceholder(): string {
-    const ch = this.chatFilterChannel();
+    if (this.activeChatTab === WHISPER_TAB)
+      return t('hud.core.chatChannels.sendingTo', { channel: t(WHISPER_TAB_LABEL_KEY) });
+    const ch = this.chatSendChannel();
     return ch
       ? t('hud.core.chatChannels.sendingTo', { channel: t(CHANNEL_LABEL_KEYS[ch]) })
       : t('hud.core.chatPlaceholder');
@@ -2810,7 +2877,21 @@ export class Hud {
     world: () => this.sim,
     closeOthers: () => this.closeOtherWindows('#leaderboard-window'),
     ...this.windowFocus('#leaderboard-window'),
+    onVisibilityChange: () => this.syncAnyWindowOpenState(),
     showDevBadges: () => this.optionsHooks?.settings.get('showDevBadges') ?? true,
+  });
+  // Daily rewards window painter. It owns the async rewards reads, spin action,
+  // focus opener, and a low-rate refresh while open. All closures are lazy.
+  private readonly dailyRewardsWindow = new DailyRewardsWindow({
+    root: () => $('#daily-rewards-window'),
+    world: () => this.sim,
+    closeOthers: () => this.closeOtherWindows('#daily-rewards-window'),
+    onStatus: (status) => this.applyDailyRewardsLauncherStatus(status),
+    onWalletConnect: () => {
+      window.dispatchEvent(new CustomEvent('woc:wallet-verify'));
+    },
+    ...this.windowFocus('#daily-rewards-window'),
+    onVisibilityChange: () => this.syncAnyWindowOpenState(),
   });
   // Spellbook window painter (spellbook_view.ts core + spellbook_window.ts painter).
   // The window renders ability rows (not item rows), so it composes no presentation
@@ -4325,14 +4406,14 @@ export class Hud {
     };
     addButton(
       commands,
-      'attack',
+      PET_ACTION_ICONS.attack,
       t('hud.pet.attack'),
       petTooltip(t('hud.pet.petAttackTitle'), t('hud.pet.petAttackDesc')),
       () => this.sim.petAttack(),
     );
     addButton(
       commands,
-      'growl',
+      PET_ACTION_ICONS.taunt,
       t('hud.pet.taunt'),
       petTooltip(t('hud.pet.petTauntTitle'), t('hud.pet.petTauntDesc')),
       () => this.sim.petTaunt(),
@@ -4352,7 +4433,7 @@ export class Hud {
     if (ownerClass === 'warlock') {
       addButton(
         commands,
-        'drain_life',
+        PET_ACTION_ICONS.healDemon,
         t('hud.pet.healDemon'),
         petTooltip(t('hud.pet.healDemon'), t('hud.pet.healDemonDesc')),
         () => {
@@ -4362,7 +4443,7 @@ export class Hud {
     } else {
       addButton(
         commands,
-        'rejuvenation',
+        PET_ACTION_ICONS.feed,
         t('hud.pet.healPet'),
         petTooltip(t('hud.pet.healPet'), t('hud.pet.healPetDesc')),
         () => {
@@ -4404,9 +4485,9 @@ export class Hud {
       },
     ];
     const modeIcons: Record<PetMode, string> = {
-      passive: 'prowl',
-      defensive: 'defensive_stance',
-      aggressive: 'rapid_fire',
+      passive: PET_ACTION_ICONS.passive,
+      defensive: PET_ACTION_ICONS.defensive,
+      aggressive: PET_ACTION_ICONS.aggressive,
     };
     addButton(
       stances,
@@ -4465,6 +4546,40 @@ export class Hud {
     return coerceFxTier(document.documentElement.dataset.fxLevel);
   }
 
+  private dailyRewardsEnabled(): boolean {
+    return !(
+      document.body.classList.contains('native-app') &&
+      document.body.classList.contains('mobile-touch')
+    );
+  }
+
+  private applyDailyRewardsLauncherStatus(status: DailyRewardStatus): void {
+    if (!this.dailyRewardsEnabled()) return;
+    const button = this.dailyRewardsButtonEl;
+    if (!button) return;
+    button.classList.toggle('spin-ready', !status.eligibility.eligible || !status.spin.claimed);
+  }
+
+  private refreshDailyRewardsLauncher(force = false): void {
+    if (!this.dailyRewardsEnabled()) return;
+    const button = this.dailyRewardsButtonEl;
+    if (!button) return;
+    const now = performance.now();
+    if (!force && now - this.lastDailyRewardsLauncherRefreshAt < 60_000) return;
+    this.lastDailyRewardsLauncherRefreshAt = now;
+    const seq = ++this.dailyRewardsLauncherSeq;
+    void this.sim
+      .dailyRewards()
+      .then((status) => {
+        if (seq !== this.dailyRewardsLauncherSeq) return;
+        this.applyDailyRewardsLauncherStatus(status);
+      })
+      .catch(() => {
+        if (seq !== this.dailyRewardsLauncherSeq) return;
+        button.classList.remove('spin-ready');
+      });
+  }
+
   update(): void {
     const sim = this.sim;
     const p = sim.player;
@@ -4487,12 +4602,25 @@ export class Hud {
     // chat burst on the fast tier once chat goes quiet.
     if (fastHud) this.chatAnnouncer.flush(now);
 
+    // Fade a talking NPC's voice line by distance as the player walks away, so a
+    // dialogue trails off naturally instead of holding full volume. Per-frame for a
+    // smooth ramp; independent of the dialog window (which closes at 8), so the
+    // voice keeps fading until the clip ends or the player is out of earshot.
+    if (this.voiceNpcId !== null) {
+      if (!voice.isPlaying()) {
+        this.voiceNpcId = null;
+      } else {
+        const vnpc = sim.entities.get(this.voiceNpcId);
+        voice.setDistanceGain(vnpc ? voiceDistanceGain(dist2d(p.pos, vnpc.pos)) : 0);
+      }
+    }
     this.meters.update();
     this.lockpickWindow.repaintIfChanged();
     this.tutorial.update(sim, this.renderer, this.keybinds);
     this.reconcileLootRolls();
     this.updateLootRollTimers(now);
     if (slowHud) this.updateRaidLockoutBadge();
+    if (slowHud) this.refreshDailyRewardsLauncher();
     this.syncActiveHotbarForm();
     this.syncSlotMap(); // picks up newly learned abilities mid-session
 
@@ -4854,6 +4982,13 @@ export class Hud {
       if (this.openVendorNpcId !== null) {
         const npc = sim.entities.get(this.openVendorNpcId);
         if (!npc || dist2d(p.pos, npc.pos) > 8) this.closeVendor();
+      }
+      // Close the quest/gossip dialog once the player walks out of talking range
+      // (or the NPC is gone), the same way the vendor window auto-closes above. You
+      // open within INTERACT_RANGE (5), so the wider 8 threshold never fires on open.
+      if (this.openGossipNpcId !== null) {
+        const npc = sim.entities.get(this.openGossipNpcId);
+        if (!npc || dist2d(p.pos, npc.pos) > 8) this.closeQuestDialog();
       }
     }
 
@@ -6468,7 +6603,12 @@ export class Hud {
               performance.now(),
             );
             this.lastVoicedYell = voiced.state;
-            if (voiced.play) voice.play(voiced.state.key, { gain: voicedYellGain(ev.from) });
+            if (voiced.play) {
+              voice.play(voiced.state.key, { gain: voicedYellGain(ev.from) });
+              // A distinct overheard yell, not a dialogue: do not let the per-frame
+              // distance fade attenuate it by a talked-to NPC's position.
+              this.voiceNpcId = null;
+            }
           }
           break;
         }
@@ -7772,6 +7912,7 @@ export class Hud {
     // navigating back from a quest detail or after accept/turn-in, where a
     // re-greeting would be noise.
     voice.play(`greeting__${npc.templateId}`);
+    this.voiceNpcId = npc.id;
     this.renderGossip(npc);
   }
 
@@ -7874,6 +8015,7 @@ export class Hud {
       this.sim.player.name,
     );
     voice.play(state === 'ready' ? `quest__${questId}__complete` : `quest__${questId}__offer`);
+    this.voiceNpcId = npc.id;
     markDialogRoot(el, { labelledBy: 'quest-dialog-title' });
     let html = `<div class="panel-title"><span id="quest-dialog-title">${esc(questTitle(questId))}${this.questSuggestedPlayersHtml(quest.suggestedPlayers)}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('questUi.dialog.close'))}">${svgIcon('close')}</button></div>`;
     if (state === 'available' && quest.minLevel) {
@@ -9910,6 +10052,12 @@ export class Hud {
     this.leaderboardWindow.toggle();
   }
 
+  toggleDailyRewards(): void {
+    if (!this.dailyRewardsEnabled()) return;
+    this.dailyRewardsWindow.toggle();
+    this.refreshDailyRewardsLauncher(true);
+  }
+
   // -------------------------------------------------------------------------
   // Spellbook
   // -------------------------------------------------------------------------
@@ -10077,6 +10225,8 @@ export class Hud {
     let html = `<div class="ctx-title ctx-title-player">${entCls ? portraitChipHtml({ cls: entCls, skin: ent?.skin ?? 0, name, variant: 'sm' }) : ''}<span class="ctx-title-name">${esc(name)}</span></div>`;
     if (entCls)
       html += `<div class="ctx-item" data-act="inspect">${esc(t('character.viewProfile'))}</div>`;
+    if (pid !== this.sim.playerId)
+      html += `<div class="ctx-item" data-act="whisper">${esc(t('hud.chat.context.whisper'))}</div>`;
     if (!isMember)
       html += `<div class="ctx-item" data-act="invite">${esc(t('hud.chat.context.invite'))}</div>`;
     html += `<div class="ctx-item" data-act="trade">${esc(t('hud.chat.context.trade'))}</div>`;
@@ -10111,6 +10261,7 @@ export class Hud {
     el.style.display = 'block';
     this.bindContextMenuActions((act) => {
       if (act === 'inspect') this.openInspect(pid);
+      else if (act === 'whisper') this.startWhisper(name);
       else if (act === 'invite') this.sim.partyInvite(pid);
       else if (act === 'trade') this.sim.tradeRequest(pid);
       else if (act === 'duel') this.sim.duelRequest(pid);

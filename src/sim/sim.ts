@@ -1,5 +1,8 @@
 import type {
   AccountCosmetics,
+  DailyRewardHistory,
+  DailyRewardSpinResult,
+  DailyRewardStatus,
   DelveCompanionInfo,
   DelveRunInfo,
   LockpickView,
@@ -615,6 +618,10 @@ export interface PlayerMeta {
   characterId?: number;
   cls: PlayerClass;
   name: string;
+  // Dev-only test dummy spawned via "/dev bot <name>" (social/chat.ts, gated by
+  // devCommands): a stationary player you can target and whisper to exercise social
+  // features offline; a whisper to it auto-replies. Runtime-only, never serialized.
+  isDevBot?: boolean;
   skin: number; // appearance index into the render SKINS[player_<cls>]; persisted, synced
   skinCatalog: SkinCatalog;
   // Cosmetic skin-select event: the rank rolled when the event token was used,
@@ -694,7 +701,7 @@ export interface PlayerMeta {
   // Session-only World Market browse query: the search string, the type / subtype /
   // rarity filters, and the page index. The server filters + paginates against this,
   // so the player can page through and filter the WHOLE market a window at a time.
-  // Never persisted — resets on login.
+  // Never persisted, resets on login.
   marketQuery: MarketQuery;
   // Delve meta progression (persisted in CharacterState).
   delveMarks: number;
@@ -1306,6 +1313,31 @@ export class Sim {
     return player.id;
   }
 
+  // Spawn a stationary test player ("/dev bot <name>", gated by devCommands in
+  // social/chat.ts): a dummy you can target and whisper to exercise social features
+  // offline. Placed a few yards from the primary player so it is visible, and marked
+  // isDevBot so a whisper to it auto-replies (see the whisper handler in chat.ts).
+  // Returns the new pid, or -1 if the name is blank or already taken (whisper
+  // resolution needs a unique name). Never reached in production (the caller runs
+  // only when devCommands is on).
+  spawnDevBot(name: string): number {
+    const clean = name.trim();
+    if (!clean) return -1;
+    for (const m of this.players.values())
+      if (m.name.toLowerCase() === clean.toLowerCase()) return -1;
+    const pid = this.addPlayer('mage', clean);
+    const meta = this.players.get(pid);
+    if (meta) meta.isDevBot = true;
+    const me = this.entities.get(this.primaryId);
+    const e = this.entities.get(pid);
+    if (e && me) {
+      e.pos = this.groundPos(me.pos.x + 3, me.pos.z + 3);
+      e.prevPos = { ...e.pos };
+      this.rebucket(e);
+    }
+    return pid;
+  }
+
   removePlayer(pid: number): void {
     const meta = this.players.get(pid);
     if (!meta) return;
@@ -1663,6 +1695,40 @@ export class Sim {
   devLeaderboard(page = 0, pageSize = LEADERBOARD_PAGE_SIZE): Promise<DevLeaderboardPage> {
     return Promise.resolve(paginateDevLeaderboard([], page, pageSize));
   }
+
+  dailyRewards(): Promise<DailyRewardStatus> {
+    const day = '1970-01-01';
+    return Promise.resolve({
+      day,
+      resetAt: '1970-01-02T00:00:00.000Z',
+      prizePoolUsd: 0,
+      prizePoolSol: null,
+      eligibility: {
+        eligible: false,
+        reason: 'no_wallet',
+        walletPubkey: null,
+        wocBalance: null,
+        wocUsdPrice: null,
+        usdValue: null,
+        minUsd: 20,
+      },
+      score: 0,
+      rank: null,
+      spin: { claimed: false, points: null, outcomeKey: null, claimedAt: null },
+      tasks: [],
+      leaderboard: [],
+    });
+  }
+
+  async spinDailyReward(): Promise<DailyRewardSpinResult> {
+    const status = await this.dailyRewards();
+    return { ...status, awardedPoints: 0, outcomeKey: '' };
+  }
+
+  dailyRewardHistory(): Promise<DailyRewardHistory> {
+    return Promise.resolve({ payouts: [] });
+  }
+
   get known(): ResolvedAbility[] {
     return this.primary.known;
   }
@@ -2170,6 +2236,8 @@ export class Sim {
       // already bound above; isRooted/moveSpeedMult/swingIntervalMult are M2 bindings above.)
       setPlayerLevel: sim.setPlayerLevel.bind(sim),
       notice: sim.notice.bind(sim),
+      // Dev-only test-dummy spawner backing "/dev bot <name>" in social/chat.ts.
+      spawnDevBot: sim.spawnDevBot.bind(sim),
       // L2 inventory/vendor (W2): the four still-on-Sim helpers the moved items.useItem
       // dispatches to. Late-bound arrows (looked up at call time, not `.bind`d at ctor)
       // so they preserve the pre-move `this.X` dynamic-dispatch semantics, including tests
