@@ -92,8 +92,8 @@ import {
 } from './db';
 import {
   type DesktopLoginRouteDeps,
-  handleDesktopLoginCreate,
   handleDesktopLoginExchange,
+  issueDesktopLoginCode,
 } from './desktop_login';
 import {
   configureDiscordRuntime,
@@ -510,13 +510,14 @@ function requestMetadata(req: http.IncomingMessage): { ip: string; userAgent: st
 }
 
 // Host wiring for the desktop-login route handlers (server/desktop_login.ts):
-// the real db/auth implementations here, stubs in tests.
+// the real db/auth implementations here, stubs in tests. The create leg's
+// bearer resolution moved OUT of the handler and into the arm below
+// (bearerActiveAccount, the Phase 18b scope fix), so the deps carry only the
+// post-auth reads.
 const desktopLoginRouteDeps: DesktopLoginRouteDeps = {
-  bearerToken,
   readBody,
   json,
   requestMetadata,
-  accountForToken,
   accountById,
   moderationStatusForAccount,
   touchLogin,
@@ -793,7 +794,15 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       return json(res, 200, { token, username: account.username });
     }
     if (req.method === 'POST' && url === '/api/desktop-login/create') {
-      return handleDesktopLoginCreate(req, res, desktopLoginRouteDeps);
+      // Phase 18b scope fix: the handoff code mints a FULL session via exchange,
+      // so create requires a full active session too (bearerActiveAccount: read
+      // and companion tokens answer 403 'this token is read-only'), where the
+      // pre-18b handler resolved the scope-blind accountForToken. Mirrored on
+      // the RouteDef twin (server/desktop_login_routes.ts); the
+      // desktopLoginCreateFullScope known deviation records the change.
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      return issueDesktopLoginCode(req, res, desktopLoginRouteDeps, accountId);
     }
     if (req.method === 'POST' && url === '/api/desktop-login/exchange') {
       return handleDesktopLoginExchange(req, res, desktopLoginRouteDeps);

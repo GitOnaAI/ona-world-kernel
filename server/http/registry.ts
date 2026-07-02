@@ -26,7 +26,10 @@ import { routes as accountRoutes } from '../account';
 import { routes as adminRoutes } from '../admin';
 import { routes as authRoutes } from '../auth_routes';
 import { routes as characterRoutes } from '../characters';
+import { routes as dailyRewardRoutes } from '../daily_rewards';
+import { routes as desktopLoginRoutes } from '../desktop_login_routes';
 import { routes as discordRoutes } from '../discord';
+import { routes as githubRoutes } from '../github';
 import { routes as internalRoutes } from '../internal';
 import { routes as leaderboardRoutes } from '../leaderboard';
 import { routes as oauthRoutes } from '../oauth';
@@ -84,7 +87,13 @@ export interface ApiRegistry {
  * HTML pages stay on the top-level ladder, off this table) and the secret-gated
  * /internal ops surface (server/internal.ts: restart-countdown plus the 10
  * Discord-bot routes behind requireInternalSecret), each served through its own
- * flag-gated dispatcher in main.ts.
+ * flag-gated dispatcher in main.ts. Phase 18b adds the three release-merge
+ * late-arrival families: the GitHub link family (server/github.ts: the OAuth
+ * start/callback pair and the GET/DELETE /api/github status + unlink pair),
+ * the desktop-login handoff pair (server/desktop_login_routes.ts: create +
+ * exchange, on the fused register/login per-IP budget), and both daily-rewards
+ * families (server/daily_rewards.ts: the three bearer-gated player routes plus
+ * the three fail-closed secret-gated /internal/daily-rewards ops routes).
  */
 export const apiRoutes: readonly RouteDef[] = [
   ...leaderboardRoutes,
@@ -94,6 +103,9 @@ export const apiRoutes: readonly RouteDef[] = [
   ...walletRoutes,
   ...reportsRoutes,
   ...discordRoutes,
+  ...githubRoutes,
+  ...desktopLoginRoutes,
+  ...dailyRewardRoutes,
   ...adminRoutes,
   ...oauthRoutes,
   ...internalRoutes,

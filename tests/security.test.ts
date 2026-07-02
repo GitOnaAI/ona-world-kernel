@@ -15,8 +15,8 @@ import {
   createDesktopLoginCode,
   type DesktopLoginRouteDeps,
   desktopLoginCodeCountForTest,
-  handleDesktopLoginCreate,
   handleDesktopLoginExchange,
+  issueDesktopLoginCode,
   resetDesktopLoginCodesForTest,
 } from '../server/desktop_login';
 import {
@@ -709,13 +709,11 @@ describe('desktop login handoff codes: expiry and code shape', () => {
 function desktopRouteDeps(overrides: Partial<DesktopLoginRouteDeps> = {}) {
   const sent: Array<{ status: number; body: any }> = [];
   const deps: DesktopLoginRouteDeps = {
-    bearerToken: () => null,
     readBody: async () => ({}),
     json: (_res, status, body) => {
       sent.push({ status, body });
     },
     requestMetadata: () => ({ ip: '203.0.113.55', userAgent: 'test-agent' }),
-    accountForToken: async () => null,
     accountById: async () => null,
     moderationStatusForAccount: async () => ({ locked: false, message: '' }),
     touchLogin: async () => {},
@@ -725,48 +723,42 @@ function desktopRouteDeps(overrides: Partial<DesktopLoginRouteDeps> = {}) {
   return { deps, sent };
 }
 
+// The create leg's bearer resolution moved OUT of the handler (the Phase 18b
+// scope fix: both serving paths authenticate with the full-session resolver
+// BEFORE the core; the missing/stale/read-scope token rejections are pinned at
+// the arm/guard level in tests/server/desktop_login.test.ts and the parity
+// pins). These tests cover the post-auth core, issueDesktopLoginCode.
 describe('desktop login route handlers', () => {
   beforeEach(() => {
     resetDesktopLoginCodesForTest();
   });
 
-  it('create rejects a missing bearer token with 401 before any account lookup', async () => {
-    const accountForToken = vi.fn(async () => null);
-    const { deps, sent } = desktopRouteDeps({ accountForToken });
-    await handleDesktopLoginCreate(fakeReq({}, '203.0.113.55'), {} as any, deps);
+  it('create answers 401 when the authenticated account row has vanished', async () => {
+    const { deps, sent } = desktopRouteDeps();
+    await issueDesktopLoginCode(fakeReq({}, '203.0.113.55'), {} as any, deps, 7);
     expect(sent).toEqual([{ status: 401, body: { error: 'not authenticated' } }]);
-    expect(accountForToken).not.toHaveBeenCalled();
-  });
-
-  it('create rejects an unknown or stale token with 401', async () => {
-    const { deps, sent } = desktopRouteDeps({ bearerToken: () => 'tok' });
-    await handleDesktopLoginCreate(fakeReq({}, '203.0.113.55'), {} as any, deps);
-    expect(sent).toEqual([{ status: 401, body: { error: 'not authenticated' } }]);
+    expect(desktopLoginCodeCountForTest()).toBe(0);
   });
 
   it('create refuses a moderation-locked account with 403 and the moderation message', async () => {
     const { deps, sent } = desktopRouteDeps({
-      bearerToken: () => 'tok',
-      accountForToken: async () => 7,
       accountById: async () => ({ id: 7, username: 'tito' }),
       moderationStatusForAccount: async () => ({
         locked: true,
         message: 'This account has been banned.',
       }),
     });
-    await handleDesktopLoginCreate(fakeReq({}, '203.0.113.55'), {} as any, deps);
+    await issueDesktopLoginCode(fakeReq({}, '203.0.113.55'), {} as any, deps, 7);
     expect(sent).toEqual([{ status: 403, body: { error: 'This account has been banned.' } }]);
     expect(desktopLoginCodeCountForTest()).toBe(0);
   });
 
   it('create mints a code the same IP can exchange', async () => {
     const { deps, sent } = desktopRouteDeps({
-      bearerToken: () => 'tok',
-      accountForToken: async () => 7,
       accountById: async () => ({ id: 7, username: 'tito' }),
     });
     const req = fakeReq({}, '203.0.113.55');
-    await handleDesktopLoginCreate(req, {} as any, deps);
+    await issueDesktopLoginCode(req, {} as any, deps, 7);
     expect(sent[0].status).toBe(200);
     expect(sent[0].body.code).toMatch(/^[A-Za-z0-9_-]{20,80}$/);
     expect(sent[0].body.expiresInMs).toBe(5 * 60 * 1000);

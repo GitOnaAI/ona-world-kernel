@@ -7,7 +7,15 @@ import type {
   DailyRewardStatus,
 } from '../src/world_api';
 import { type DailyRewardDb, type DailyRewardTaskSeed, PgDailyRewardDb } from './daily_rewards_db';
-import { walletForAccount } from './db';
+import { accountAndScopeForToken, moderationStatusForAccount, walletForAccount } from './db';
+import { ctxAccountId } from './http/context';
+import { type BearerActiveGuardDb, createActiveGuard } from './http/middleware/bearer_active_guard';
+import {
+  DAILY_REWARD_SECRET_ENV,
+  DAILY_REWARD_SECRET_HEADER,
+  requireInternalSecretFailClosed,
+} from './http/middleware/require_internal_secret';
+import type { Ctx, RouteDef } from './http/types';
 import { json, readBody } from './http_util';
 import { cachedWocBalance } from './woc_balance';
 
@@ -744,3 +752,143 @@ export async function handleDailyRewardInternalApi(
   json(res, 404, { success: false, data: null, error: 'unknown endpoint' });
   return true;
 }
+
+// ── Route layer (Phase 18b of docs/api-pipeline/) ────────────────────────────
+// Both daily-rewards families as RouteDefs for the shared dispatcher:
+//   GET  /api/daily-rewards                        player status (JSON)
+//   POST /api/daily-rewards/spin                   player spin (JSON)
+//   GET  /api/daily-rewards/history                payout history (JSON)
+//   POST /internal/daily-rewards/pending-payouts   payout service ops
+//   POST /internal/daily-rewards/payout-history    payout service ops
+//   POST /internal/daily-rewards/mark-payout       payout service ops
+// The legacy dispatch stays as the flag-off rollback path until Phase 25: the
+// main.ts prefix arm (startsWith('/api/daily-rewards'), bearerActiveAccount
+// BEFORE delegating) for the player family, and the /internal composite
+// delegate (handleDailyRewardInternalApi tried FIRST, ordering load-bearing)
+// for the ops family.
+//
+// PARITY-FIRST BY CONSTRUCTION: each thin handler calls the SAME sub-dispatcher
+// the ladder serves (handleDailyRewardApi / handleDailyRewardInternalApi)
+// UNCHANGED, so every body, the in-family 404 'unknown endpoint', the lenient
+// Number(...)|| limit decodes, and mark-payout's validation prose are
+// byte-identical with zero dual-edit drift. No withBody anywhere: spin reads no
+// body (a body reader would invent 400/413 behavior legacy does not have) and
+// mark-payout SELF-READS via the core's un-caught readBody (the
+// dailyRewardsOpsBodyValidationRemap deviation). Off-table shapes (wrong
+// method, unknown subpath, the no-slash '/api/daily-rewardsX' sibling, HEAD)
+// resolve unmatched and delegate to the ladder unchanged.
+//
+// The player guard is the shared legacy-body createActiveGuard (mirrors the
+// prefix arm's bearerActiveAccount byte-for-byte). The ops gate is the
+// FAIL-CLOSED requireInternalSecretFailClosed variant: env-unset AND mismatch
+// both answer the legacy 401 { success: false, data: null, error: 'not
+// authenticated' } (never the other internal gates' feature-off 404, never a
+// RESTART_COUNTDOWN_SECRET fallback). The gated core re-runs its own
+// internalAuthorized check (same env + header, per request), which passes
+// whenever the gate passed; keeping the core's check intact is what keeps the
+// composite delegate's legacy behavior frozen. NO rate limiter on any of the
+// six (legacy has none; the spin throttle decision is handed to Phase 19).
+// dailyRewardService stays module-owned and importable by game.ts regardless of
+// route-table state; no boot injection is needed.
+
+// The bearer + moderation reads the player guard needs. Built LAZILY (a
+// function, not a module-scope object literal): game.ts imports this module, so
+// an eager literal would break every test that partial-mocks server/db and
+// loads the game (the lazy-db-bundle rule from Phase 17).
+function makeRealDailyRewardDb() {
+  return { accountAndScopeForToken, moderationStatusForAccount };
+}
+type DailyRewardGuardDb = ReturnType<typeof makeRealDailyRewardDb>;
+let realDailyRewardDb: DailyRewardGuardDb | undefined;
+let dailyRewardDbOverride: DailyRewardGuardDb | undefined;
+function dailyRewardGuardDb(): BearerActiveGuardDb {
+  if (dailyRewardDbOverride) return dailyRewardDbOverride;
+  realDailyRewardDb ??= makeRealDailyRewardDb();
+  return realDailyRewardDb;
+}
+
+/** Override the guard db with a fake (test-only; merges over the real reads). */
+export function setDailyRewardDbForTests(overrides: Partial<DailyRewardGuardDb>): void {
+  realDailyRewardDb ??= makeRealDailyRewardDb();
+  dailyRewardDbOverride = { ...realDailyRewardDb, ...overrides };
+}
+
+/** Restore the real guard db after a setDailyRewardDbForTests override (test-only). */
+export function resetDailyRewardDbForTests(): void {
+  dailyRewardDbOverride = undefined;
+}
+
+/** Full active session gate (mirrors the prefix arm's bearerActiveAccount). */
+const activeGuard = createActiveGuard(() => dailyRewardGuardDb());
+
+/** The fail-closed payout-service gate, one instance shared by the ops trio. */
+const dailyRewardOpsGate = requireInternalSecretFailClosed({
+  header: DAILY_REWARD_SECRET_HEADER,
+  envVar: DAILY_REWARD_SECRET_ENV,
+});
+
+/** A player route: the guard resolved the account; the shared core dispatches. */
+async function dailyRewardPlayerHandler(ctx: Ctx): Promise<void> {
+  return handleDailyRewardApi(ctx.req, ctx.res, ctxAccountId(ctx));
+}
+
+/**
+ * An ops route: the gate passed; the shared core re-checks the same secret and
+ * dispatches. It always handles a request whose path the router matched (the
+ * boolean is its prefix check, true for every registered ops path).
+ */
+async function dailyRewardOpsHandler(ctx: Ctx): Promise<void> {
+  await handleDailyRewardInternalApi(ctx.req, ctx.res);
+}
+
+// The route table. registry.ts spreads this into apiRoutes; the ops rows carry
+// surface 'internal' + meta.envelope 'admin' (the internal fail() envelope IS
+// the admin { success, data, error } shape; EnvelopeKind is a frozen Phase 2
+// contract with no separate internal member).
+export const routes: RouteDef[] = [
+  {
+    method: 'GET',
+    path: '/api/daily-rewards',
+    surface: 'api',
+    middleware: [activeGuard],
+    handler: dailyRewardPlayerHandler,
+  },
+  {
+    method: 'POST',
+    path: '/api/daily-rewards/spin',
+    surface: 'api',
+    middleware: [activeGuard],
+    handler: dailyRewardPlayerHandler,
+  },
+  {
+    method: 'GET',
+    path: '/api/daily-rewards/history',
+    surface: 'api',
+    middleware: [activeGuard],
+    handler: dailyRewardPlayerHandler,
+  },
+  {
+    method: 'POST',
+    path: '/internal/daily-rewards/pending-payouts',
+    surface: 'internal',
+    meta: { envelope: 'admin' },
+    middleware: [dailyRewardOpsGate],
+    handler: dailyRewardOpsHandler,
+  },
+  {
+    method: 'POST',
+    path: '/internal/daily-rewards/payout-history',
+    surface: 'internal',
+    meta: { envelope: 'admin' },
+    middleware: [dailyRewardOpsGate],
+    handler: dailyRewardOpsHandler,
+  },
+  {
+    method: 'POST',
+    path: '/internal/daily-rewards/mark-payout',
+    surface: 'internal',
+    meta: { envelope: 'admin' },
+    middleware: [dailyRewardOpsGate],
+    handler: dailyRewardOpsHandler,
+  },
+];
