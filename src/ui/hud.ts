@@ -310,6 +310,7 @@ import {
   wocBalanceVerified,
 } from './wallet_balance';
 import { makeWindowFocus } from './window_focus';
+import { installWindowResize, markResizableWindow } from './window_resize';
 import { formatXp, xpBarView } from './xp_bar';
 import { XpBarPainter } from './xp_bar_painter';
 
@@ -1434,6 +1435,9 @@ export class Hud {
         attributes: true,
         attributeFilter: ['class', 'style', 'hidden'],
       });
+      // Piggyback the resize-grip stamp on this one observer (window_resize.ts
+      // deliberately runs no body-wide observer of its own).
+      markResizableWindow(el);
     };
     this.windowObserver = new MutationObserver((mutations) => {
       for (const m of mutations) {
@@ -1498,6 +1502,10 @@ export class Hud {
     };
     document.addEventListener('pointerup', endDrag);
     document.addEventListener('pointercancel', endDrag);
+    installWindowResize({
+      getScale: () => getUiScale(),
+      pinWindow: (el, rect) => this.setWindowPixelPosition(el, rect.left, rect.top, rect),
+    });
     window.addEventListener('resize', () => {
       document.querySelectorAll<HTMLElement>('.window.panel').forEach((el) => {
         if (!this.isWindowVisible(el) || el.dataset.windowMoved !== '1') return;
@@ -1522,6 +1530,13 @@ export class Hud {
     if (el.dataset.windowOpen !== '1') {
       el.dataset.windowOpen = '1';
       this.placeNewWindow(el);
+      // A window moved or resized at an earlier viewport keeps its inline
+      // left/top while hidden; the viewport-resize re-clamp skips hidden
+      // windows, so re-clamp at show time or it can reopen off-screen.
+      if (el.dataset.windowMoved === '1') {
+        const rect = el.getBoundingClientRect();
+        this.setWindowPixelPosition(el, rect.left, rect.top, rect);
+      }
       this.bringWindowToFront(el);
     }
     this.syncAnyWindowOpenState();
