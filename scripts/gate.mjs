@@ -17,8 +17,7 @@ const workers = Math.max(1, Math.floor(os.cpus().length / 2));
 const shell = process.platform === 'win32';
 
 const branch =
-  spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8', shell }).stdout?.trim() ??
-  '';
+  spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8', shell }).stdout?.trim() ?? '';
 const releaseTier = branch.startsWith('release/');
 const env = releaseTier ? { ...process.env, I18N_RELEASE_TIER: '1' } : process.env;
 
