@@ -39,6 +39,11 @@ Most directories above have their own `CLAUDE.md` with local conventions; read i
 - `npm run dev`: Vite client on :5173 (proxies `/api`, `/admin/api`, `/ws` to :8787).
 - `npm run server`: esbuild-bundle + run the authoritative server on :8787.
 - `npm test`: Vitest. **Prefer a single file while iterating:** `npx vitest run tests/sim.test.ts`.
+- `npm run gate`: the full CI-equivalent pre-merge gate (i18n gen + freshness, malware scan,
+  changed-files biome, full tests with bounded workers, `tsc`, all builds; release-tier
+  automatically on a `release/**` branch). Exit-code-safe; use it instead of an ad-hoc `&&` chain
+  before calling a change done (piping `npm test` through `tail` masks its exit code, and an
+  unbounded run flakes heavy suites under core contention).
 - `npm run build`: generate media manifest, then `vite build`, then emit manifest. Four entries (game, admin, play, guide).
 - `npm run env` / `npm run bench`: build + run the headless RL env server.
 - `npm run db:up` / `npm run db:down`: Postgres 16 in Docker (dev DB on :5433).
@@ -214,8 +219,10 @@ correct.
   pass. The repo ships purpose-built reviewers in `.claude/agents/` (dispatch via `/qa`):
   `qa-checklist` (the end-of-contribution gate), `architecture-reviewer` (determinism + the
   `SimContext` seam for `src/sim/`), `cross-platform-sync`, `migration-safety`,
-  `privacy-security-review`, and the `release-malware-audit` release gate; plus the
-  `feature-plan` and `extract-and-test` skills. Prefer those over ad-hoc subagents.
+  `privacy-security-review`, `test-coverage-auditor` (assertion decisiveness + pin quality),
+  and the `release-malware-audit` release gate; plus the `feature-plan`, `extract-and-test`,
+  and `release-merge-audit` (after any release merge into a feature branch) skills. Prefer
+  those over ad-hoc subagents.
 - **State rule scope literally.** 4.8 follows instructions literally and will not
   generalize a rule across cases unless told. When an invariant covers every case (every
   player string is a `t()` key; all sim randomness goes through `Rng`), say "every" or
