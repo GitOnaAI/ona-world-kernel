@@ -1673,6 +1673,22 @@
     margin-top: 8px;
     font-family: var(--title-font);
   }
+  /* acceptance-order number, the same gold badge the world map paints */
+  #quest-tracker .qt-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: var(--color-map-quest-badge-fill);
+    color: var(--color-map-quest-badge-text);
+    border: 1px solid #000;
+    font-size: 11px;
+    font-family: var(--ui-font);
+    vertical-align: text-bottom;
+  }
   #quest-tracker .qt-obj {
     color: var(--color-text-overlay);
     font-size: 11px;

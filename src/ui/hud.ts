@@ -954,6 +954,9 @@ export class Hud {
   // the 4Hz map cadence rebuilds the list DOM only when it actually changed.
   private mapUntrackedQuests: Set<string> | null = null;
   private mapQuestListSig = '';
+  // Whether the map's quest dropdown is unfolded (session-only; reopening the
+  // map keeps the last choice, a fresh session starts folded to a clean map).
+  private mapQuestsOpen = false;
   private windowDrag: {
     el: HTMLElement;
     pointerId: number;
@@ -1329,6 +1332,12 @@ export class Hud {
     });
     mapCanvas.addEventListener('pointerleave', hideMapAreaTip);
     mapCanvas.addEventListener('pointerdown', hideMapAreaTip);
+    // The map's quest dropdown: the "Quests" button unfolds/folds the list.
+    $('#map-quests-toggle').addEventListener('click', () => {
+      this.mapQuestsOpen = !this.mapQuestsOpen;
+      this.mapQuestListSig = ''; // force the list render to re-apply visibility
+      this.updateMapWindow();
+    });
     // The map's quest side list: one delegated click listener toggles a
     // quest's tracking (whether its blue areas + numbered badge paint).
     $('#map-quests').addEventListener('click', (ev) => {
@@ -4998,6 +5007,8 @@ export class Hud {
       const quest = QUESTS[qp.questId];
       quests.push({
         id: qp.questId,
+        // acceptance-order number, the same one the map badges + side list show
+        number: quests.length + 1,
         title: questTitle(qp.questId),
         complete: qp.state === 'ready',
         objectives: quest.objectives.map((obj, i) => ({
@@ -5049,7 +5060,7 @@ export class Hud {
       `<span class="qt-h-label">${esc(t('questUi.tracker.title'))}</span>${count}</button>`;
     let rows = '';
     for (const q of view.quests) {
-      rows += `<div class="qt-title">${esc(q.title)}${q.complete ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
+      rows += `<div class="qt-title"><span class="qt-num">${esc(this.questNumber(q.number))}</span>${esc(q.title)}${q.complete ? ` <span class="quest-complete">(${esc(t('questUi.tracker.complete'))})</span>` : ''}</div>`;
       for (const o of q.objectives) {
         rows += `<div class="qt-obj${o.done ? ' done' : ''}">- ${esc(this.questProgressText(o.label, o.current, o.total))}</div>`;
       }
@@ -5940,22 +5951,36 @@ export class Hud {
     const el = $('#map-quests');
     el.classList.remove('on');
     el.replaceChildren();
+    ($('#map-quests-toggle') as unknown as HTMLButtonElement).hidden = true;
   }
 
-  // Rebuild the side list only when its content actually changed (the map
+  // Rebuild the dropdown only when its content actually changed (the map
   // repaints on the 4Hz cadence; the signature keeps the DOM quiet between
   // real changes and covers a language switch via the current language salt).
+  // The "Quests" toggle button shows whenever the log has quests; the list
+  // itself only while the dropdown is unfolded.
   private renderMapQuestList(): void {
     const entries = mapQuestListView(this.sim.questLog, this.untrackedQuestSet());
     if (entries.length === 0) {
       this.hideMapQuestList();
       return;
     }
-    const sig = `${getLanguage()}|${entries
+    const sig = `${getLanguage()}|${this.mapQuestsOpen ? 1 : 0}|${entries
       .map((e) => `${e.questId}:${e.number}:${e.ready ? 1 : 0}:${e.tracked ? 1 : 0}`)
       .join('|')}`;
     if (sig === this.mapQuestListSig) return;
     this.mapQuestListSig = sig;
+    const toggle = $('#map-quests-toggle') as unknown as HTMLButtonElement;
+    toggle.hidden = false;
+    toggle.setAttribute('aria-expanded', this.mapQuestsOpen ? 'true' : 'false');
+    // U+25BE down / U+25B8 right triangle, the tracker header's chevron pair
+    toggle.textContent = `${this.mapQuestsOpen ? '▾' : '▸'} ${t('questUi.tracker.title')}`;
+    const listEl = $('#map-quests');
+    if (!this.mapQuestsOpen) {
+      listEl.classList.remove('on');
+      listEl.replaceChildren();
+      return;
+    }
     const check = String.fromCharCode(0x2713); // escaped so no literal glyph in source
     let html = `<div class="mapq-head">${esc(t('questUi.tracker.title'))}</div>`;
     for (const e of entries) {
@@ -5973,9 +5998,8 @@ export class Hud {
         `<button type="button" class="mapq-track" data-quest="${esc(e.questId)}" aria-pressed="${e.tracked}" title="${esc(label)}" aria-label="${esc(label)}">${e.tracked ? check : ''}</button>` +
         `</div>`;
     }
-    const el = $('#map-quests');
-    el.innerHTML = html;
-    el.classList.add('on');
+    listEl.innerHTML = html;
+    listEl.classList.add('on');
   }
 
   // Tooltip body for hovered quest-objective areas on the world map: per quest,

@@ -1414,6 +1414,10 @@
     max-height: 26vh;
     margin-top: 8px;
   }
+  body.mobile-touch #map-quests-toggle {
+    min-height: 40px;
+    box-sizing: border-box;
+  }
   body.mobile-touch .mapq-track {
     min-width: 40px;
     min-height: 40px;
