@@ -79,7 +79,7 @@ describe('saveCharacterAndMarketState', () => {
     expect(marketCall?.[1]).not.toContain('market');
   });
 
-  it('rolls back and rethrows if either write fails, leaving no half-commit', async () => {
+  it('rolls back and rethrows if the character write fails, leaving no half-commit', async () => {
     const client = clientStub();
     client.query.mockImplementation((sql: string) => {
       if (/UPDATE characters/i.test(sql)) throw new Error('boom');
@@ -90,6 +90,24 @@ describe('saveCharacterAndMarketState', () => {
     await expect(saveCharacterAndMarketState(1, 1, STATE, MARKET)).rejects.toThrow('boom');
 
     const sqls = client.query.mock.calls.map((c) => String(c[0]));
+    expect(sqls.some((s) => /ROLLBACK/.test(s))).toBe(true);
+    expect(sqls.some((s) => /^COMMIT/.test(s))).toBe(false);
+    expect(client.release).toHaveBeenCalled();
+  });
+
+  it('rolls back and rethrows if the market write fails, undoing the character write', async () => {
+    const client = clientStub();
+    client.query.mockImplementation((sql: string) => {
+      if (/world_state/i.test(sql)) throw new Error('market boom');
+      return Promise.resolve({ rows: [], rowCount: 0 } as any);
+    });
+    dbMock.connect.mockResolvedValueOnce(client as any);
+
+    await expect(saveCharacterAndMarketState(1, 1, STATE, MARKET)).rejects.toThrow('market boom');
+
+    const sqls = client.query.mock.calls.map((c) => String(c[0]));
+    // The character UPDATE already ran on this client; ROLLBACK must undo it.
+    expect(sqls.some((s) => /UPDATE characters/i.test(s))).toBe(true);
     expect(sqls.some((s) => /ROLLBACK/.test(s))).toBe(true);
     expect(sqls.some((s) => /^COMMIT/.test(s))).toBe(false);
     expect(client.release).toHaveBeenCalled();

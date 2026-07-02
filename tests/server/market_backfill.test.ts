@@ -228,6 +228,40 @@ describe('mergeMarketSaves', () => {
     expect(merged.listings.map((l) => l.id)).toEqual([9, 10, 11]);
     expect(merged.nextListingId).toBe(12);
   });
+
+  it('conserves copper and items when a malformed incoming blob repeats a collection key', () => {
+    // A corrupt or hand-edited blob can carry the same collection key twice
+    // (e.g. two '' house rows). Merge-by-key collapses them into one row, which
+    // is a dedupe, not a loss: copper sums and items concatenate, so only the
+    // collection ROW count shrinks while every escrowed value survives.
+    const existing: MarketSave = {
+      listings: [],
+      collections: [mkCollection({ key: '', copper: 5, items: [{ itemId: 'x', count: 1 }] })],
+      nextListingId: 1,
+    };
+    const incoming: MarketSave = {
+      listings: [],
+      collections: [
+        mkCollection({ key: '', copper: 10, items: [{ itemId: 'y', count: 2 }] }),
+        mkCollection({ key: '', copper: 20, items: [{ itemId: 'z', count: 3 }] }),
+      ],
+      nextListingId: 1,
+    };
+    const merged = mergeMarketSaves(existing, incoming);
+
+    expect(merged.collections).toHaveLength(1);
+    expect(merged.collections[0].copper).toBe(35);
+    expect(merged.collections[0].items).toEqual([
+      { itemId: 'x', count: 1 },
+      { itemId: 'y', count: 2 },
+      { itemId: 'z', count: 3 },
+    ]);
+    const e = computeMarketTotals(existing);
+    const i = computeMarketTotals(incoming);
+    const m = computeMarketTotals(merged);
+    expect(m.escrowCopper).toBe(e.escrowCopper + i.escrowCopper);
+    expect(m.escrowItemCount).toBe(e.escrowItemCount + i.escrowItemCount);
+  });
 });
 
 describe('verifyPartitionConservation', () => {
@@ -255,6 +289,44 @@ describe('verifyPartitionConservation', () => {
     expect(result.actual.listingCount).toBe(1);
     expect(result.expected.listingCount).toBe(2);
   });
+
+  it('is false when escrow copper shrinks while row counts stay intact', () => {
+    const global: MarketSave = {
+      listings: [mkListing({ id: 1 })],
+      collections: [mkCollection({ key: 'a', copper: 30 })],
+      nextListingId: 2,
+    };
+    const byRealm = {
+      Home: {
+        listings: [mkListing({ id: 1 })],
+        collections: [mkCollection({ key: 'a', copper: 20 })],
+        nextListingId: 2,
+      },
+    };
+    const result = verifyPartitionConservation(global, byRealm);
+    expect(result.ok).toBe(false);
+    expect(result.expected.escrowCopper).toBe(30);
+    expect(result.actual.escrowCopper).toBe(20);
+  });
+
+  it('is false when an escrowed item count shrinks while rows and copper stay intact', () => {
+    const global: MarketSave = {
+      listings: [mkListing({ id: 1, count: 1 })],
+      collections: [mkCollection({ key: 'a', copper: 10, items: [{ itemId: 'x', count: 3 }] })],
+      nextListingId: 2,
+    };
+    const byRealm = {
+      Home: {
+        listings: [mkListing({ id: 1, count: 1 })],
+        collections: [mkCollection({ key: 'a', copper: 10, items: [{ itemId: 'x', count: 2 }] })],
+        nextListingId: 2,
+      },
+    };
+    const result = verifyPartitionConservation(global, byRealm);
+    expect(result.ok).toBe(false);
+    expect(result.expected.escrowItemCount).toBe(4);
+    expect(result.actual.escrowItemCount).toBe(3);
+  });
 });
 
 describe('runMarketBackfill', () => {
@@ -264,7 +336,7 @@ describe('runMarketBackfill', () => {
 
     expect(res).toEqual({ ran: false, dryRun: false, legacyRowFound: false, plan: null });
     expect(client.query).toHaveBeenCalledTimes(1);
-    expect(client.calls[0].params[0]).toBe(MARKET_BACKFILL_MARKER_KEY);
+    expect(client.calls[0].params[0]).toBe('market_backfill_done');
   });
 
   it('claims the legacy row FOR UPDATE by the bare "market" key', async () => {
