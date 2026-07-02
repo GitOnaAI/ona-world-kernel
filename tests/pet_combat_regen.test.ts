@@ -3,7 +3,7 @@ import { Sim } from '../src/sim/sim';
 import { dist2d } from '../src/sim/types';
 
 // Regression for the "no passive health regen while not in combat" report
-// (imdutha / ruanhx): a warlock standing idle with a summoned Infernal could not
+// (imdutha / ruanhx): a warlock standing idle with a summoned Pyre Colossus could not
 // regenerate health. The owner stayed flagged `inCombat` because the pet held a
 // target it was not actually fighting, while mana kept regenerating on its own
 // 5-second rule. Out-of-combat health regen must resume once the pet stops
@@ -17,7 +17,7 @@ function makeWarlock(seed = 7) {
 }
 
 function summonInfernal(sim: Sim, p: any) {
-  (sim as any).createDemonPet(p, 'infernal', false);
+  (sim as any).createDemonPet(p, 'pyre_colossus', false);
   for (const e of sim.entities.values()) if ((e as any).ownerId === p.id) return e as any;
   throw new Error('pet not created');
 }

@@ -1353,13 +1353,13 @@ export const nl_NL: EnTranslations = {
       "thorns": "Beschermt een bondgenoot zodat melee-aanvallers zichzelf bezeren bij het toeslaan."
     },
     "petHook": {
-      "imp": "Een demon op afstand die met vuurbouten vijanden bestookt vanaf een veilige afstand.",
-      "voidwalker": "Een stevige demon die provoceert en klappen opvangt zodat jij rustig kunt casten.",
-      "succubus": "Een snelle melee-demon die hard toeslaat maar bezwijkt onder druk.",
-      "felhunter": "Een schaduwschermutselaar die vijandelijke casters opjaagt.",
-      "felguard": "Een taaie melee-vechter, het allroundtype zodra je hem kunt oproepen.",
-      "infernal": "Een kolossale moloch met verpletterende melee, opgeroepen voor pure kracht.",
-      "doomguard": "Een elite-tovenaar die van veraf zware schaduw doet neerregenen."
+      "emberkin": "Een demon op afstand die met vuurbouten vijanden bestookt vanaf een veilige afstand.",
+      "gloomshade": "Een stevige demon die provoceert en klappen opvangt zodat jij rustig kunt casten.",
+      "duskborn": "Een snelle melee-demon die hard toeslaat maar bezwijkt onder druk.",
+      "spellhound": "Een schaduwschermutselaar die vijandelijke casters opjaagt.",
+      "warfiend": "Een taaie melee-vechter, het allroundtype zodra je hem kunt oproepen.",
+      "pyre_colossus": "Een kolossale moloch met verpletterende melee, opgeroepen voor pure kracht.",
+      "wraithborn": "Een elite-tovenaar die van veraf zware schaduw doet neerregenen."
     },
     "bestiary": {
       "heading": "Bestiarium",
@@ -5537,13 +5537,13 @@ export const nl_NL: EnTranslations = {
       "varkas_boneguard": {
         "name": "Varkas-Botwacht"
       },
-      "imp": {
+      "emberkin": {
         "name": "Duiveltje"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Leegteloper"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Succubus"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const nl_NL: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Schimbinder Maldrec"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Feljager"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Felwacht"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Inferno"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Doemwacht"
       },
       "choirmother_selthe": {

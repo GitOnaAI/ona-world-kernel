@@ -2400,14 +2400,14 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.nhalia_mourner.name': 'Плакальщица Налии',
   'entities.mobs.sister_nhalia.name': 'Сестра Налия',
   'entities.mobs.varkas_boneguard.name': 'Костяной страж Варкаса',
-  'entities.mobs.imp.name': 'Бес',
-  'entities.mobs.voidwalker.name': 'Страж Бездны',
-  'entities.mobs.succubus.name': 'Суккуб',
+  'entities.mobs.emberkin.name': 'Бес',
+  'entities.mobs.gloomshade.name': 'Страж Бездны',
+  'entities.mobs.duskborn.name': 'Суккуб',
   'entities.mobs.grix_the_tunnelking.name': 'Грикс, Король туннелей',
-  'entities.mobs.felhunter.name': 'Охотник Скверны',
-  'entities.mobs.felguard.name': 'Страж Скверны',
-  'entities.mobs.infernal.name': 'Инфернал',
-  'entities.mobs.doomguard.name': 'Страж Рока',
+  'entities.mobs.spellhound.name': 'Охотник Скверны',
+  'entities.mobs.warfiend.name': 'Страж Скверны',
+  'entities.mobs.pyre_colossus.name': 'Инфернал',
+  'entities.mobs.wraithborn.name': 'Страж Рока',
   'entities.mobs.choirmother_selthe.name': 'Матерь хора Селте',
   'entities.mobs.drowned_templeguard.name': 'Утонувший храмовый страж',
   'entities.mobs.drowned_votary.name': 'Утонувший служитель',
@@ -4143,16 +4143,16 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'guide.nav.arena': 'Арена и PvP',
   'guide.nav.talents': 'Таланты',
   'guide.nav.wishIKnew': 'Что бы я хотел знать заранее',
-  'guide.petHook.doomguard': 'Элитный заклинатель, который издалека обрушивает тяжелую тьму.',
-  'guide.petHook.felguard':
+  'guide.petHook.wraithborn': 'Элитный заклинатель, который издалека обрушивает тяжелую тьму.',
+  'guide.petHook.warfiend':
     'Крепкий боец ближнего боя, универсал, как только вы сможете его призвать.',
-  'guide.petHook.felhunter': 'Налетчик тьмы, который преследует вражеских заклинателей.',
-  'guide.petHook.imp':
+  'guide.petHook.spellhound': 'Налетчик тьмы, который преследует вражеских заклинателей.',
+  'guide.petHook.emberkin':
     'Дальнобойный демон с огненными стрелами, который понемногу бьет врагов с безопасного расстояния.',
-  'guide.petHook.infernal':
+  'guide.petHook.pyre_colossus':
     'Громадный исполин с сокрушительным ближним боем, призываемый ради чистой силы.',
-  'guide.petHook.succubus': 'Быстрый демон ближнего боя, который бьет сильно, но не держит удар.',
-  'guide.petHook.voidwalker':
+  'guide.petHook.duskborn': 'Быстрый демон ближнего боя, который бьет сильно, но не держит удар.',
+  'guide.petHook.gloomshade':
     'Стойкий демон, который провоцирует и поглощает удары, чтобы вы могли спокойно колдовать.',
   'guide.related': 'Связанное',
   'guide.search.label': 'Поиск',

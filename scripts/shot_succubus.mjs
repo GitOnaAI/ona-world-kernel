@@ -53,7 +53,7 @@ await new Promise((r) => setTimeout(r, 6500));
 const after = await page.evaluate(() => {
   const sim = window.__game.sim;
   for (const e of sim.entities.values()) {
-    if (e.templateId === 'succubus' && !e.dead) {
+    if (e.templateId === 'duskborn' && !e.dead) {
       // pin it beside the player and re-aim the camera for a clean framing
       const p = sim.player;
       e.pos.x = p.pos.x + 2.5; e.pos.z = p.pos.z + 1;

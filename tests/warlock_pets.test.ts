@@ -41,7 +41,7 @@ describe('warlock demon pets', () => {
     castAndFinish(sim, 'summon_imp');
     const pet = sim.petOf(sim.playerId);
     expect(pet).not.toBeNull();
-    expect(pet!.templateId).toBe('imp');
+    expect(pet!.templateId).toBe('emberkin');
     expect(pet!.ownerId).toBe(sim.playerId);
     expect(pet!.hostile).toBe(false);
   });
@@ -72,10 +72,10 @@ describe('warlock demon pets', () => {
     sim.setPlayerLevel(12);
     castAndFinish(sim, 'summon_imp');
     const imp = sim.petOf(sim.playerId)!;
-    expect(imp.templateId).toBe('imp');
+    expect(imp.templateId).toBe('emberkin');
     castAndFinish(sim, 'summon_voidwalker');
     const pet = sim.petOf(sim.playerId)!;
-    expect(pet.templateId).toBe('voidwalker');
+    expect(pet.templateId).toBe('gloomshade');
     // the imp is gone from the world entirely (summoned demons unravel)
     expect(sim.entities.has(imp.id)).toBe(false);
   });
@@ -91,7 +91,7 @@ describe('warlock demon pets', () => {
     for (let i = 0; i < 20 * 5; i++) sim.tick();
     expect(sim.entities.has(imp.id)).toBe(false);
     for (const e of sim.entities.values()) {
-      expect(e.templateId).not.toBe('imp');
+      expect(e.templateId).not.toBe('emberkin');
     }
   });
 });

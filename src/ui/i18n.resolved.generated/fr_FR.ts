@@ -1353,13 +1353,13 @@ export const fr_FR: EnTranslations = {
       "thorns": "Protège un allié pour que les attaquants en mêlée se blessent en le frappant."
     },
     "petHook": {
-      "imp": "Un démon à traits de feu à distance qui entame les ennemis depuis une distance sûre.",
-      "voidwalker": "Un démon robuste qui provoque et encaisse les coups pour que vous puissiez incanter tranquillement.",
-      "succubus": "Un démon de mêlée rapide qui frappe fort mais s'effondre sous la pression.",
-      "felhunter": "Un escarmoucheur d'ombre qui harcèle les lanceurs de sorts ennemis.",
-      "felguard": "Un cogneur de mêlée résistant, le polyvalent une fois que vous pouvez l'invoquer.",
-      "infernal": "Un colosse écrasant à la mêlée dévastatrice, invoqué pour la puissance brute.",
-      "doomguard": "Un lanceur de sorts d'élite qui déverse une ombre dévastatrice de loin."
+      "emberkin": "Un démon à traits de feu à distance qui entame les ennemis depuis une distance sûre.",
+      "gloomshade": "Un démon robuste qui provoque et encaisse les coups pour que vous puissiez incanter tranquillement.",
+      "duskborn": "Un démon de mêlée rapide qui frappe fort mais s'effondre sous la pression.",
+      "spellhound": "Un escarmoucheur d'ombre qui harcèle les lanceurs de sorts ennemis.",
+      "warfiend": "Un cogneur de mêlée résistant, le polyvalent une fois que vous pouvez l'invoquer.",
+      "pyre_colossus": "Un colosse écrasant à la mêlée dévastatrice, invoqué pour la puissance brute.",
+      "wraithborn": "Un lanceur de sorts d'élite qui déverse une ombre dévastatrice de loin."
     },
     "bestiary": {
       "heading": "Bestiaire",
@@ -5537,13 +5537,13 @@ export const fr_FR: EnTranslations = {
       "varkas_boneguard": {
         "name": "Garde-os de Varkas"
       },
-      "imp": {
+      "emberkin": {
         "name": "Diablotin"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Marcheur du Vide"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Succube"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const fr_FR: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Maldrec le Lie-spectres"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Limier corrompu"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Gangregarde"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Infernal"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Seigneur de l'effroi"
       },
       "choirmother_selthe": {

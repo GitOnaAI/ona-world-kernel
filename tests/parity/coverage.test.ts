@@ -90,7 +90,7 @@ describe('coverage: each scenario fires its subsystem', () => {
     expect(
       ev.some((e) => e.type === 'damage' && e.sourceId === pet.id && e.school === 'fire'),
     ).toBe(true);
-    // hostile-mob arm (6776): wild imp's AI shoots the player
+    // hostile-mob arm (6776): wild fire demon's AI shoots the player
     const hostileImpId = rec.notes.hostileImpId;
     expect(
       ev.some(
@@ -117,16 +117,16 @@ describe('coverage: each scenario fires its subsystem', () => {
     ).toBe(true);
   });
 
-  it('pet_ai: imp fires petRangedAttack (fire bolt), melee pet pulls+swings, both heel', () => {
+  it('pet_ai: emberkin fires petRangedAttack (fire bolt), melee pet pulls+swings, both heel', () => {
     const rec = run('pet_ai');
     const ev = rec.allEvents as Ev[];
     const impId = rec.notes.impId as number;
     const tankId = rec.notes.tankId as number;
-    // petRangedAttack: the imp's only damage path is the fire bolt (no miss roll).
+    // petRangedAttack: the emberkin's only damage path is the fire bolt (no miss roll).
     expect(ev.some((e) => e.type === 'damage' && e.sourceId === impId && e.school === 'fire')).toBe(
       true,
     );
-    // melee arm: the voidwalker acquired a target via petPickTarget and swung it.
+    // melee arm: the gloomshade acquired a target via petPickTarget and swung it.
     expect(ev.some((e) => e.type === 'damage' && e.sourceId === tankId)).toBe(true);
     // heel transition: both pets dropped their target and follow the owner.
     const ents = entities(rec);

@@ -877,7 +877,7 @@ export interface MobTemplate {
     name: string;
     school?: Aura['school'];
   };
-  // Pet mechanic: this creature is a ranged caster (warlock Imp) — instead of
+  // Pet mechanic: this creature is a ranged caster (warlock Emberkin) — instead of
   // closing to melee, it stays at `range` and hurls bolts of `school` damage.
   // updatePet reads this; the bolt damage comes from the mob's weapon range.
   petRanged?: { range: number; school: Aura['school'] };
@@ -1043,7 +1043,7 @@ export type AbilityEffect =
   | { type: 'tamePet' } // hunter tame beast: the targeted mob becomes the caster's pet
   | { type: 'dismissPet' } // release the caster's pet back to the wild
   | { type: 'summonPet'; templateId: string } // warlock demon summon: creates/replaces a controlled pet
-  | { type: 'summonDemon'; mobId: string }; // warlock: summon a demon pet (imp/voidwalker)
+  | { type: 'summonDemon'; mobId: string }; // warlock: summon a demon pet (emberkin/gloomshade)
 
 export interface AbilityRank {
   rank: number;

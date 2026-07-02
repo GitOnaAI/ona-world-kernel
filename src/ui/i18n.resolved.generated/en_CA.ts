@@ -1340,7 +1340,7 @@ export const en_CA: EnTranslations = {
       "conjure_water": "Conjures drinks that restore mana, so you can refill between pulls.",
       "conjure_food": "Conjures food that restores health when you sit down to eat.",
       "shadow_bolt": "A bolt of shadow you cast at a target, your go-to nuke.",
-      "summon_imp": "Calls up an imp that flings firebolts at enemies from range.",
+      "summon_imp": "Calls up an Emberkin that flings firebolts at enemies from range.",
       "demon_skin": "A lasting self-buff that toughens your skin and adds armor.",
       "immolate": "Sets a target alight for an opening hit and a burn that lingers.",
       "corruption": "Rots a target with shadow that ticks while you do other things.",
@@ -1353,13 +1353,13 @@ export const en_CA: EnTranslations = {
       "thorns": "Wards an ally so melee attackers hurt themselves for striking."
     },
     "petHook": {
-      "imp": "A ranged firebolt demon that chips at enemies from a safe distance.",
-      "voidwalker": "A sturdy demon that taunts and soaks hits so you can cast in peace.",
-      "succubus": "A fast melee demon that hits hard but folds under pressure.",
-      "felhunter": "A shadow skirmisher that hounds enemy casters.",
-      "felguard": "A durable melee bruiser, the all-rounder once you can summon it.",
-      "infernal": "A hulking juggernaut with crushing melee, summoned for raw power.",
-      "doomguard": "An elite caster that rains heavy shadow from afar."
+      "emberkin": "A ranged firebolt demon that chips at enemies from a safe distance.",
+      "gloomshade": "A sturdy demon that taunts and soaks hits so you can cast in peace.",
+      "duskborn": "A fast melee demon that hits hard but folds under pressure.",
+      "spellhound": "A shadow skirmisher that hounds enemy casters.",
+      "warfiend": "A durable melee bruiser, the all-rounder once you can summon it.",
+      "pyre_colossus": "A hulking juggernaut with crushing melee, summoned for raw power.",
+      "wraithborn": "An elite caster that rains heavy shadow from afar."
     },
     "bestiary": {
       "heading": "Bestiary",
@@ -4254,31 +4254,31 @@ export const en_CA: EnTranslations = {
       },
       "summon_imp": {
         "name": "Summon Imp",
-        "description": "Summons an Imp under the command of the Warlock. The Imp hurls Firebolts at your enemies from afar. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Summons an Emberkin under the command of the Warlock. The Emberkin hurls Firebolts at your enemies from afar. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_voidwalker": {
         "name": "Summon Voidwalker",
-        "description": "Summons a Voidwalker under the command of the Warlock. The Voidwalker is a sturdy demon that taunts your enemies and soaks up punishment. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Summons a Gloomshade under the command of the Warlock. The Gloomshade is a sturdy demon that taunts your enemies and soaks up punishment. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_succubus": {
         "name": "Summon Succubus",
-        "description": "Summons a Succubus under the command of the Warlock. The Succubus is a fragile demon that strikes quickly and hits hard in melee. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Summons a Duskborn under the command of the Warlock. The Duskborn is a fragile demon that strikes quickly and hits hard in melee. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_felhunter": {
         "name": "Summon Felhunter",
-        "description": "Summons a Felhunter under the command of the Warlock. The Felhunter harries enemies from range with Shadow Bite and excels at hunting spellcasters. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Summons a Spellhound under the command of the Warlock. The Spellhound harries enemies from range with Shadow Bite and excels at hunting spellcasters. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_felguard": {
         "name": "Summon Felguard",
-        "description": "Summons a Felguard under the command of the Warlock. The Felguard is a durable melee demon that wades into battle and holds its own. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Summons a Warfiend under the command of the Warlock. The Warfiend is a durable melee demon that wades into battle and holds its own. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_infernal": {
         "name": "Summon Infernal",
-        "description": "Binds an Infernal to your will — a hulking juggernaut with crushing melee and the deepest health and armor of any demon. A long cooldown gates its raw power. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Binds a Pyre Colossus to your will — a hulking juggernaut with crushing melee and the deepest health and armor of any demon. A long cooldown gates its raw power. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "summon_doomguard": {
         "name": "Summon Doomguard",
-        "description": "Binds a Doomguard to your will — an elite demon that rains heavy Shadow damage from afar. A long cooldown gates its devastating power. Summoning a new demon dismisses your current one. You may have one demon at a time."
+        "description": "Binds a Wraithborn to your will — an elite demon that rains heavy Shadow damage from afar. A long cooldown gates its devastating power. Summoning a new demon dismisses your current one. You may have one demon at a time."
       },
       "bear_charge": {
         "name": "Bear Charge",
@@ -5537,14 +5537,14 @@ export const en_CA: EnTranslations = {
       "varkas_boneguard": {
         "name": "Varkas Boneguard"
       },
-      "imp": {
-        "name": "Imp"
+      "emberkin": {
+        "name": "Emberkin"
       },
-      "voidwalker": {
-        "name": "Voidwalker"
+      "gloomshade": {
+        "name": "Gloomshade"
       },
-      "succubus": {
-        "name": "Succubus"
+      "duskborn": {
+        "name": "Duskborn"
       },
       "grix_the_tunnelking": {
         "name": "Grix the Tunnelking"
@@ -5567,17 +5567,17 @@ export const en_CA: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Wraithbinder Maldrec"
       },
-      "felhunter": {
-        "name": "Felhunter"
+      "spellhound": {
+        "name": "Spellhound"
       },
-      "felguard": {
-        "name": "Felguard"
+      "warfiend": {
+        "name": "Warfiend"
       },
-      "infernal": {
-        "name": "Infernal"
+      "pyre_colossus": {
+        "name": "Pyre Colossus"
       },
-      "doomguard": {
-        "name": "Doomguard"
+      "wraithborn": {
+        "name": "Wraithborn"
       },
       "choirmother_selthe": {
         "name": "Choirmother Selthe"

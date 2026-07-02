@@ -103,7 +103,7 @@
       "tick": 20,
       "time": 1,
       "nextId": 394,
-      "state": "987cf043",
+      "state": "c2dcafc5",
       "events": "11a8de12",
       "rng": {
         "draws": 14,
@@ -114,7 +114,7 @@
       "tick": 40,
       "time": 2,
       "nextId": 394,
-      "state": "5423739a",
+      "state": "a3545524",
       "events": "741638a5",
       "rng": {
         "draws": 14,
@@ -125,7 +125,7 @@
       "tick": 60,
       "time": 3,
       "nextId": 394,
-      "state": "2415fc54",
+      "state": "f984d2de",
       "events": "78032d7d",
       "rng": {
         "draws": 107,
@@ -136,7 +136,7 @@
       "tick": 80,
       "time": 4,
       "nextId": 394,
-      "state": "549e1346",
+      "state": "e2513698",
       "events": "741638a5",
       "rng": {
         "draws": 186,
@@ -147,7 +147,7 @@
       "tick": 100,
       "time": 5,
       "nextId": 394,
-      "state": "b6cf6270",
+      "state": "6fba5092",
       "events": "7ffe1025",
       "rng": {
         "draws": 307,
@@ -158,7 +158,7 @@
       "tick": 120,
       "time": 6,
       "nextId": 394,
-      "state": "162be455",
+      "state": "c74e4ef5",
       "events": "741638a5",
       "rng": {
         "draws": 418,
@@ -169,7 +169,7 @@
       "tick": 120,
       "time": 6,
       "nextId": 394,
-      "state": "c0794cb1",
+      "state": "796ae475",
       "events": "741638a5",
       "rng": {
         "draws": 418,
@@ -291,7 +291,7 @@
             "armor": 88
           },
           "swingTimer": 0.05,
-          "templateId": "imp",
+          "templateId": "emberkin",
           "weapon": {
             "max": 21,
             "min": 14,
@@ -397,7 +397,7 @@
             "armor": 495
           },
           "swingTimer": 0.4,
-          "templateId": "voidwalker",
+          "templateId": "gloomshade",
           "weapon": {
             "max": 15,
             "min": 10,
@@ -472,7 +472,7 @@
       "tick": 140,
       "time": 7,
       "nextId": 394,
-      "state": "6fde9258",
+      "state": "f95fbb48",
       "events": "741638a5",
       "rng": {
         "draws": 518,
@@ -483,7 +483,7 @@
       "tick": 160,
       "time": 8,
       "nextId": 394,
-      "state": "1c414dfc",
+      "state": "d325a846",
       "events": "741638a5",
       "rng": {
         "draws": 637,
@@ -494,7 +494,7 @@
       "tick": 180,
       "time": 9,
       "nextId": 394,
-      "state": "520e6cf6",
+      "state": "318e8cb2",
       "events": "741638a5",
       "rng": {
         "draws": 777,
@@ -505,7 +505,7 @@
       "tick": 180,
       "time": 9,
       "nextId": 394,
-      "state": "520e6cf6",
+      "state": "318e8cb2",
       "events": "741638a5",
       "rng": {
         "draws": 777,
@@ -624,7 +624,7 @@
           "stats": {
             "armor": 88
           },
-          "templateId": "imp",
+          "templateId": "emberkin",
           "weapon": {
             "max": 21,
             "min": 14,
@@ -722,7 +722,7 @@
           "stats": {
             "armor": 495
           },
-          "templateId": "voidwalker",
+          "templateId": "gloomshade",
           "weapon": {
             "max": 15,
             "min": 10,

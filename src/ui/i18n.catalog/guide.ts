@@ -495,7 +495,7 @@ export const guideStrings = {
     conjure_water: 'Conjures drinks that restore mana, so you can refill between pulls.',
     conjure_food: 'Conjures food that restores health when you sit down to eat.',
     shadow_bolt: 'A bolt of shadow you cast at a target, your go-to nuke.',
-    summon_imp: 'Calls up an imp that flings firebolts at enemies from range.',
+    summon_imp: 'Calls up an Emberkin that flings firebolts at enemies from range.',
     demon_skin: 'A lasting self-buff that toughens your skin and adds armor.',
     immolate: 'Sets a target alight for an opening hit and a burn that lingers.',
     corruption: 'Rots a target with shadow that ticks while you do other things.',
@@ -510,13 +510,13 @@ export const guideStrings = {
 
   // Warlock demon roster flavor, keyed by pet id.
   petHook: {
-    imp: 'A ranged firebolt demon that chips at enemies from a safe distance.',
-    voidwalker: 'A sturdy demon that taunts and soaks hits so you can cast in peace.',
-    succubus: 'A fast melee demon that hits hard but folds under pressure.',
-    felhunter: 'A shadow skirmisher that hounds enemy casters.',
-    felguard: 'A durable melee bruiser, the all-rounder once you can summon it.',
-    infernal: 'A hulking juggernaut with crushing melee, summoned for raw power.',
-    doomguard: 'An elite caster that rains heavy shadow from afar.',
+    emberkin: 'A ranged firebolt demon that chips at enemies from a safe distance.',
+    gloomshade: 'A sturdy demon that taunts and soaks hits so you can cast in peace.',
+    duskborn: 'A fast melee demon that hits hard but folds under pressure.',
+    spellhound: 'A shadow skirmisher that hounds enemy casters.',
+    warfiend: 'A durable melee bruiser, the all-rounder once you can summon it.',
+    pyre_colossus: 'A hulking juggernaut with crushing melee, summoned for raw power.',
+    wraithborn: 'An elite caster that rains heavy shadow from afar.',
   },
 
   // Bestiary.

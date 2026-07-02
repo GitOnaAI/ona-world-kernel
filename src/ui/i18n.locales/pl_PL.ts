@@ -1219,14 +1219,14 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.deathstalker_voss.name': 'Śmiercioczaj Voss',
   'entities.mobs.deepfen_murloc.name': 'Głębotopielny Kąsacz',
   'entities.mobs.deeprock_kobold.name': 'Głęboskalny Drążyciel',
-  'entities.mobs.doomguard.name': 'Strażnik Zagłady',
+  'entities.mobs.wraithborn.name': 'Strażnik Zagłady',
   'entities.mobs.drowned_dead.name': 'Utopiony Trup',
   'entities.mobs.drowned_templeguard.name': 'Utopiony Strażnik Świątyni',
   'entities.mobs.drowned_thrall.name': 'Utopiony Niewolnik',
   'entities.mobs.drowned_votary.name': 'Utopiony Wyznawca',
   'entities.mobs.fallen_captain_aldren.name': 'Poległy Kapitan Aldren',
-  'entities.mobs.felguard.name': 'Plugawy Strażnik',
-  'entities.mobs.felhunter.name': 'Plugawy Łowca',
+  'entities.mobs.warfiend.name': 'Plugawy Strażnik',
+  'entities.mobs.spellhound.name': 'Plugawy Łowca',
   'entities.mobs.fen_troll.name': 'Troll z Mokrzawia',
   'entities.mobs.forest_wolf.name': 'Leśny Wilk',
   'entities.mobs.glimmermere_wader.name': 'Brodziciel z Migotliwego Jeziora',
@@ -1239,8 +1239,8 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.grix_the_tunnelking.name': 'Grix Tunelowy Król',
   'entities.mobs.grubjaw.name': 'Larwopaszczy Żarłok',
   'entities.mobs.hollow_acolyte.name': 'Wydrążony Akolita',
-  'entities.mobs.imp.name': 'Chochlik',
-  'entities.mobs.infernal.name': 'Piekielnik',
+  'entities.mobs.emberkin.name': 'Chochlik',
+  'entities.mobs.pyre_colossus.name': 'Piekielnik',
   'entities.mobs.ironvein_foreman.name': 'Sztygar z Żelaznej Żyły',
   'entities.mobs.ironvein_sapper.name': 'Saper z Żelaznej Żyły',
   'entities.mobs.knight_commander_olen.name': 'Komandor Rycerzy Olen',
@@ -1281,7 +1281,7 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.sister_nhalia.name': 'Siostra Nhalia',
   'entities.mobs.sloomtooth_the_drowned.name': 'Mulząb Utopiony',
   'entities.mobs.stormcrag_elemental.name': 'Żywiołak Burzowej Turni',
-  'entities.mobs.succubus.name': 'Sukkub',
+  'entities.mobs.duskborn.name': 'Sukkub',
   'entities.mobs.thornpeak_ogre.name': 'Ogr z Ciernistego Szczytu',
   'entities.mobs.tidebound_acolyte.name': 'Akolita Spętany Przypływem',
   'entities.mobs.tunnel_rat.name': 'Tunelowy Szczur Kopacz',
@@ -1291,7 +1291,7 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.vision_aldren_warrior.name': 'Zjawa Kapitana Aldrena',
   'entities.mobs.vision_deathstalker_voss.name': 'Zjawa Królewskiego Zabójcy Vossa',
   'entities.mobs.vision_malric_mage.name': 'Zjawa Najwyższego Kapłana Malrica',
-  'entities.mobs.voidwalker.name': 'Wędrowiec Pustki',
+  'entities.mobs.gloomshade.name': 'Wędrowiec Pustki',
   'entities.mobs.voskar_emberwing.name': 'Voskar Żaroskrzydły',
   'entities.mobs.warlock_imp.name': 'Ognisty Demon',
   'entities.mobs.warlock_voidwalker.name': 'Demon Pustki',
@@ -2857,18 +2857,18 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'guide.notFound.body': 'Strona, której szukasz, nie istnieje lub mogła zostać przeniesiona.',
   'guide.notFound.home': 'Powrót do przeglądu',
   'guide.notFound.title': 'Nie udało nam się znaleźć tej strony',
-  'guide.petHook.doomguard':
+  'guide.petHook.wraithborn':
     'Elitarny rzucający zaklęcia, który z oddali sprowadza ciężki ostrzał cienia.',
-  'guide.petHook.felguard':
+  'guide.petHook.warfiend':
     'Wytrzymały zabijaka walczący wręcz, uniwersalny towarzysz, gdy już zdołasz go przyzwać.',
-  'guide.petHook.felhunter': 'Cienisty harcownik, który tropi wrogich rzucających zaklęcia.',
-  'guide.petHook.imp':
+  'guide.petHook.spellhound': 'Cienisty harcownik, który tropi wrogich rzucających zaklęcia.',
+  'guide.petHook.emberkin':
     'Demon ciskający ognistymi pociskami z bezpiecznej odległości, podgryzający wrogów na dystans.',
-  'guide.petHook.infernal':
+  'guide.petHook.pyre_colossus':
     'Potężny kolos miażdżący wrogów w zwarciu, przyzywany dla czystej siły.',
-  'guide.petHook.succubus':
+  'guide.petHook.duskborn':
     'Szybki demon walczący wręcz, który zadaje potężne ciosy, lecz łatwo pada pod naporem.',
-  'guide.petHook.voidwalker':
+  'guide.petHook.gloomshade':
     'Wytrzymały demon, który prowokuje i przyjmuje ciosy na siebie, byś mógł spokojnie rzucać zaklęcia.',
   'guide.placeholder.note': 'Ta część przewodnika jest już w drodze.',
   'guide.progression.bandLabel': 'Poziomy od {min} do {max}',

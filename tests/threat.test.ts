@@ -1558,8 +1558,8 @@ describe('warlock demon summons', () => {
     const sim = makeSim('warlock');
 
     const imp = summonImp(sim);
-    expect(imp.templateId).toBe('imp');
-    expect(imp.name).toBe('Imp');
+    expect(imp.templateId).toBe('emberkin');
+    expect(imp.name).toBe('Emberkin');
     expect(imp.ownerId).toBe(sim.playerId);
     expect(imp.hostile).toBe(false);
 
@@ -1614,7 +1614,7 @@ describe('warlock demon summons', () => {
     expect(sim.entities.has(demon.id)).toBe(true);
   });
 
-  it('Summon Voidwalker replaces the imp with a tank demon that Growls', () => {
+  it('Summon Voidwalker replaces the emberkin with a tank demon that Growls', () => {
     const sim = makeSim('warlock');
     sim.setPlayerLevel(10);
     const imp = summonImp(sim);
@@ -1623,8 +1623,8 @@ describe('warlock demon summons', () => {
     sim.castAbility('summon_voidwalker');
     for (let i = 0; i < 20 * 6; i++) sim.tick();
     const voidwalker = sim.petOf(sim.playerId)!;
-    expect(voidwalker.templateId).toBe('voidwalker');
-    expect(voidwalker.name).toBe('Voidwalker');
+    expect(voidwalker.templateId).toBe('gloomshade');
+    expect(voidwalker.name).toBe('Gloomshade');
     expect(voidwalker.id).not.toBe(imp.id);
     expect(sim.entities.has(imp.id)).toBe(false);
     expect(voidwalker.maxHp).toBeGreaterThan(imp.maxHp);
@@ -1650,7 +1650,7 @@ describe('warlock demon summons', () => {
   it('recasting the same demon unsummons it', () => {
     const sim = makeSim('warlock');
     const demon = summonImp(sim);
-    expect(demon.templateId).toBe('imp');
+    expect(demon.templateId).toBe('emberkin');
 
     sim.player.resource = sim.player.maxResource;
     sim.castAbility('summon_imp');
@@ -1675,7 +1675,7 @@ describe('warlock demon summons', () => {
     expect(sim.entities.has(deadDemon.id)).toBe(false);
     expect(freshDemon).toBeTruthy();
     expect(freshDemon!.id).not.toBe(deadDemon.id);
-    expect(freshDemon!.templateId).toBe('imp');
+    expect(freshDemon!.templateId).toBe('emberkin');
     expect(freshDemon!.dead).toBe(false);
     expect(freshDemon!.hp).toBe(freshDemon!.maxHp);
   });

@@ -1353,13 +1353,13 @@ export const pl_PL: EnTranslations = {
       "thorns": "Chroni sojusznika tak, że atakujący wręcz ranią się przy uderzeniu."
     },
     "petHook": {
-      "imp": "Demon ciskający ognistymi pociskami z bezpiecznej odległości, podgryzający wrogów na dystans.",
-      "voidwalker": "Wytrzymały demon, który prowokuje i przyjmuje ciosy na siebie, byś mógł spokojnie rzucać zaklęcia.",
-      "succubus": "Szybki demon walczący wręcz, który zadaje potężne ciosy, lecz łatwo pada pod naporem.",
-      "felhunter": "Cienisty harcownik, który tropi wrogich rzucających zaklęcia.",
-      "felguard": "Wytrzymały zabijaka walczący wręcz, uniwersalny towarzysz, gdy już zdołasz go przyzwać.",
-      "infernal": "Potężny kolos miażdżący wrogów w zwarciu, przyzywany dla czystej siły.",
-      "doomguard": "Elitarny rzucający zaklęcia, który z oddali sprowadza ciężki ostrzał cienia."
+      "emberkin": "Demon ciskający ognistymi pociskami z bezpiecznej odległości, podgryzający wrogów na dystans.",
+      "gloomshade": "Wytrzymały demon, który prowokuje i przyjmuje ciosy na siebie, byś mógł spokojnie rzucać zaklęcia.",
+      "duskborn": "Szybki demon walczący wręcz, który zadaje potężne ciosy, lecz łatwo pada pod naporem.",
+      "spellhound": "Cienisty harcownik, który tropi wrogich rzucających zaklęcia.",
+      "warfiend": "Wytrzymały zabijaka walczący wręcz, uniwersalny towarzysz, gdy już zdołasz go przyzwać.",
+      "pyre_colossus": "Potężny kolos miażdżący wrogów w zwarciu, przyzywany dla czystej siły.",
+      "wraithborn": "Elitarny rzucający zaklęcia, który z oddali sprowadza ciężki ostrzał cienia."
     },
     "bestiary": {
       "heading": "Bestiariusz",
@@ -5537,13 +5537,13 @@ export const pl_PL: EnTranslations = {
       "varkas_boneguard": {
         "name": "Kościostrażnik Varkasa"
       },
-      "imp": {
+      "emberkin": {
         "name": "Chochlik"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Wędrowiec Pustki"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Sukkub"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const pl_PL: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Widmowiąż Maldrec"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Plugawy Łowca"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Plugawy Strażnik"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Piekielnik"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Strażnik Zagłady"
       },
       "choirmother_selthe": {

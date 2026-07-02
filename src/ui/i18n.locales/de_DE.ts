@@ -2412,14 +2412,14 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   'entities.mobs.nhalia_mourner.name': 'Nhalia-Trauernde',
   'entities.mobs.sister_nhalia.name': 'Schwester Nhalia',
   'entities.mobs.varkas_boneguard.name': "Varkas' Knochenwache",
-  'entities.mobs.imp.name': 'Wichtel',
-  'entities.mobs.voidwalker.name': 'Leerwandler',
-  'entities.mobs.succubus.name': 'Sukkubus',
+  'entities.mobs.emberkin.name': 'Wichtel',
+  'entities.mobs.gloomshade.name': 'Leerwandler',
+  'entities.mobs.duskborn.name': 'Sukkubus',
   'entities.mobs.grix_the_tunnelking.name': 'Grix der Tunnelkönig',
-  'entities.mobs.felhunter.name': 'Teufelsjäger',
-  'entities.mobs.felguard.name': 'Teufelswache',
-  'entities.mobs.infernal.name': 'Inferno',
-  'entities.mobs.doomguard.name': 'Schreckenswache',
+  'entities.mobs.spellhound.name': 'Teufelsjäger',
+  'entities.mobs.warfiend.name': 'Teufelswache',
+  'entities.mobs.pyre_colossus.name': 'Inferno',
+  'entities.mobs.wraithborn.name': 'Schreckenswache',
   'entities.mobs.choirmother_selthe.name': 'Chormutter Selthe',
   'entities.mobs.drowned_templeguard.name': 'Ertränkte Tempelwache',
   'entities.mobs.drowned_votary.name': 'Ertränkter Andächtiger',
@@ -4132,18 +4132,18 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   'guide.nav.arena': 'Arena und PvP',
   'guide.nav.talents': 'Talente',
   'guide.nav.wishIKnew': 'Was ich gern früher gewusst hätte',
-  'guide.petHook.doomguard':
+  'guide.petHook.wraithborn':
     'Ein Elite-Zauberwirker, der aus der Ferne schweren Schatten regnen lässt.',
-  'guide.petHook.felguard':
+  'guide.petHook.warfiend':
     'Ein robuster Nahkampfschläger, der Allrounder, sobald du ihn beschwören kannst.',
-  'guide.petHook.felhunter': 'Ein Schattenplänkler, der gegnerischen Zauberwirkern zusetzt.',
-  'guide.petHook.imp':
+  'guide.petHook.spellhound': 'Ein Schattenplänkler, der gegnerischen Zauberwirkern zusetzt.',
+  'guide.petHook.emberkin':
     'Ein Feuerblitz-Dämon für die Distanz, der Gegner aus sicherer Entfernung abträgt.',
-  'guide.petHook.infernal':
+  'guide.petHook.pyre_colossus':
     'Ein massiger Koloss mit zermalmendem Nahkampf, beschworen für rohe Kraft.',
-  'guide.petHook.succubus':
+  'guide.petHook.duskborn':
     'Ein schneller Nahkampfdämon, der hart zuschlägt, aber unter Druck einknickt.',
-  'guide.petHook.voidwalker':
+  'guide.petHook.gloomshade':
     'Ein robuster Dämon, der verspottet und Treffer absorbiert, sodass du in Ruhe zaubern kannst.',
   'guide.related': 'Verwandtes',
   'guide.search.label': 'Suche',

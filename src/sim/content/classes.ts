@@ -2701,9 +2701,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'imp' }],
+    effects: [{ type: 'summonDemon', mobId: 'emberkin' }],
     description:
-      'Summons an Imp under the command of the Warlock. The Imp hurls Firebolts at your enemies from afar. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Summons an Emberkin under the command of the Warlock. The Emberkin hurls Firebolts at your enemies from afar. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_voidwalker: {
     id: 'summon_voidwalker',
@@ -2716,9 +2716,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'voidwalker' }],
+    effects: [{ type: 'summonDemon', mobId: 'gloomshade' }],
     description:
-      'Summons a Voidwalker under the command of the Warlock. The Voidwalker is a sturdy demon that taunts your enemies and soaks up punishment. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Summons a Gloomshade under the command of the Warlock. The Gloomshade is a sturdy demon that taunts your enemies and soaks up punishment. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_succubus: {
     id: 'summon_succubus',
@@ -2731,9 +2731,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'succubus' }],
+    effects: [{ type: 'summonDemon', mobId: 'duskborn' }],
     description:
-      'Summons a Succubus under the command of the Warlock. The Succubus is a fragile demon that strikes quickly and hits hard in melee. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Summons a Duskborn under the command of the Warlock. The Duskborn is a fragile demon that strikes quickly and hits hard in melee. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_felhunter: {
     id: 'summon_felhunter',
@@ -2746,9 +2746,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'felhunter' }],
+    effects: [{ type: 'summonDemon', mobId: 'spellhound' }],
     description:
-      'Summons a Felhunter under the command of the Warlock. The Felhunter harries enemies from range with Shadow Bite and excels at hunting spellcasters. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Summons a Spellhound under the command of the Warlock. The Spellhound harries enemies from range with Shadow Bite and excels at hunting spellcasters. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_felguard: {
     id: 'summon_felguard',
@@ -2761,9 +2761,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'felguard' }],
+    effects: [{ type: 'summonDemon', mobId: 'warfiend' }],
     description:
-      'Summons a Felguard under the command of the Warlock. The Felguard is a durable melee demon that wades into battle and holds its own. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Summons a Warfiend under the command of the Warlock. The Warfiend is a durable melee demon that wades into battle and holds its own. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_infernal: {
     id: 'summon_infernal',
@@ -2776,9 +2776,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'fire',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'infernal' }],
+    effects: [{ type: 'summonDemon', mobId: 'pyre_colossus' }],
     description:
-      'Binds an Infernal to your will — a hulking juggernaut with crushing melee and the deepest health and armor of any demon. A long cooldown gates its raw power. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Binds a Pyre Colossus to your will — a hulking juggernaut with crushing melee and the deepest health and armor of any demon. A long cooldown gates its raw power. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
   summon_doomguard: {
     id: 'summon_doomguard',
@@ -2791,9 +2791,9 @@ export const ABILITIES: Record<string, AbilityDef> = {
     range: 0,
     school: 'shadow',
     requiresTarget: false,
-    effects: [{ type: 'summonDemon', mobId: 'doomguard' }],
+    effects: [{ type: 'summonDemon', mobId: 'wraithborn' }],
     description:
-      'Binds a Doomguard to your will — an elite demon that rains heavy Shadow damage from afar. A long cooldown gates its devastating power. Summoning a new demon dismisses your current one. You may have one demon at a time.',
+      'Binds a Wraithborn to your will — an elite demon that rains heavy Shadow damage from afar. A long cooldown gates its devastating power. Summoning a new demon dismisses your current one. You may have one demon at a time.',
   },
 
   // ====================== DRUID ======================

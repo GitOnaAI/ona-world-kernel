@@ -1353,13 +1353,13 @@ export const de_DE: EnTranslations = {
       "thorns": "Schützt einen Verbündeten, sodass Nahkampfangreifer sich beim Zuschlagen selbst verletzen."
     },
     "petHook": {
-      "imp": "Ein Feuerblitz-Dämon für die Distanz, der Gegner aus sicherer Entfernung abträgt.",
-      "voidwalker": "Ein robuster Dämon, der verspottet und Treffer absorbiert, sodass du in Ruhe zaubern kannst.",
-      "succubus": "Ein schneller Nahkampfdämon, der hart zuschlägt, aber unter Druck einknickt.",
-      "felhunter": "Ein Schattenplänkler, der gegnerischen Zauberwirkern zusetzt.",
-      "felguard": "Ein robuster Nahkampfschläger, der Allrounder, sobald du ihn beschwören kannst.",
-      "infernal": "Ein massiger Koloss mit zermalmendem Nahkampf, beschworen für rohe Kraft.",
-      "doomguard": "Ein Elite-Zauberwirker, der aus der Ferne schweren Schatten regnen lässt."
+      "emberkin": "Ein Feuerblitz-Dämon für die Distanz, der Gegner aus sicherer Entfernung abträgt.",
+      "gloomshade": "Ein robuster Dämon, der verspottet und Treffer absorbiert, sodass du in Ruhe zaubern kannst.",
+      "duskborn": "Ein schneller Nahkampfdämon, der hart zuschlägt, aber unter Druck einknickt.",
+      "spellhound": "Ein Schattenplänkler, der gegnerischen Zauberwirkern zusetzt.",
+      "warfiend": "Ein robuster Nahkampfschläger, der Allrounder, sobald du ihn beschwören kannst.",
+      "pyre_colossus": "Ein massiger Koloss mit zermalmendem Nahkampf, beschworen für rohe Kraft.",
+      "wraithborn": "Ein Elite-Zauberwirker, der aus der Ferne schweren Schatten regnen lässt."
     },
     "bestiary": {
       "heading": "Bestiarium",
@@ -5537,13 +5537,13 @@ export const de_DE: EnTranslations = {
       "varkas_boneguard": {
         "name": "Varkas' Knochenwache"
       },
-      "imp": {
+      "emberkin": {
         "name": "Wichtel"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Leerwandler"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Sukkubus"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const de_DE: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Maldrec der Geisterbinder"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Teufelsjäger"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Teufelswache"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Inferno"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Schreckenswache"
       },
       "choirmother_selthe": {

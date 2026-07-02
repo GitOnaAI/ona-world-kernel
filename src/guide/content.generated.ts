@@ -1311,50 +1311,50 @@ export const GUIDE_DUNGEONS: GuideDungeon[] = [
 
 export const GUIDE_WARLOCK_PETS: GuideWarlockPet[] = [
   {
-    "id": "imp",
-    "name": "Imp",
+    "id": "emberkin",
+    "name": "Emberkin",
     "model": "mob_demon",
     "tint": "#ff7a2a",
     "still": "/guide-stills/mob_demon__ff7a2a.webp"
   },
   {
-    "id": "voidwalker",
-    "name": "Voidwalker",
+    "id": "gloomshade",
+    "name": "Gloomshade",
     "model": "mob_demon",
     "tint": "#3a3a6e",
     "still": "/guide-stills/mob_demon__3a3a6e.webp"
   },
   {
-    "id": "succubus",
-    "name": "Succubus",
+    "id": "duskborn",
+    "name": "Duskborn",
     "model": "mob_demon",
     "tint": "#c6469b",
     "still": "/guide-stills/mob_demon__c6469b.webp"
   },
   {
-    "id": "felhunter",
-    "name": "Felhunter",
+    "id": "spellhound",
+    "name": "Spellhound",
     "model": "mob_demonalt",
     "tint": "#4a7d4a",
     "still": "/guide-stills/mob_demonalt__4a7d4a.webp"
   },
   {
-    "id": "felguard",
-    "name": "Felguard",
+    "id": "warfiend",
+    "name": "Warfiend",
     "model": "mob_demonalt",
     "tint": "#6e5a2a",
     "still": "/guide-stills/mob_demonalt__6e5a2a.webp"
   },
   {
-    "id": "infernal",
-    "name": "Infernal",
+    "id": "pyre_colossus",
+    "name": "Pyre Colossus",
     "model": "mob_demonalt",
     "tint": "#d24a2a",
     "still": "/guide-stills/mob_demonalt__d24a2a.webp"
   },
   {
-    "id": "doomguard",
-    "name": "Doomguard",
+    "id": "wraithborn",
+    "name": "Wraithborn",
     "model": "mob_demonalt",
     "tint": "#7a3a8e",
     "still": "/guide-stills/mob_demonalt__7a3a8e.webp"

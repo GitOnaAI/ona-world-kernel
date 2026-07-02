@@ -67,7 +67,7 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
     scale: 0.65,
     color: 0xff5a2e,
     petRole: 'ranged_dps',
-    petSpell: { name: 'Firebolt', school: 'fire', min: 8, max: 11, range: 24, every: 2.0 },
+    petSpell: { name: 'Ashbolt', school: 'fire', min: 8, max: 11, range: 24, every: 2.0 },
   },
   warlock_voidwalker: {
     id: 'warlock_voidwalker',

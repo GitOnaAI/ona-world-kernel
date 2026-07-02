@@ -1353,13 +1353,13 @@ export const id_ID: EnTranslations = {
       "thorns": "Melindungi sekutu sehingga penyerang jarak dekat melukai diri sendiri saat memukul."
     },
     "petHook": {
-      "imp": "Iblis pelontar api jarak jauh yang menggerus musuh dari jarak aman.",
-      "voidwalker": "Iblis kokoh yang memprovokasi dan menahan serangan agar kamu bisa memantra dengan tenang.",
-      "succubus": "Iblis jarak dekat yang gesit, memukul keras tetapi mudah tumbang di bawah tekanan.",
-      "felhunter": "Penyerang bayangan yang memburu pemantra musuh.",
-      "felguard": "Petarung jarak dekat yang tangguh, serba bisa begitu kamu mampu memanggilnya.",
-      "infernal": "Raksasa kekar dengan serangan jarak dekat yang menghancurkan, dipanggil demi kekuatan murni.",
-      "doomguard": "Perapal elite yang menghujankan bayangan berat dari kejauhan."
+      "emberkin": "Iblis pelontar api jarak jauh yang menggerus musuh dari jarak aman.",
+      "gloomshade": "Iblis kokoh yang memprovokasi dan menahan serangan agar kamu bisa memantra dengan tenang.",
+      "duskborn": "Iblis jarak dekat yang gesit, memukul keras tetapi mudah tumbang di bawah tekanan.",
+      "spellhound": "Penyerang bayangan yang memburu pemantra musuh.",
+      "warfiend": "Petarung jarak dekat yang tangguh, serba bisa begitu kamu mampu memanggilnya.",
+      "pyre_colossus": "Raksasa kekar dengan serangan jarak dekat yang menghancurkan, dipanggil demi kekuatan murni.",
+      "wraithborn": "Perapal elite yang menghujankan bayangan berat dari kejauhan."
     },
     "bestiary": {
       "heading": "Bestiari",
@@ -5537,13 +5537,13 @@ export const id_ID: EnTranslations = {
       "varkas_boneguard": {
         "name": "Pengawal Tulang Varkas"
       },
-      "imp": {
+      "emberkin": {
         "name": "Imp"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Voidwalker"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Succubus"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const id_ID: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Pengikat Arwah Maldrec"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Felhunter"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Felguard"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Infernal"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Doomguard"
       },
       "choirmother_selthe": {

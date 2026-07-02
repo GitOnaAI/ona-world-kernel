@@ -1,6 +1,6 @@
 // Screenshot harness for the pet-combat health-regen fix.
 // Boots the offline world as a level-20 warlock at max graphics (?gfx=ultra),
-// summons an Infernal, drops the player to ~40% HP, and confirms out-of-combat
+// summons a Pyre Colossus, drops the player to ~40% HP, and confirms out-of-combat
 // health regen resumes even while the demon lingers at the owner's side.
 // Captures the HUD before and after the regen ticks.
 //
@@ -31,11 +31,11 @@ await page.click('#btn-start-offline');
 await page.waitForFunction(() => window.__game && window.__game.sim && window.__game.sim.player, { timeout: 30000 });
 await sleep(1500);
 
-// Level to 20, summon the Infernal, drop to 40% HP, force out of combat.
+// Level to 20, summon the Pyre Colossus, drop to 40% HP, force out of combat.
 const before = await page.evaluate(() => {
   const g = window.__game; const sim = g.sim; const p = sim.player;
   sim.setPlayerLevel(20);
-  sim.createDemonPet(p, 'infernal', false);
+  sim.createDemonPet(p, 'pyre_colossus', false);
   p.hp = Math.floor(p.maxHp * 0.4);
   p.inCombat = false; p.combatTimer = 99;
   return { hp: p.hp, maxHp: p.maxHp, mana: p.resource, maxMana: p.maxResource };

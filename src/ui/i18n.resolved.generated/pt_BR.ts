@@ -1353,13 +1353,13 @@ export const pt_BR: EnTranslations = {
       "thorns": "Protege um aliado para que atacantes corpo a corpo se firam ao golpeá-lo."
     },
     "petHook": {
-      "imp": "Um demônio de setas de fogo à distância que desgasta os inimigos de um ponto seguro.",
-      "voidwalker": "Um demônio robusto que provoca e absorve golpes para você conjurar em paz.",
-      "succubus": "Um demônio corpo a corpo rápido que acerta forte, mas cede sob pressão.",
-      "felhunter": "Um combatente sombrio que persegue conjuradores inimigos.",
-      "felguard": "Um brigão corpo a corpo resistente, o faz-tudo assim que você consegue invocá-lo.",
-      "infernal": "Um colosso imponente de corpo a corpo esmagador, invocado pela força bruta.",
-      "doomguard": "Um conjurador de elite que despeja sombra pesada à distância."
+      "emberkin": "Um demônio de setas de fogo à distância que desgasta os inimigos de um ponto seguro.",
+      "gloomshade": "Um demônio robusto que provoca e absorve golpes para você conjurar em paz.",
+      "duskborn": "Um demônio corpo a corpo rápido que acerta forte, mas cede sob pressão.",
+      "spellhound": "Um combatente sombrio que persegue conjuradores inimigos.",
+      "warfiend": "Um brigão corpo a corpo resistente, o faz-tudo assim que você consegue invocá-lo.",
+      "pyre_colossus": "Um colosso imponente de corpo a corpo esmagador, invocado pela força bruta.",
+      "wraithborn": "Um conjurador de elite que despeja sombra pesada à distância."
     },
     "bestiary": {
       "heading": "Bestiário",
@@ -5537,13 +5537,13 @@ export const pt_BR: EnTranslations = {
       "varkas_boneguard": {
         "name": "Guardião dos ossos de Varkas"
       },
-      "imp": {
+      "emberkin": {
         "name": "Diabrete"
       },
-      "voidwalker": {
+      "gloomshade": {
         "name": "Caminhante do Vazio"
       },
-      "succubus": {
+      "duskborn": {
         "name": "Súcubo"
       },
       "grix_the_tunnelking": {
@@ -5567,16 +5567,16 @@ export const pt_BR: EnTranslations = {
       "wraithbinder_maldrec": {
         "name": "Maldrec o Atador-de-espectros"
       },
-      "felhunter": {
+      "spellhound": {
         "name": "Caçador Vil"
       },
-      "felguard": {
+      "warfiend": {
         "name": "Guarda Vil"
       },
-      "infernal": {
+      "pyre_colossus": {
         "name": "Infernal"
       },
-      "doomguard": {
+      "wraithborn": {
         "name": "Guarda Sinistro"
       },
       "choirmother_selthe": {
