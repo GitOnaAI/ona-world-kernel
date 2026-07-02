@@ -67,8 +67,15 @@ export function startAutoAttack(ctx: SimContext, pid?: number): void {
   const inAutoAttackRange = ranged
     ? d <= ranged.maxRange && d >= (ranged.wand ? 0 : ranged.minRange) && ctx.hasLineOfSight(p, t)
     : d <= MELEE_RANGE;
+  // Engaging pulls the idle target into combat, but ONLY when a swing can
+  // actually happen now: while a cast is in progress the swing loop is paused
+  // (updatePlayerAutoAttack bails on castingAbility), so a mid-cast Attack
+  // press must not aggro an untouched mob (the aggro-before-damage bug). The
+  // toggle still arms autoAttack above; once the cast resolves, the first
+  // landed swing (or the spell's own damage) aggros the target legitimately.
   if (
     inAutoAttackRange &&
+    !p.castingAbility &&
     t.kind === 'mob' &&
     t.hostile &&
     t.ownerId === null &&

@@ -260,3 +260,26 @@ describe('auto_attack determinism', () => {
     expect(a).toEqual(b); // byte-identical across the replay
   });
 });
+
+describe('startAutoAttack while casting (the aggro-before-damage bug)', () => {
+  it('a mid-cast Attack press queues the swing but does NOT aggro the untouched target', () => {
+    const { sim, p } = makeSim('priest', 10);
+    const mob = spawnDummy(sim, p, 5, 2);
+    sim.castAbility('smite', p.id); // timed cast in progress
+    expect(p.castingAbility).toBe('smite');
+    startAutoAttack(sim.ctx, p.id);
+    // the toggle still arms white swings for after the cast...
+    expect(p.autoAttack).toBe(true);
+    // ...but no damage has landed, so the idle mob must not come running
+    expect(mob.aiState).toBe('idle');
+    expect(mob.aggroTargetId).toBe(null);
+  });
+
+  it('outside a cast the toggle still pulls the idle target at once (unchanged)', () => {
+    const { sim, p } = makeSim('warrior', 10);
+    const mob = spawnDummy(sim, p, 5, 2);
+    startAutoAttack(sim.ctx, p.id);
+    expect(mob.aiState).not.toBe('idle');
+    expect(p.inCombat).toBe(true);
+  });
+});
