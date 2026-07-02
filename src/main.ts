@@ -6798,9 +6798,11 @@ function wireStartScreens(): void {
       discordChoiceError(t('hudChrome.discord.choice.expired'));
       return;
     }
-    // Server codes userFacingApiError doesn't localize (a unique-link race, a 500, or
-    // the discord rate-limit bucket) would otherwise render raw; show the localized
-    // generic instead. The credential / 2FA / moderation messages it DOES localize
+    // Codes best shown as the chooser's own generic: already_linked (a unique-link
+    // race) and server_error (a 500) would render raw from userFacingApiError, and
+    // 'rate limited' (which userFacingApiError now resolves to
+    // errors.api.tooManyAttempts) deliberately keeps the panel's single generic here.
+    // The credential / 2FA / moderation messages userFacingApiError DOES localize
     // pass through unchanged.
     const code = err instanceof Error ? err.message : '';
     if (code === 'already_linked' || code === 'server_error' || code === 'rate limited') {
