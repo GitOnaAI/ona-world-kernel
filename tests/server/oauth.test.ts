@@ -13,10 +13,12 @@
 //    'oauth', no requireAccount middleware: consent authenticates via the web
 //    session, NOT the API bearer scope gate);
 //  - tokenEndpoint routing BOTH grants (authorization_code + device_code), a full
-//    PKCE exchange issuing a scope='read' token, and the unsupported-grant 400;
+//    PKCE exchange and an approved-device completion each issuing a scope='read'
+//    token, and the unsupported-grant 400;
 //  - revoke's always-200 RFC 7009 contract;
-//  - the web-session gate (no bearer / a read token / a locked account all 401;
-//    only a full, unlocked session proceeds), the load-bearing acceptance check;
+//  - the web-session gate on BOTH consent POSTs (no bearer / a read token / a
+//    locked account all 401; only a full, unlocked session reaches the authorize
+//    redirect 200 or the device-approval 200), the load-bearing acceptance check;
 //  - deviceAuthorization's RFC 8628 fields and the normalized user-code store;
 //  - the oauthBodyValidationRemap: an unexpected handler throw serializes as
 //    500 { error: 'server_error', error_description: ... } + X-Request-Id, the one
@@ -321,6 +323,35 @@ describe('POST /oauth/token', () => {
       'oauth:companion',
     );
   });
+
+  it('an approved device_code grant completes the RFC 8628 flow with a scope=read token', async () => {
+    vi.mocked(oauthDb.getDeviceByDeviceCode).mockResolvedValue({
+      ...pendingDeviceRow(),
+      approved: true,
+      account_id: ACCOUNT_ID,
+    });
+    vi.mocked(oauthDb.consumeDeviceCode).mockResolvedValue({
+      account_id: ACCOUNT_ID,
+      scope: 'character:read',
+    });
+    const r = await runRoute('POST', '/oauth/token', {
+      body: { grant_type: DEVICE_GRANT, device_code: 'dc', client_id: 'companion' },
+    });
+    expect(r.status).toBe(200);
+    const body = r.body as { access_token: string; token_type: string; scope: string };
+    expect(body.access_token).toMatch(/^[a-f0-9]{64}$/);
+    expect(body.token_type).toBe('bearer');
+    expect(body.scope).toBe('character:read');
+    // The device code is single-use: the exchange consumes it before issuing.
+    expect(oauthDb.consumeDeviceCode).toHaveBeenCalledWith(expect.anything(), 'dc');
+    expect(db.saveToken).toHaveBeenCalledWith(
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+      ACCOUNT_ID,
+      expect.any(Number),
+      'read',
+      'oauth:companion',
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -432,6 +463,69 @@ describe('web-session gate on the consent POSTs', () => {
       expect.anything(),
       'ABCDEFGH',
       ACCOUNT_ID,
+    );
+  });
+
+  it('a read-scope token cannot approve device (no escalation) -> 401', async () => {
+    vi.mocked(db.accountAndScopeForToken).mockResolvedValue({
+      accountId: ACCOUNT_ID,
+      scope: 'read',
+    });
+    const r = await runRoute('POST', '/oauth/device', {
+      headers: HEX_BEARER,
+      body: { user_code: 'ABCD-EFGH' },
+    });
+    expect(r.status).toBe(401);
+    expect(oauthDb.approveDeviceCode).not.toHaveBeenCalled();
+  });
+
+  it('a full token on a LOCKED account cannot approve authorize -> 401', async () => {
+    vi.mocked(db.moderationStatusForAccount).mockResolvedValue(moderationStatus(true));
+    const r = await runRoute('POST', '/oauth/authorize', {
+      headers: HEX_BEARER,
+      body: {
+        client_id: 'companion',
+        redirect_uri: 'https://app.example/cb',
+        code_challenge: 'c',
+        code_challenge_method: 'S256',
+      },
+    });
+    expect(r.status).toBe(401);
+    expect(oauthDb.createAuthCode).not.toHaveBeenCalled();
+  });
+
+  it('a full token on an UNLOCKED account approves authorize -> 200 { redirect } with code + state', async () => {
+    const challenge = pkceChallengeFromVerifier('v'.repeat(43));
+    const r = await runRoute('POST', '/oauth/authorize', {
+      headers: HEX_BEARER,
+      body: {
+        client_id: 'companion',
+        redirect_uri: 'https://app.example/cb',
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        state: 'client-state',
+      },
+    });
+    expect(r.status).toBe(200);
+    const redirect = new URL((r.body as { redirect: string }).redirect);
+    expect(redirect.origin + redirect.pathname).toBe('https://app.example/cb');
+    const code = redirect.searchParams.get('code') ?? '';
+    expect(code).toMatch(/^[a-f0-9]{64}$/);
+    // The client state echoes back on the redirect (CSRF binding).
+    expect(redirect.searchParams.get('state')).toBe('client-state');
+    // The redirect carries the SAME single-use code the store persisted, bound to
+    // the approving account and the client's PKCE challenge.
+    expect(oauthDb.createAuthCode).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        code,
+        clientId: 'companion',
+        accountId: ACCOUNT_ID,
+        redirectUri: 'https://app.example/cb',
+        codeChallenge: challenge,
+        codeChallengeMethod: 'S256',
+        scope: 'character:read',
+      }),
     );
   });
 });
