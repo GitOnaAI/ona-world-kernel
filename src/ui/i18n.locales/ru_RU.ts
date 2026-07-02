@@ -5335,6 +5335,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'editor.status.unpublished': 'Карта снята с публикации.',
   'editor.status.deleted': 'Карта удалена.',
   'editor.status.assetPlacedFirst': 'Сначала выберите модель в браузере.',
+  'editor.status.loading3d': 'Загрузка мира...',
   'editor.status.playtestLaunch': 'Запуск теста...',
   'editor.status.playtestFailed': 'Не удалось запустить тест (хранилище заблокировано).',
   'editor.status.draftSaved': 'Черновик сохранен автоматически.',

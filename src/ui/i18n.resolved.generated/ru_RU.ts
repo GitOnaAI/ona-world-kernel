@@ -2064,6 +2064,7 @@ export const ru_RU: EnTranslations = {
       "unpublished": "Карта снята с публикации.",
       "deleted": "Карта удалена.",
       "assetPlacedFirst": "Сначала выберите модель в браузере.",
+      "loading3d": "Загрузка мира...",
       "playtestLaunch": "Запуск теста...",
       "playtestFailed": "Не удалось запустить тест (хранилище заблокировано).",
       "draftSaved": "Черновик сохранен автоматически.",

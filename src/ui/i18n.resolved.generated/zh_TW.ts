@@ -2064,6 +2064,7 @@ export const zh_TW: EnTranslations = {
       "unpublished": "地圖已取消發布。",
       "deleted": "地圖已刪除。",
       "assetPlacedFirst": "請先在瀏覽器中選擇一個資源。",
+      "loading3d": "正在載入世界...",
       "playtestLaunch": "正在啟動試玩...",
       "playtestFailed": "無法啟動試玩（儲存空間遭封鎖）。",
       "draftSaved": "草稿已自動儲存。",

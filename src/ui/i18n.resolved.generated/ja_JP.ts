@@ -2064,6 +2064,7 @@ export const ja_JP: EnTranslations = {
       "unpublished": "マップの公開を停止しました。",
       "deleted": "マップを削除しました。",
       "assetPlacedFirst": "先にブラウザーでアセットを選んでください。",
+      "loading3d": "ワールドを読み込み中...",
       "playtestLaunch": "プレイテストを起動中...",
       "playtestFailed": "プレイテストを開始できませんでした（ストレージがブロックされています）。",
       "draftSaved": "下書きを自動保存しました。",

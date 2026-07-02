@@ -2064,6 +2064,7 @@ export const en_XA: EnTranslations = {
       "unpublished": "[Ɱáþ úñþúƀļíšĥéð.]",
       "deleted": "[Ɱáþ ðéļéţéð.]",
       "assetPlacedFirst": "[Þíçķ áñ áššéţ íñ ţĥé ƀŕóŵšéŕ ƒíŕšţ.]",
+      "loading3d": "[Ļóáðíñĝ ţĥé ŵóŕļð...]",
       "playtestLaunch": "[Ļáúñçĥíñĝ þļáýţéšţ...]",
       "playtestFailed": "[Çóúļð ñóţ šţáŕţ ţĥé þļáýţéšţ (šţóŕáĝé ƀļóçķéð).]",
       "draftSaved": "[Ðŕáƒţ áúţóšáʋéð.]",

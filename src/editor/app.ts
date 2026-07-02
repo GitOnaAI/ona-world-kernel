@@ -415,8 +415,24 @@ export class EditorApp {
 
   // ---- 3D viewport ---------------------------------------------------------------
 
+  // Full-stage overlay while the 3D engine loads its assets (the stage is
+  // otherwise a black canvas for several seconds on first boot).
+  private show3dLoading(): void {
+    if (this.stage3dEl.querySelector('.ed-3d-loading')) return;
+    const overlay = el('div', 'ed-3d-loading');
+    overlay.setAttribute('role', 'status');
+    overlay.append(el('div', 'ed-3d-loading-spin'), el('div', 'ed-3d-loading-text'));
+    (overlay.lastChild as HTMLElement).textContent = t('editor.status.loading3d');
+    this.stage3dEl.appendChild(overlay);
+  }
+
+  private hide3dLoading(): void {
+    this.stage3dEl.querySelector('.ed-3d-loading')?.remove();
+  }
+
   private boot3d(): void {
     if (this.viewport3d) return;
+    this.show3dLoading();
     try {
       this.viewport3d = new Editor3DViewport(this.stage3dEl, this.map, {
         toolActive: () => this.toolWantsPointer(),
@@ -433,14 +449,19 @@ export class EditorApp {
       });
       void this.viewport3d
         .start()
-        .then(() => this.syncFootprintOverlay())
+        .then(() => {
+          this.hide3dLoading();
+          this.syncFootprintOverlay();
+        })
         .catch((e) => {
           console.error('3D viewport failed; falling back to 2D', e);
+          this.hide3dLoading();
           this.viewMode = '2d';
           this.applyViewMode();
         });
     } catch (e) {
       console.error('3D viewport unavailable; using 2D', e);
+      this.hide3dLoading();
       this.viewMode = '2d';
       this.applyViewMode();
     }
@@ -1966,7 +1987,11 @@ export class EditorApp {
     // The reload rebuilds the render view, which resets its footprint flag:
     // reapply the effective overlay once the fresh engine is up.
     if (this.viewport3d) {
-      void this.viewport3d.reload(map).then(() => this.syncFootprintOverlay());
+      this.show3dLoading();
+      void this.viewport3d.reload(map).then(() => {
+        this.hide3dLoading();
+        this.syncFootprintOverlay();
+      });
     }
   }
 

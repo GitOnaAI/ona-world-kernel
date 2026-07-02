@@ -4955,6 +4955,7 @@ export const zh_CN: Partial<Record<TranslationKey, string>> = {
   'editor.status.unpublished': '地图已取消发布。',
   'editor.status.deleted': '地图已删除。',
   'editor.status.assetPlacedFirst': '请先在浏览器中选择一个资源。',
+  'editor.status.loading3d': '正在加载世界...',
   'editor.status.playtestLaunch': '正在启动试玩...',
   'editor.status.playtestFailed': '无法启动试玩（存储被阻止）。',
   'editor.status.draftSaved': '草稿已自动保存。',

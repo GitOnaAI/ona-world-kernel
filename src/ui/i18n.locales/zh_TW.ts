@@ -4955,6 +4955,7 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'editor.status.unpublished': '地圖已取消發布。',
   'editor.status.deleted': '地圖已刪除。',
   'editor.status.assetPlacedFirst': '請先在瀏覽器中選擇一個資源。',
+  'editor.status.loading3d': '正在載入世界...',
   'editor.status.playtestLaunch': '正在啟動試玩...',
   'editor.status.playtestFailed': '無法啟動試玩（儲存空間遭封鎖）。',
   'editor.status.draftSaved': '草稿已自動儲存。',

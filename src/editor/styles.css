@@ -347,6 +347,46 @@ input[type="range"] {
   overflow: hidden;
 }
 
+/* Full-stage overlay while the 3D engine loads its assets. */
+.ed-3d-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--ed-bg);
+  color: var(--ed-text-dim, #b8b2a5);
+  z-index: 5;
+}
+
+.ed-3d-loading-spin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.14);
+  border-top-color: var(--ed-accent, #e8b64f);
+  animation: ed-3d-loading-spin 0.9s linear infinite;
+}
+
+.ed-3d-loading-text {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+@keyframes ed-3d-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-3d-loading-spin {
+    animation: none;
+  }
+}
+
 /* ---- inspector ------------------------------------------------------------------ */
 
 .ed-inspector {

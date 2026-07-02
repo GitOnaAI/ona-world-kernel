@@ -5224,6 +5224,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'editor.status.unpublished': '맵 공개가 해제되었습니다.',
   'editor.status.deleted': '맵이 삭제되었습니다.',
   'editor.status.assetPlacedFirst': '먼저 브라우저에서 에셋을 선택하세요.',
+  'editor.status.loading3d': '월드 불러오는 중...',
   'editor.status.playtestLaunch': '플레이테스트 시작 중...',
   'editor.status.playtestFailed': '플레이테스트를 시작할 수 없습니다 (저장소가 차단됨).',
   'editor.status.draftSaved': '초안이 자동 저장되었습니다.',

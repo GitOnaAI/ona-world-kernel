@@ -2064,6 +2064,7 @@ export const zh_CN: EnTranslations = {
       "unpublished": "地图已取消发布。",
       "deleted": "地图已删除。",
       "assetPlacedFirst": "请先在浏览器中选择一个资源。",
+      "loading3d": "正在加载世界...",
       "playtestLaunch": "正在启动试玩...",
       "playtestFailed": "无法启动试玩（存储被阻止）。",
       "draftSaved": "草稿已自动保存。",

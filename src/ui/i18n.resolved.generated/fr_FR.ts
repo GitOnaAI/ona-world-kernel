@@ -2064,6 +2064,7 @@ export const fr_FR: EnTranslations = {
       "unpublished": "Map unpublished.",
       "deleted": "Map deleted.",
       "assetPlacedFirst": "Pick an asset in the browser first.",
+      "loading3d": "Loading the world...",
       "playtestLaunch": "Launching playtest...",
       "playtestFailed": "Could not start the playtest (storage blocked).",
       "draftSaved": "Draft autosaved.",

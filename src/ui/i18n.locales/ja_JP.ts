@@ -5223,6 +5223,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'editor.status.unpublished': 'マップの公開を停止しました。',
   'editor.status.deleted': 'マップを削除しました。',
   'editor.status.assetPlacedFirst': '先にブラウザーでアセットを選んでください。',
+  'editor.status.loading3d': 'ワールドを読み込み中...',
   'editor.status.playtestLaunch': 'プレイテストを起動中...',
   'editor.status.playtestFailed':
     'プレイテストを開始できませんでした（ストレージがブロックされています）。',
