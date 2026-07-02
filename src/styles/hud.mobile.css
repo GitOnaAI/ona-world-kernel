@@ -904,7 +904,10 @@
   }
   body.mobile-touch .window {
     max-width: calc(100vw - 20px);
-    max-height: calc(var(--app-vh) / var(--ui-scale, 1) - 40px);
+    /* --window-scale, never --ui-scale: this generic rule also governs the
+       body-level windows OUTSIDE the zoomed #ui (the confirm/input dialog),
+       which pin --window-scale to 1 (see the shell note in layout.css). */
+    max-height: calc(var(--app-vh) / var(--window-scale, 1) - 40px);
   }
   /* The mobile close button is a 40x40 touch target pinned in the header's
      top-right corner (absolute, see the .window > .panel-title shell rule in
@@ -1408,7 +1411,10 @@
     top: calc(46% - env(safe-area-inset-bottom));
     width: min(46vw, 330px);
     max-width: calc(100vw - 220px);
-    padding: 8px;
+    /* The variable, not raw padding, like every other window (the map has no
+       sticky header today, but keeping it in the --window-pad system means
+       adding one later cannot silently misalign; see layout.css). */
+    --window-pad: 8px;
     transform: translate(-50%, -50%);
   }
   body.mobile-touch #map-canvas {

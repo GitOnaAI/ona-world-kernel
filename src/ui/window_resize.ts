@@ -13,6 +13,7 @@ import {
   RESIZE_CORNER_BAND,
   RESIZE_CORNER_BAND_TOUCH,
   RESIZE_ENGAGE_SLOP,
+  RESIZE_ENGAGE_SLOP_TOUCH,
   resizedWindowSize,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
@@ -64,9 +65,11 @@ interface ResizeSession {
   /** Visual-space pointer origin (pointerdown). */
   downX: number;
   downY: number;
-  /** False until the pointer travels RESIZE_ENGAGE_SLOP: a bare tap or click in
+  /** False until the pointer travels the engage slop: a bare tap or click in
    *  the corner band must not mutate the window (no pin, no flags, no capture). */
   engaged: boolean;
+  /** Engage travel threshold, visual px (wider for touch: finger tap wobble). */
+  slop: number;
   /** Author-space rect captured at engage time, after the pin clamped it. */
   left: number;
   top: number;
@@ -134,6 +137,7 @@ export function installWindowResize(deps: WindowResizeDeps): () => void {
       downX: ev.clientX,
       downY: ev.clientY,
       engaged: false,
+      slop: ev.pointerType === 'touch' ? RESIZE_ENGAGE_SLOP_TOUCH : RESIZE_ENGAGE_SLOP,
       left: 0,
       top: 0,
       width: 0,
@@ -175,9 +179,15 @@ export function installWindowResize(deps: WindowResizeDeps): () => void {
     if (session) {
       if (session.pointerId !== ev.pointerId) return;
       if (!session.engaged) {
+        // A swallowed pointerup must not strand the pending session: no buttons
+        // down means the press already ended, so drop it instead of engaging.
+        if (ev.buttons === 0) {
+          endSession();
+          return;
+        }
         const travelled =
-          Math.abs(ev.clientX - session.downX) >= RESIZE_ENGAGE_SLOP ||
-          Math.abs(ev.clientY - session.downY) >= RESIZE_ENGAGE_SLOP;
+          Math.abs(ev.clientX - session.downX) >= session.slop ||
+          Math.abs(ev.clientY - session.downY) >= session.slop;
         if (!travelled) return;
         engage(ev);
       }

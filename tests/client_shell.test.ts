@@ -1114,9 +1114,20 @@ describe('client HTML shell', () => {
     expect(hudMobileCss).toContain(
       'body.mobile-touch.mobile-more-open #mobile-extra-controls {\n    display: flex;\n    flex-direction: column;\n  }',
     );
-    expect(hudMobileCss).toContain(
-      'min-height: 48px;\n    margin-bottom: 8px;\n    padding-bottom: 6px;\n    cursor: move;',
+    // Anchored to the drawer-header rule itself (not just the declarations,
+    // which any rule could carry): the 48px floor must stay on THIS selector.
+    const drawerTitleStart = hudMobileCss.indexOf(
+      'body.mobile-touch #mobile-extra-controls .panel-title {',
     );
+    expect(drawerTitleStart).toBeGreaterThan(-1);
+    const drawerTitleBody = hudMobileCss.slice(
+      drawerTitleStart,
+      hudMobileCss.indexOf('}', drawerTitleStart),
+    );
+    expect(drawerTitleBody).toContain('min-height: 48px;');
+    expect(drawerTitleBody).toContain('margin-bottom: 8px;');
+    expect(drawerTitleBody).toContain('padding-bottom: 6px;');
+    expect(drawerTitleBody).toContain('cursor: move;');
     expect(hudMobileCss).toContain(
       'width: min(560px, calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));',
     );

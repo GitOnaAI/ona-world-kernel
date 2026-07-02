@@ -21,6 +21,11 @@ export const WINDOW_RESIZE_MARGIN = 8;
 /** Pointer travel (visual px) before a corner press becomes a resize: a bare
  *  tap or click in the band must leave the window completely untouched. */
 export const RESIZE_ENGAGE_SLOP = 4;
+/** Touch engage travel (visual px). Finger tap wobble runs well past the mouse
+ *  slop (browsers budget roughly 10px of internal tap slop for exactly this),
+ *  and the value is visual space, so at uiScale 1.4 it is only ~7 author px; a
+ *  plain corner tap must never freeze the window's CSS-managed size. */
+export const RESIZE_ENGAGE_SLOP_TOUCH = 10;
 
 export interface CornerRect {
   right: number;
@@ -30,8 +35,11 @@ export interface CornerRect {
 /**
  * True when a pointer falls inside the window's SE resize corner. All inputs
  * share one coordinate space (the controller passes visual-space values, with
- * the band pre-multiplied by the UI scale). Callers only pass pointers already
- * over the window, so only the inner edge of the band is checked.
+ * the band pre-multiplied by the UI scale). The OUTER-edge checks (x <= right,
+ * y <= bottom) are load-bearing: the controller passes the CLIENT-box corner,
+ * so a pointer between it and the border box (the classic scrollbar gutter)
+ * must miss, or grabbing the scrollbar thumb near the bottom would start a
+ * resize instead of a scroll. Do not simplify them away.
  */
 export function isInResizeCorner(rect: CornerRect, x: number, y: number, band: number): boolean {
   return x >= rect.right - band && y >= rect.bottom - band && x <= rect.right && y <= rect.bottom;

@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { isResizableWindow, markResizableWindow } from '../src/ui/window_resize';
+import {
+  installWindowResize,
+  isResizableWindow,
+  markResizableWindow,
+} from '../src/ui/window_resize';
 import {
   isInResizeCorner,
   RESIZE_CORNER_BAND,
   RESIZE_CORNER_BAND_TOUCH,
   RESIZE_ENGAGE_SLOP,
+  RESIZE_ENGAGE_SLOP_TOUCH,
   resizedWindowSize,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
@@ -131,5 +136,156 @@ describe('RESIZE_ENGAGE_SLOP', () => {
   it('is a small positive travel threshold (a tap must not resize)', () => {
     expect(RESIZE_ENGAGE_SLOP).toBeGreaterThan(0);
     expect(RESIZE_ENGAGE_SLOP).toBeLessThan(RESIZE_CORNER_BAND);
+  });
+
+  it('the touch slop covers finger tap wobble and stays inside the touch band', () => {
+    expect(RESIZE_ENGAGE_SLOP_TOUCH).toBeGreaterThan(RESIZE_ENGAGE_SLOP);
+    // Browsers budget roughly 10px of internal tap slop; ours must not be under it.
+    expect(RESIZE_ENGAGE_SLOP_TOUCH).toBeGreaterThanOrEqual(8);
+    expect(RESIZE_ENGAGE_SLOP_TOUCH).toBeLessThan(RESIZE_CORNER_BAND_TOUCH);
+  });
+});
+
+// Fake-DOM harness for the controller (this repo deliberately has no jsdom;
+// tests/CLAUDE.md: model only the contract under test). The element and
+// document stubs cover exactly what installWindowResize touches.
+describe('installWindowResize tap safety', () => {
+  // Window at (100,100), 400x300 author px, scale 1: SE client corner (500,400).
+  const CORNER = { x: 495, y: 395 };
+
+  const setup = () => {
+    const classes = new Set<string>(['window', 'panel']);
+    const el: any = {
+      id: 'quest-log-window',
+      dataset: {} as Record<string, string>,
+      style: {} as Record<string, string>,
+      classList: {
+        add: (c: string) => classes.add(c),
+        remove: (c: string) => classes.delete(c),
+        contains: (c: string) => classes.has(c),
+      },
+      clientLeft: 0,
+      clientTop: 0,
+      clientWidth: 400,
+      clientHeight: 300,
+      getBoundingClientRect: () => ({ left: 100, top: 100, width: 400, height: 300 }),
+      closest: (sel: string) => (sel.includes('.window.panel') ? el : null),
+      setPointerCapture: () => {},
+    };
+    const listeners = new Map<string, ((ev: any) => void)[]>();
+    const doc: any = {
+      querySelectorAll: () => [el],
+      addEventListener: (type: string, fn: (ev: any) => void) => {
+        listeners.set(type, [...(listeners.get(type) ?? []), fn]);
+      },
+      removeEventListener: (type: string, fn: (ev: any) => void) => {
+        listeners.set(
+          type,
+          (listeners.get(type) ?? []).filter((f) => f !== fn),
+        );
+      },
+    };
+    const g = globalThis as any;
+    const prevDoc = g.document;
+    const prevWin = g.window;
+    g.document = doc;
+    g.window = { innerWidth: 1280, innerHeight: 800 };
+    const pins: unknown[] = [];
+    const teardown = installWindowResize({
+      getScale: () => 1,
+      pinWindow: (_target, rect) => pins.push(rect),
+      isCoarsePointer: () => false,
+    });
+    const fire = (type: string, ev: Record<string, unknown>) => {
+      for (const fn of [...(listeners.get(type) ?? [])]) {
+        fn({
+          button: 0,
+          buttons: 1,
+          pointerId: 1,
+          pointerType: 'mouse',
+          target: el,
+          preventDefault: () => {},
+          ...ev,
+        });
+      }
+    };
+    const restore = () => {
+      teardown();
+      g.document = prevDoc;
+      g.window = prevWin;
+    };
+    return { el, pins, fire, restore };
+  };
+
+  it('a sub-slop tap in the corner band leaves the window completely untouched', () => {
+    const { el, pins, fire, restore } = setup();
+    try {
+      fire('pointerdown', { clientX: CORNER.x, clientY: CORNER.y });
+      fire('pointermove', { clientX: CORNER.x + RESIZE_ENGAGE_SLOP - 1, clientY: CORNER.y });
+      fire('pointerup', { clientX: CORNER.x + RESIZE_ENGAGE_SLOP - 1, clientY: CORNER.y });
+      expect(pins).toHaveLength(0);
+      expect(el.style).toEqual({});
+      expect(el.dataset).toEqual({});
+      expect(el.classList.contains('window-resizing')).toBe(false);
+    } finally {
+      restore();
+    }
+  });
+
+  it('engaging past the slop pins once, stamps windowMoved, and resizes', () => {
+    const { el, pins, fire, restore } = setup();
+    try {
+      fire('pointerdown', { clientX: CORNER.x, clientY: CORNER.y });
+      fire('pointermove', { clientX: CORNER.x + RESIZE_ENGAGE_SLOP, clientY: CORNER.y });
+      expect(pins).toHaveLength(1);
+      expect(el.dataset.windowMoved).toBe('1');
+      expect(el.classList.contains('window-resizing')).toBe(true);
+      // The engaged drag resizes from the engage-time baseline (400x300).
+      fire('pointermove', { clientX: CORNER.x + RESIZE_ENGAGE_SLOP + 30, clientY: CORNER.y + 20 });
+      expect(el.style.width).toBe('430px');
+      expect(el.style.height).toBe('320px');
+      fire('pointerup', {});
+      expect(el.classList.contains('window-resizing')).toBe(false);
+      expect(el.style.width).toBe('430px');
+    } finally {
+      restore();
+    }
+  });
+
+  it('touch needs the wider slop before engaging', () => {
+    const { pins, fire, restore } = setup();
+    try {
+      fire('pointerdown', { pointerType: 'touch', clientX: CORNER.x, clientY: CORNER.y });
+      // Past the mouse slop but inside the touch slop: still a tap, not a resize.
+      fire('pointermove', {
+        pointerType: 'touch',
+        clientX: CORNER.x + RESIZE_ENGAGE_SLOP_TOUCH - 1,
+        clientY: CORNER.y,
+      });
+      expect(pins).toHaveLength(0);
+      fire('pointermove', {
+        pointerType: 'touch',
+        clientX: CORNER.x + RESIZE_ENGAGE_SLOP_TOUCH,
+        clientY: CORNER.y,
+      });
+      expect(pins).toHaveLength(1);
+    } finally {
+      restore();
+    }
+  });
+
+  it('a pending session bails when no buttons are down (swallowed pointerup)', () => {
+    const { el, pins, fire, restore } = setup();
+    try {
+      fire('pointerdown', { clientX: CORNER.x, clientY: CORNER.y });
+      fire('pointermove', { clientX: CORNER.x, clientY: CORNER.y, buttons: 0 });
+      // The session is gone: a later far move must not engage a resize.
+      fire('pointermove', { clientX: CORNER.x + 100, clientY: CORNER.y + 100 });
+      expect(pins).toHaveLength(0);
+      expect(el.style).toEqual({});
+      expect(el.dataset).toEqual({});
+    } finally {
+      restore();
+    }
   });
 });
