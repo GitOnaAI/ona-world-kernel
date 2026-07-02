@@ -11,9 +11,9 @@
 
 import { invalidateStaticColliders } from '../sim/colliders';
 import { BUILTIN_WORLD, MOBS, PLAYER_START, setActiveWorldContent } from '../sim/data';
-import { MAX_TERRAIN_EDITS } from '../sim/map_doc';
+import { MAX_PLACEMENTS, MAX_TERRAIN_EDITS } from '../sim/map_doc';
 import type { CampDef, HeightStamp, WorldContent } from '../sim/types';
-import { terrainHeight, WATER_LEVEL, waterLevel } from '../sim/world';
+import { invalidateTerrainEditIndex, terrainHeight, WATER_LEVEL, waterLevel } from '../sim/world';
 import { tEntity } from '../ui/entity_i18n';
 import { t } from '../ui/i18n';
 import { Editor3DViewport } from './3d/viewport';
@@ -28,6 +28,7 @@ import {
   newCustomMap,
 } from './custom_map';
 import { el } from './dom';
+import { clampToCap } from './edit_caps_core';
 import { downloadMap, pickMapFile } from './file_io';
 import { BIOME_OPTIONS, Inspector, type PlacementSelection } from './inspector';
 import { MapDrawer } from './map_drawer';
@@ -43,7 +44,9 @@ import { EditorApiError, forkMap, type MapFullWire, signedIn, uploadAsset } from
 import { parseMap } from './persist';
 import { DEFAULT_PLAYTEST_SEED, launchPlaytest } from './playtest';
 import { type Bounds, scatterHills, scatterPlacements } from './procgen';
+import { EditGeneration } from './save_lifecycle_core';
 import { editorErrorKey } from './server_errors_core';
+import { appendSpan, removeSpan } from './span_core';
 import {
   erasePlacementIndex,
   eraseStampIndex,
@@ -140,15 +143,24 @@ export class EditorApp {
   private readonly undo = new UndoStack();
   private dirty = false;
   private saving = false;
+  // Edits made while a save is in flight bump this; finishSave only clears the
+  // dirty flag / draft when the generation it snapshotted is still current.
+  private readonly editGen = new EditGeneration();
+  private autosaveWarned = false;
 
   // selection
   private selectedPlacement: number | null = null;
   private selectedCamp: number | null = null;
   private selectedKey: string | null = null; // 2D marker
   private hoverKey: string | null = null;
+  // Pre-drag placement value for slider undo (waterBase pattern): captured on
+  // the first LIVE change so the trailing commit diffs against the real prev.
+  private placementDragBase: { index: number; prev: AssetPlacement } | null = null;
 
   // stroke state
   private strokeStamps: HeightStamp[] = [];
+  private strokeStartIndex = 0;
+  private strokeCapWarned = false;
   private strokeRegion: RegionBox | null = null;
   private paintChanges = new Map<number, { prev: number; next: number }>();
   private paintCreatedGrid = false;
@@ -170,6 +182,7 @@ export class EditorApp {
   // 2D pointer state
   private panning = false;
   private dragKey: string | null = null;
+  private markerDragStart: { key: string; x: number; z: number } | null = null;
   private grab: Vec2 = { x: 0, z: 0 };
   private lastPointer: ScreenPoint = { sx: 0, sy: 0 };
   private painting2d = false;
@@ -222,6 +235,8 @@ export class EditorApp {
       onUploadAsset: () => void this.uploadAsset(),
       onPlaytest: () => this.playtest(),
       onViewMode: (mode) => this.setViewMode(mode),
+      onUndo: () => this.doUndo(),
+      onRedo: () => this.doRedo(),
     });
 
     const main = el('div', 'ed-main');
@@ -254,11 +269,13 @@ export class EditorApp {
     this.drawer = new MapDrawer(this.root, {
       listLocal: () => this.io.store.list(),
       hasDraft: () => this.io.draftLoad() !== null,
-      onOpenLocal: (id) => {
+      onOpenLocal: async (id) => {
+        if (!(await this.confirmDiscard())) return;
         const loaded = this.io.store.load(id);
         if (loaded) this.loadMap(loaded);
       },
-      onOpenDraft: () => {
+      onOpenDraft: async () => {
+        if (!(await this.confirmDiscard())) return;
         const draft = this.io.draftLoad();
         if (draft) {
           this.loadMap(draft);
@@ -269,7 +286,7 @@ export class EditorApp {
         this.io.store.remove(id);
         this.io.setLink(id, null);
       },
-      onOpenServer: (full, mine) => this.openServerMap(full, mine),
+      onOpenServer: (full, mine) => void this.openServerMap(full, mine),
       confirm: (title, body, confirmLabel) =>
         confirmDialog(this.root, { title, body, confirmLabel, danger: true }),
       toastError: (m) => this.toasts.error(m),
@@ -282,6 +299,13 @@ export class EditorApp {
 
     this.attach2dEvents(this.stage2d);
     window.addEventListener('keydown', this.onKeyDown);
+    // Unsaved work guard: the browser shows its leave-confirmation while the
+    // document is dirty (closing the tab was silent data loss before).
+    window.addEventListener('beforeunload', (ev) => {
+      if (!this.dirty) return;
+      ev.preventDefault();
+      ev.returnValue = '';
+    });
     this.resize();
     this.frameAll();
     requestAnimationFrame(this.tick2d);
@@ -321,6 +345,8 @@ export class EditorApp {
     if (map.waterLevel !== undefined) world.waterLevel = map.waterLevel;
     this.activeWorld = world;
     setActiveWorldContent(world);
+    // The whole terrainEdits array was swapped: every derived cache is stale.
+    this.terrainEditsMutated();
   }
 
   private syncWaterToActive(): void {
@@ -372,6 +398,8 @@ export class EditorApp {
     const is3d = this.viewMode === '3d';
     this.stage3dEl.style.display = is3d ? '' : 'none';
     this.stage2d.style.display = is3d ? 'none' : '';
+    // Pause the hidden 3D render loop (it refreshes itself on show).
+    this.viewport3d?.setVisible(is3d);
     this.topbar.setViewMode(this.viewMode);
     if (!is3d) {
       this.resize();
@@ -485,9 +513,12 @@ export class EditorApp {
       case 'smooth':
       case 'flatten':
         this.strokeCommit();
-        // The stroke mutated terrainEdits in place on the ACTIVE content, so
-        // the cached collider grid's ground-derived fields are stale.
-        invalidateStaticColliders();
+        // The stroke mutated terrainEdits in place on the ACTIVE content.
+        this.terrainEditsMutated();
+        this.inspector.refresh(); // the brush panel's edit-count readout
+        break;
+      case 'erase':
+        this.inspector.refresh();
         break;
       case 'paint':
         this.paintCommit();
@@ -557,12 +588,31 @@ export class EditorApp {
 
   private strokeBegin(w: Vec2): void {
     this.strokeStamps = [];
+    this.strokeStartIndex = this.map.terrainEdits.length;
+    this.strokeCapWarned = false;
     this.strokeRegion = null;
     this.lastStamp = null;
     if (this.tool === 'flatten') {
       this.flattenTarget = terrainHeight(w.x, w.z, this.map.meta.seed);
     }
     this.strokeStep(w);
+  }
+
+  /** One warning per stroke/action when the terrain-edit cap swallows stamps. */
+  private warnTerrainCap(): void {
+    if (this.strokeCapWarned) return;
+    this.strokeCapWarned = true;
+    this.toasts.error(t('editor.status.terrainCapReached', { max: MAX_TERRAIN_EDITS }));
+  }
+
+  /**
+   * EVERY mutation of map.content.terrainEdits (stroke, erase, paste, hills,
+   * and each undo/redo closure over them) funnels here: the cached collider
+   * grid and the sim's terrain-edit spatial index are both stale.
+   */
+  private terrainEditsMutated(): void {
+    invalidateStaticColliders();
+    invalidateTerrainEditIndex();
   }
 
   private strokeStep(w: Vec2): void {
@@ -572,7 +622,10 @@ export class EditorApp {
       const dz = w.z - this.lastStamp.z;
       if (dx * dx + dz * dz < spacing * spacing) return;
     }
-    if (this.map.terrainEdits.length >= MAX_TERRAIN_EDITS) return;
+    if (this.map.terrainEdits.length >= MAX_TERRAIN_EDITS) {
+      this.warnTerrainCap();
+      return;
+    }
     const seed = this.map.meta.seed;
     let stamp: HeightStamp;
     if (this.tool === 'smooth') {
@@ -602,6 +655,7 @@ export class EditorApp {
   private strokeCommit(): void {
     if (this.strokeStamps.length === 0) return;
     const stamps = this.strokeStamps;
+    const start = this.strokeStartIndex;
     const region = this.strokeRegion;
     this.strokeStamps = [];
     this.strokeRegion = null;
@@ -610,14 +664,13 @@ export class EditorApp {
     this.pushUndo({
       label: 'sculpt-stroke',
       undo: () => {
-        for (const s of stamps) {
-          const i = this.map.terrainEdits.indexOf(s);
-          if (i >= 0) this.map.terrainEdits.splice(i, 1);
-        }
+        removeSpan(this.map.terrainEdits, start, stamps);
+        this.terrainEditsMutated();
         this.refreshTerrain(region);
       },
       redo: () => {
         this.map.terrainEdits.push(...stamps);
+        this.terrainEditsMutated();
         this.refreshTerrain(region);
       },
     });
@@ -727,6 +780,17 @@ export class EditorApp {
     });
   }
 
+  /** Clearing every painted cell is destructive: confirm before firing. */
+  private async confirmClearBiomePaint(): Promise<void> {
+    if (!this.map.biomePaint) return;
+    const ok = await confirmDialog(this.root, {
+      title: t('editor.biome.clear'),
+      body: t('editor.biome.clearConfirm'),
+      danger: true,
+    });
+    if (ok) this.clearBiomePaint();
+  }
+
   private clearBiomePaint(): void {
     const grid = this.map.biomePaint;
     if (!grid) return;
@@ -768,6 +832,7 @@ export class EditorApp {
     if (si >= 0) {
       const stamp = this.map.terrainEdits[si];
       this.map.terrainEdits.splice(si, 1);
+      this.terrainEditsMutated();
       const region = stampRegion(stamp);
       this.refreshTerrain(region);
       this.map.meta.updatedAt = now();
@@ -775,10 +840,12 @@ export class EditorApp {
         label: 'erase-stamp',
         undo: () => {
           this.map.terrainEdits.splice(si, 0, stamp);
+          this.terrainEditsMutated();
           this.refreshTerrain(region);
         },
         redo: () => {
           this.map.terrainEdits.splice(si, 1);
+          this.terrainEditsMutated();
           this.refreshTerrain(region);
         },
       });
@@ -804,24 +871,26 @@ export class EditorApp {
   }
 
   private appendPlacements(placements: AssetPlacement[], label: string): void {
-    const start = this.map.placements.length;
-    this.map.placements.push(...placements);
-    for (let i = 0; i < placements.length; i++) this.viewport3d?.placementAdded(start + i);
+    const clamp = clampToCap(placements, this.map.placements.length, MAX_PLACEMENTS);
+    if (clamp.truncated) {
+      this.toasts.error(t('editor.status.placementCapReached', { max: MAX_PLACEMENTS }));
+    }
+    const accepted = clamp.accepted;
+    if (accepted.length === 0) return;
+    const start = appendSpan(this.map.placements, accepted);
+    for (let i = 0; i < accepted.length; i++) this.viewport3d?.placementAdded(start + i);
     this.map.meta.updatedAt = now();
     this.canvasDirty = true;
     this.pushUndo({
       label,
       undo: () => {
-        for (const p of placements) {
-          const i = this.map.placements.indexOf(p);
-          if (i >= 0) this.map.placements.splice(i, 1);
-        }
+        removeSpan(this.map.placements, start, accepted);
         this.setSelectedPlacement(null);
         this.viewport3d?.rebuildPlacements();
         this.canvasDirty = true;
       },
       redo: () => {
-        this.map.placements.push(...placements);
+        this.map.placements.push(...accepted);
         this.viewport3d?.rebuildPlacements();
         this.canvasDirty = true;
       },
@@ -833,12 +902,14 @@ export class EditorApp {
     if (!placement) return;
     this.map.placements.splice(index, 1);
     this.setSelectedPlacement(null);
-    this.viewport3d?.rebuildPlacements();
+    // Surgical single removal: the view drops one slot, no full re-clone.
+    this.viewport3d?.placementRemoved(index);
     this.map.meta.updatedAt = now();
     this.canvasDirty = true;
     this.pushUndo({
       label: 'remove-placement',
       undo: () => {
+        // Mid-list insert shifts every later index: full re-instance.
         this.map.placements.splice(index, 0, placement);
         this.viewport3d?.rebuildPlacements();
         this.canvasDirty = true;
@@ -846,7 +917,7 @@ export class EditorApp {
       redo: () => {
         this.map.placements.splice(index, 1);
         this.setSelectedPlacement(null);
-        this.viewport3d?.rebuildPlacements();
+        this.viewport3d?.placementRemoved(index);
         this.canvasDirty = true;
       },
     });
@@ -854,6 +925,7 @@ export class EditorApp {
   }
 
   private setSelectedPlacement(index: number | null): void {
+    if (this.selectedPlacement !== index) this.placementDragBase = null;
     this.selectedPlacement = index;
     this.viewport3d?.setSelectedPlacement(index);
   }
@@ -871,7 +943,12 @@ export class EditorApp {
     if (index === null) return;
     const p = this.map.placements[index];
     if (!p) return;
-    const prev = { ...p };
+    // Capture the PRE-DRAG value before the first mutation (waterBase pattern):
+    // live slider events mutate p on every input, so a prev taken at commit time
+    // would equal next and make undo a no-op.
+    const base =
+      this.placementDragBase?.index === index ? this.placementDragBase : { index, prev: { ...p } };
+    this.placementDragBase = base;
     if (change.x !== undefined) p.x = change.x;
     if (change.z !== undefined) p.z = change.z;
     if (change.rotY !== undefined) p.rotY = change.rotY;
@@ -881,7 +958,18 @@ export class EditorApp {
     if (change.collide !== undefined) this.viewport3d?.rebuildPlacements();
     this.canvasDirty = true;
     if (!commit) return;
+    const prev = base.prev;
+    this.placementDragBase = null;
     const next = { ...p };
+    if (
+      prev.x === next.x &&
+      prev.z === next.z &&
+      prev.rotY === next.rotY &&
+      prev.scale === next.scale &&
+      prev.collide === next.collide
+    ) {
+      return; // drag ended where it started: no undoable change
+    }
     this.map.meta.updatedAt = now();
     this.pushUndo({
       label: 'edit-placement',
@@ -1106,32 +1194,44 @@ export class EditorApp {
 
   private pasteAt(world: Vec2): void {
     if (!this.clipboard) return;
-    const placements = this.clipboard.placements.map((p) => ({
+    const pClamp = clampToCap(
+      this.clipboard.placements,
+      this.map.placements.length,
+      MAX_PLACEMENTS,
+    );
+    const eClamp = clampToCap(
+      this.clipboard.edits,
+      this.map.terrainEdits.length,
+      MAX_TERRAIN_EDITS,
+    );
+    if (pClamp.truncated) {
+      this.toasts.error(t('editor.status.placementCapReached', { max: MAX_PLACEMENTS }));
+    }
+    if (eClamp.truncated) {
+      this.toasts.error(t('editor.status.terrainCapReached', { max: MAX_TERRAIN_EDITS }));
+    }
+    const placements = pClamp.accepted.map((p) => ({
       ...p,
       x: p.x + world.x,
       z: p.z + world.z,
     }));
-    const edits = this.clipboard.edits.map((e) => ({ ...e, x: e.x + world.x, z: e.z + world.z }));
+    const edits = eClamp.accepted.map((e) => ({ ...e, x: e.x + world.x, z: e.z + world.z }));
+    if (placements.length === 0 && edits.length === 0) return;
     let region: RegionBox | null = null;
     for (const e of edits) region = unionRegion(region, stampRegion(e));
-    const start = this.map.placements.length;
-    this.map.placements.push(...placements);
-    for (let i = 0; i < placements.length; i++) this.viewport3d?.placementAdded(start + i);
-    this.map.terrainEdits.push(...edits);
+    const pStart = appendSpan(this.map.placements, placements);
+    for (let i = 0; i < placements.length; i++) this.viewport3d?.placementAdded(pStart + i);
+    const eStart = appendSpan(this.map.terrainEdits, edits);
+    if (edits.length > 0) this.terrainEditsMutated();
     if (region) this.refreshTerrain(region);
     this.map.meta.updatedAt = now();
     this.canvasDirty = true;
     this.pushUndo({
       label: 'paste-region',
       undo: () => {
-        for (const p of placements) {
-          const i = this.map.placements.indexOf(p);
-          if (i >= 0) this.map.placements.splice(i, 1);
-        }
-        for (const e of edits) {
-          const i = this.map.terrainEdits.indexOf(e);
-          if (i >= 0) this.map.terrainEdits.splice(i, 1);
-        }
+        removeSpan(this.map.placements, pStart, placements);
+        removeSpan(this.map.terrainEdits, eStart, edits);
+        if (edits.length > 0) this.terrainEditsMutated();
         this.setSelectedPlacement(null);
         this.viewport3d?.rebuildPlacements();
         this.refreshTerrain(region);
@@ -1139,6 +1239,7 @@ export class EditorApp {
       redo: () => {
         this.map.placements.push(...placements);
         this.map.terrainEdits.push(...edits);
+        if (edits.length > 0) this.terrainEditsMutated();
         this.viewport3d?.rebuildPlacements();
         this.refreshTerrain(region);
       },
@@ -1228,54 +1329,66 @@ export class EditorApp {
       avoid: this.avoidPredicate(),
     });
     if (hills.length === 0) return;
+    const clamp = clampToCap(hills, this.map.terrainEdits.length, MAX_TERRAIN_EDITS);
+    if (clamp.truncated) {
+      this.toasts.error(t('editor.status.terrainCapReached', { max: MAX_TERRAIN_EDITS }));
+    }
+    const accepted = clamp.accepted;
+    if (accepted.length === 0) return;
     let region: RegionBox | null = null;
-    for (const h of hills) region = unionRegion(region, stampRegion(h));
-    this.map.terrainEdits.push(...hills);
+    for (const h of accepted) region = unionRegion(region, stampRegion(h));
+    const start = appendSpan(this.map.terrainEdits, accepted);
+    this.terrainEditsMutated();
     this.refreshTerrain(region);
     this.map.meta.updatedAt = now();
     this.pushUndo({
       label: 'procgen-hills',
       undo: () => {
-        for (const h of hills) {
-          const i = this.map.terrainEdits.indexOf(h);
-          if (i >= 0) this.map.terrainEdits.splice(i, 1);
-        }
+        removeSpan(this.map.terrainEdits, start, accepted);
+        this.terrainEditsMutated();
         this.refreshTerrain(region);
       },
       redo: () => {
-        this.map.terrainEdits.push(...hills);
+        this.map.terrainEdits.push(...accepted);
+        this.terrainEditsMutated();
         this.refreshTerrain(region);
       },
     });
-    this.toasts.success(t('editor.procgen.hillsAdded', { count: hills.length }));
+    this.toasts.success(t('editor.procgen.hillsAdded', { count: accepted.length }));
   }
 
   // ---- undo plumbing ---------------------------------------------------------------
 
+  private syncUndoUi(): void {
+    this.topbar.setUndoDepth(this.undo.depth);
+    this.topbar.setUndoState(this.undo.canUndo, this.undo.canRedo);
+  }
+
   private pushUndo(cmd: { label: string; undo(): void; redo(): void }): void {
     this.undo.push(cmd);
     this.markDirty();
-    this.topbar.setUndoDepth(this.undo.depth);
+    this.syncUndoUi();
   }
 
   private doUndo(): void {
     if (this.undo.undo()) {
       this.markDirty();
-      this.topbar.setUndoDepth(this.undo.depth);
       this.inspector.refresh();
     }
+    this.syncUndoUi();
   }
 
   private doRedo(): void {
     if (this.undo.redo()) {
       this.markDirty();
-      this.topbar.setUndoDepth(this.undo.depth);
       this.inspector.refresh();
     }
+    this.syncUndoUi();
   }
 
   private markDirty(): void {
     this.dirty = true;
+    this.editGen.bump();
     this.topbar.setDirty(true);
     this.canvasDirty = true;
   }
@@ -1285,13 +1398,20 @@ export class EditorApp {
   private async save(): Promise<void> {
     if (this.saving) return;
     this.map.meta.updatedAt = now();
+    // Snapshot the edit generation the payload covers: edits made while the
+    // network call is in flight must keep the doc dirty and the draft alive.
+    const generation = this.editGen.current;
     const okLocal = this.io.saveLocal(this.map);
-    if (!okLocal) {
-      this.toasts.error(t('editor.status.saveFailedLocal'));
-      return;
-    }
+    // A blocked local save warns but never blocks the server save.
+    if (!okLocal) this.toasts.error(t('editor.status.saveFailedLocal'));
     if (!signedIn()) {
-      this.finishSave(t('editor.status.savedLocalOnly', { name: this.map.meta.name }), null);
+      if (okLocal) {
+        this.finishSave(
+          t('editor.status.savedLocalOnly', { name: this.map.meta.name }),
+          null,
+          generation,
+        );
+      }
       return;
     }
     this.saving = true;
@@ -1301,6 +1421,7 @@ export class EditorApp {
       this.finishSave(
         t('editor.status.savedServer', { name: this.map.meta.name, version: link.version }),
         link.version,
+        generation,
       );
     } catch (err) {
       if (err instanceof EditorApiError && err.code === 'version_conflict') {
@@ -1319,16 +1440,20 @@ export class EditorApp {
     }
   }
 
-  private finishSave(message: string, serverVersion: number | null): void {
-    this.dirty = false;
-    this.topbar.setDirty(false);
+  private finishSave(message: string, serverVersion: number | null, generation: number): void {
+    const fin = this.editGen.finalize(generation);
+    if (fin.clearDirty) {
+      this.dirty = false;
+      this.topbar.setDirty(false);
+    }
     this.topbar.setSaveState(
       serverVersion === null
         ? t('editor.topbar.savedLocal')
         : t('editor.topbar.savedServer', { version: serverVersion }),
     );
     this.topbar.setForkEnabled(this.io.linkFor(this.map.meta.id) !== null);
-    this.io.draftClear();
+    // Only clear THIS map's draft, and only when no mid-save edits landed.
+    if (fin.clearDraft) this.io.draftClear(this.map.meta.id);
     this.toasts.success(message);
   }
 
@@ -1346,11 +1471,15 @@ export class EditorApp {
     this.io.setLink(this.map.meta.id, null);
     this.map.meta.id = mintId();
     try {
+      // Re-snapshot: the payload serialized below includes every edit made up
+      // to this point (including any made while the conflict dialog was open).
+      const generation = this.editGen.current;
       const link = await this.io.saveServerAsCopy(this.map);
       this.io.saveLocal(this.map);
       this.finishSave(
         t('editor.status.savedServer', { name: this.map.meta.name, version: link.version }),
         link.version,
+        generation,
       );
     } catch (err) {
       const key =
@@ -1389,7 +1518,19 @@ export class EditorApp {
     }
   }
 
-  private openServerMap(full: MapFullWire, mine: boolean): void {
+  /** True when it is safe to replace the working document (confirms if dirty). */
+  private async confirmDiscard(): Promise<boolean> {
+    if (!this.dirty) return true;
+    return confirmDialog(this.root, {
+      title: t('editor.confirm.discardTitle'),
+      body: t('editor.confirm.discardBody', { name: this.map.meta.name }),
+      confirmLabel: t('editor.confirm.discard'),
+      danger: true,
+    });
+  }
+
+  private async openServerMap(full: MapFullWire, mine: boolean): Promise<void> {
+    if (!(await this.confirmDiscard())) return;
     // Re-run the shared sanitizer over the wire document (defense in depth; the
     // server stores sanitizer output, but the editor never trusts a wire byte).
     const parsed = parseMap(full.doc);
@@ -1411,20 +1552,13 @@ export class EditorApp {
   }
 
   private async newMap(): Promise<void> {
-    if (this.dirty) {
-      const ok = await confirmDialog(this.root, {
-        title: t('editor.confirm.discardTitle'),
-        body: t('editor.confirm.discardBody', { name: this.map.meta.name }),
-        confirmLabel: t('editor.confirm.discard'),
-        danger: true,
-      });
-      if (!ok) return;
-    }
+    if (!(await this.confirmDiscard())) return;
     this.loadMap(newCustomMap(t('editor.untitledMap'), mintId(), now()));
     this.toasts.info(t('editor.status.newMap'));
   }
 
   private async importFile(): Promise<void> {
+    if (!(await this.confirmDiscard())) return;
     const map = await pickMapFile();
     if (map) {
       this.loadMap(map);
@@ -1441,6 +1575,8 @@ export class EditorApp {
   }
 
   private playtest(): void {
+    // Playtest navigates away; back an unsaved doc up to its draft slot first.
+    if (this.dirty) this.io.draftSave(this.map);
     const world = customMapToWorldContent(this.map);
     this.toasts.info(t('editor.status.playtestLaunch'));
     const ok = launchPlaytest(world, {
@@ -1498,7 +1634,17 @@ export class EditorApp {
 
   private autosave(): void {
     if (!this.dirty) return;
-    this.io.draftSave(this.map);
+    const ok = this.io.draftSave(this.map);
+    if (ok) {
+      this.autosaveWarned = false;
+      return;
+    }
+    // Surface a silent autosave failure once per failure episode: the user
+    // believes a draft backup exists when it does not.
+    if (!this.autosaveWarned) {
+      this.autosaveWarned = true;
+      this.toasts.error(t('editor.status.autosaveFailed'));
+    }
   }
 
   // Replace the whole working document and rebuild the editor over its content.
@@ -1512,6 +1658,8 @@ export class EditorApp {
     this.selectedKey = null;
     this.hoverKey = null;
     this.selectedPlacement = null;
+    this.placementDragBase = null;
+    this.markerDragStart = null;
     this.selectedCamp = null;
     this.regionBox = null;
     this.clipboard = null;
@@ -1519,7 +1667,7 @@ export class EditorApp {
     this.rebuildActiveWorld();
     this.topbar.setMapName(map.meta.name);
     this.topbar.setDirty(false);
-    this.topbar.setUndoDepth(0);
+    this.syncUndoUi();
     this.topbar.setForkEnabled(this.io.linkFor(map.meta.id) !== null);
     this.topbar.setSaveState(t('editor.topbar.neverSaved'));
     this.frameAll();
@@ -1610,11 +1758,15 @@ export class EditorApp {
       setBrushStrength: (v) => {
         this.brushStrength = v;
       },
+      getTerrainEditStats: () => ({
+        count: this.map.terrainEdits.length,
+        max: MAX_TERRAIN_EDITS,
+      }),
       getPaintBiome: () => this.paintBiome,
       setPaintBiome: (id) => {
         this.paintBiome = id;
       },
-      clearBiomePaint: () => this.clearBiomePaint(),
+      clearBiomePaint: () => void this.confirmClearBiomePaint(),
       getFlattenHardEdge: () => this.flattenHardEdge,
       setFlattenHardEdge: (on) => {
         this.flattenHardEdge = on;
@@ -1695,19 +1847,22 @@ export class EditorApp {
       },
       updateMarker: (axis, v) => {
         const e = this.entities.find((x) => x.key === this.selectedKey);
-        if (e) {
+        if (e && e.point[axis] !== v) {
+          const prev = { x: e.point.x, z: e.point.z };
           e.point[axis] = v;
           this.markerMovedWhile2d = true;
-          this.markDirty();
+          this.pushMarkerUndo(e.key, prev, { x: e.point.x, z: e.point.z });
         }
       },
       resetMarker: () => {
         const e = this.entities.find((x) => x.key === this.selectedKey);
         const o = e ? this.base.get(e.key) : undefined;
-        if (e && o) {
+        if (e && o && (e.point.x !== o.x || e.point.z !== o.z)) {
+          const prev = { x: e.point.x, z: e.point.z };
           e.point.x = o.x;
           e.point.z = o.z;
-          this.canvasDirty = true;
+          this.markerMovedWhile2d = true;
+          this.pushMarkerUndo(e.key, prev, { x: o.x, z: o.z });
         }
       },
       getScatterCount: () => this.scatterCount,
@@ -1734,6 +1889,27 @@ export class EditorApp {
   }
 
   // ---- 2D view ----------------------------------------------------------------------
+
+  /**
+   * Undo entry for a marker move (2D drag, coord field, or reset). Both sides
+   * re-resolve the entity by key (entities can be rebuilt) and mutate the LIVE
+   * point reference into the zone content, then flag the 3D re-mesh.
+   */
+  private pushMarkerUndo(key: string, prev: Vec2, next: Vec2): void {
+    const apply = (v: Vec2): void => {
+      const e = this.entities.find((x) => x.key === key);
+      if (!e) return;
+      e.point.x = v.x;
+      e.point.z = v.z;
+      this.markerMovedWhile2d = true;
+      this.canvasDirty = true;
+    };
+    this.pushUndo({
+      label: 'move-marker',
+      undo: () => apply(prev),
+      redo: () => apply(next),
+    });
+  }
 
   private vp(): Viewport {
     return { width: this.canvas.clientWidth, height: this.canvas.clientHeight };
@@ -1826,6 +2002,8 @@ export class EditorApp {
       const hit = this.pickEntity(s);
       if (hit) {
         this.dragKey = hit.key;
+        // Drag-start position, so release can push a single undo entry.
+        this.markerDragStart = { key: hit.key, x: hit.point.x, z: hit.point.z };
         this.selectedKey = hit.key;
         this.setSelectedPlacement(null);
         this.grab = { x: w.x - hit.point.x, z: w.z - hit.point.z };
@@ -1886,8 +2064,15 @@ export class EditorApp {
     const end = (ev: PointerEvent): void => {
       this.panning = false;
       if (this.dragKey) {
+        const key = this.dragKey;
+        const start = this.markerDragStart;
         this.dragKey = null;
-        this.markDirty();
+        this.markerDragStart = null;
+        const e = this.entities.find((x) => x.key === key);
+        if (e && start && start.key === key && (e.point.x !== start.x || e.point.z !== start.z)) {
+          this.pushMarkerUndo(key, { x: start.x, z: start.z }, { x: e.point.x, z: e.point.z });
+          this.inspector.refresh();
+        }
       }
       if (this.selectingRegion) {
         this.selectingRegion = false;
@@ -1907,6 +2092,9 @@ export class EditorApp {
     };
     stage.addEventListener('pointerup', end);
     stage.addEventListener('pointercancel', end);
+    // Non-left buttons pan the 2D view; keep the browser menu off the stage
+    // (the 3D canvas already suppresses it).
+    stage.addEventListener('contextmenu', (ev) => ev.preventDefault());
 
     stage.addEventListener(
       'wheel',

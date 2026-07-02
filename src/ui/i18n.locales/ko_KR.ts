@@ -5019,6 +5019,8 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'editor.topbar.view2dTitle': '기호로 표시된 조감도에서 편집',
   'editor.topbar.undoCount': '실행 취소: {count}',
   'editor.topbar.undoCountTitle': '{count}단계 되돌릴 수 있음 (Ctrl+Z 실행 취소, Ctrl+Y 다시 실행)',
+  'editor.topbar.undoTitle': '마지막 변경 실행 취소 (Ctrl+Z)',
+  'editor.topbar.redoTitle': '실행 취소한 변경 다시 실행 (Ctrl+Y)',
   'editor.topbar.offline': '오프라인',
   'editor.topbar.offlineTitle':
     '로그인하지 않음: 맵은 이 브라우저에만 저장됩니다. 온라인 저장하려면 게임에서 로그인하세요.',
@@ -5042,6 +5044,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'editor.brush.title': '브러시',
   'editor.brush.size': '브러시 크기',
   'editor.brush.strength': '강도',
+  'editor.brush.editCount': '지형 편집 수: {count} / {max}',
   'editor.brush.sizeHint': '단축키: [ 와 ] 로 브러시 크기, Shift+[ 와 Shift+] 로 강도 조절.',
   'editor.biome.title': '생태',
   'editor.biome.paletteLabel': '칠할 생태',
@@ -5210,6 +5213,12 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'editor.status.playtestFailed': '플레이테스트를 시작할 수 없습니다 (저장소가 차단됨).',
   'editor.status.draftSaved': '초안이 자동 저장되었습니다.',
   'editor.status.draftRestored': '자동 저장된 초안을 복원했습니다.',
+  'editor.status.autosaveFailed':
+    '자동 저장에 실패했습니다(브라우저 저장 공간이 가득 찼거나 차단됨). 백업을 위해 맵을 내보내세요.',
+  'editor.status.terrainCapReached':
+    '지형 편집 한도에 도달했습니다({max}). 초과된 스컬프트 스탬프는 추가되지 않았습니다.',
+  'editor.status.placementCapReached':
+    '배치 한도에 도달했습니다({max}). 초과된 에셋은 추가되지 않았습니다.',
   'editor.confirm.ok': '확인',
   'editor.confirm.cancel': '취소',
   'editor.confirm.discardTitle': '변경 사항을 버릴까요?',
@@ -5244,6 +5253,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'editor.serverError.rate_limited': '조금 천천히 다시 시도하세요.',
   'editor.serverError.unauthorized': '세션이 만료되었습니다. 게임에서 다시 로그인하세요.',
   'editor.serverError.network': '서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도하세요.',
+  'editor.serverError.timeout': '서버 응답이 너무 오래 걸립니다. 다시 시도하세요.',
   'editor.serverError.unknown': '서버와 통신하는 중 문제가 발생했습니다.',
   'editor.hints.nav3d':
     '드래그로 회전, 스크롤로 확대/축소. 드래그 중 WASD로 비행, Q/E로 높이 조절.',

@@ -38,6 +38,9 @@ const KNOWN = new Set<string>(KNOWN_CODES);
 export function editorErrorKey(code: string | null, status?: number): TranslationKey {
   if (status === 401) return 'editor.serverError.unauthorized';
   if (code === null) return 'editor.serverError.network';
+  // Client-side abort of a stalled request (net.ts CALL_TIMEOUT_MS), not a
+  // server wire code.
+  if (code === 'timeout') return 'editor.serverError.timeout';
   if (KNOWN.has(code)) return `editor.serverError.${code as KnownCode}`;
   // 'rate limited' (with a space) is the legacy free-text throttle body.
   if (code === 'rate limited') return 'editor.serverError.rate_limited';

@@ -5011,6 +5011,8 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'editor.topbar.view2dTitle': '俯瞰の記号マップで編集',
   'editor.topbar.undoCount': '元に戻す：{count}',
   'editor.topbar.undoCountTitle': '{count} 手戻せます（Ctrl+Z で元に戻す、Ctrl+Y でやり直し）',
+  'editor.topbar.undoTitle': '直前の変更を元に戻す（Ctrl+Z）',
+  'editor.topbar.redoTitle': '元に戻した変更をやり直す（Ctrl+Y）',
   'editor.topbar.offline': 'オフライン',
   'editor.topbar.offlineTitle':
     '未ログイン：マップはこのブラウザーにのみ保存されます。オンライン保存するにはゲームでログインしてください。',
@@ -5034,6 +5036,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'editor.brush.title': 'ブラシ',
   'editor.brush.size': 'ブラシサイズ',
   'editor.brush.strength': '強さ',
+  'editor.brush.editCount': '地形編集数：{count} / {max}',
   'editor.brush.sizeHint': 'キー：[ と ] でブラシサイズ、Shift+[ と Shift+] で強さを調整。',
   'editor.biome.title': 'バイオーム',
   'editor.biome.paletteLabel': '塗るバイオーム',
@@ -5209,6 +5212,12 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
     'プレイテストを開始できませんでした（ストレージがブロックされています）。',
   'editor.status.draftSaved': '下書きを自動保存しました。',
   'editor.status.draftRestored': '自動保存の下書きを復元しました。',
+  'editor.status.autosaveFailed':
+    '自動保存に失敗しました（ブラウザのストレージが満杯かブロックされています）。バックアップとしてマップをエクスポートしてください。',
+  'editor.status.terrainCapReached':
+    '地形編集の上限に達しました（{max}）。超過分のスカルプトは追加されませんでした。',
+  'editor.status.placementCapReached':
+    '配置数の上限に達しました（{max}）。超過分のアセットは追加されませんでした。',
   'editor.confirm.ok': 'OK',
   'editor.confirm.cancel': 'キャンセル',
   'editor.confirm.discardTitle': '変更を破棄しますか？',
@@ -5246,6 +5255,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
     'セッションの有効期限が切れました。ゲームでもう一度ログインしてください。',
   'editor.serverError.network':
     'サーバーに接続できませんでした。接続を確認してやり直してください。',
+  'editor.serverError.timeout': 'サーバーの応答がタイムアウトしました。もう一度お試しください。',
   'editor.serverError.unknown': 'サーバーとの通信で問題が発生しました。',
   'editor.hints.nav3d':
     'ドラッグで旋回、スクロールでズーム。ドラッグ中は WASD で飛行、Q/E で高さを変更。',

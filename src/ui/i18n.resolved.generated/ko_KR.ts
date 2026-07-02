@@ -1825,6 +1825,10 @@ export const ko_KR: EnTranslations = {
       "view2dTitle": "기호로 표시된 조감도에서 편집",
       "undoCount": "실행 취소: {count}",
       "undoCountTitle": "{count}단계 되돌릴 수 있음 (Ctrl+Z 실행 취소, Ctrl+Y 다시 실행)",
+      "undo": "Undo",
+      "undoTitle": "마지막 변경 실행 취소 (Ctrl+Z)",
+      "redo": "Redo",
+      "redoTitle": "실행 취소한 변경 다시 실행 (Ctrl+Y)",
       "offline": "오프라인",
       "offlineTitle": "로그인하지 않음: 맵은 이 브라우저에만 저장됩니다. 온라인 저장하려면 게임에서 로그인하세요.",
       "signIn": "로그인",
@@ -1853,7 +1857,8 @@ export const ko_KR: EnTranslations = {
       "title": "브러시",
       "size": "브러시 크기",
       "strength": "강도",
-      "sizeHint": "단축키: [ 와 ] 로 브러시 크기, Shift+[ 와 Shift+] 로 강도 조절."
+      "sizeHint": "단축키: [ 와 ] 로 브러시 크기, Shift+[ 와 Shift+] 로 강도 조절.",
+      "editCount": "지형 편집 수: {count} / {max}"
     },
     "biome": {
       "title": "생태",
@@ -2046,7 +2051,10 @@ export const ko_KR: EnTranslations = {
       "playtestLaunch": "플레이테스트 시작 중...",
       "playtestFailed": "플레이테스트를 시작할 수 없습니다 (저장소가 차단됨).",
       "draftSaved": "초안이 자동 저장되었습니다.",
-      "draftRestored": "자동 저장된 초안을 복원했습니다."
+      "draftRestored": "자동 저장된 초안을 복원했습니다.",
+      "autosaveFailed": "자동 저장에 실패했습니다(브라우저 저장 공간이 가득 찼거나 차단됨). 백업을 위해 맵을 내보내세요.",
+      "terrainCapReached": "지형 편집 한도에 도달했습니다({max}). 초과된 스컬프트 스탬프는 추가되지 않았습니다.",
+      "placementCapReached": "배치 한도에 도달했습니다({max}). 초과된 에셋은 추가되지 않았습니다."
     },
     "confirm": {
       "ok": "확인",
@@ -2081,6 +2089,7 @@ export const ko_KR: EnTranslations = {
       "rate_limited": "조금 천천히 다시 시도하세요.",
       "unauthorized": "세션이 만료되었습니다. 게임에서 다시 로그인하세요.",
       "network": "서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
+      "timeout": "서버 응답이 너무 오래 걸립니다. 다시 시도하세요.",
       "unknown": "서버와 통신하는 중 문제가 발생했습니다."
     },
     "hints": {

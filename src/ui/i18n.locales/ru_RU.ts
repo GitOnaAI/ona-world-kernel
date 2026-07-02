@@ -5123,6 +5123,8 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'editor.topbar.view2dTitle': 'Редактировать на схематичной карте сверху',
   'editor.topbar.undoCount': 'Отмена: {count}',
   'editor.topbar.undoCountTitle': 'Можно отменить {count} шагов (Ctrl+Z отмена, Ctrl+Y повтор)',
+  'editor.topbar.undoTitle': 'Отменить последнее изменение (Ctrl+Z)',
+  'editor.topbar.redoTitle': 'Вернуть отмененное изменение (Ctrl+Y)',
   'editor.topbar.offline': 'Офлайн',
   'editor.topbar.offlineTitle':
     'Вы не вошли: карты сохраняются только в этом браузере. Войдите в игру, чтобы сохранять онлайн.',
@@ -5146,6 +5148,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'editor.brush.title': 'Кисть',
   'editor.brush.size': 'Размер кисти',
   'editor.brush.strength': 'Сила',
+  'editor.brush.editCount': 'Правки рельефа: {count} / {max}',
   'editor.brush.sizeHint': 'Клавиши: [ и ] меняют размер кисти; Shift+[ и Shift+] меняют силу.',
   'editor.biome.title': 'Биом',
   'editor.biome.paletteLabel': 'Какой биом красить',
@@ -5320,6 +5323,12 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'editor.status.playtestFailed': 'Не удалось запустить тест (хранилище заблокировано).',
   'editor.status.draftSaved': 'Черновик сохранен автоматически.',
   'editor.status.draftRestored': 'Автосохраненный черновик восстановлен.',
+  'editor.status.autosaveFailed':
+    'Автосохранение не удалось (хранилище браузера заполнено или заблокировано). Экспортируйте карту, чтобы сохранить резервную копию.',
+  'editor.status.terrainCapReached':
+    'Достигнут лимит правок рельефа ({max}). Лишние штампы не были добавлены.',
+  'editor.status.placementCapReached':
+    'Достигнут лимит размещений ({max}). Лишние объекты не были добавлены.',
   'editor.confirm.ok': 'ОК',
   'editor.confirm.cancel': 'Отмена',
   'editor.confirm.discardTitle': 'Отменить изменения?',
@@ -5356,6 +5365,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'editor.serverError.unauthorized': 'Сессия истекла. Войдите в игру заново.',
   'editor.serverError.network':
     'Не удалось связаться с сервером. Проверьте соединение и попробуйте снова.',
+  'editor.serverError.timeout': 'Сервер слишком долго не отвечает. Попробуйте снова.',
   'editor.serverError.unknown': 'Что-то пошло не так при обращении к серверу.',
   'editor.hints.nav3d':
     'Перетаскивание вращает камеру, колесо приближает. Во время перетаскивания WASD - полет, Q/E - высота.',

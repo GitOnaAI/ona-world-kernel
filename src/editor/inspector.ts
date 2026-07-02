@@ -40,6 +40,7 @@ export interface InspectorDeps {
   setBrushRadius(v: number): void;
   getBrushStrength(): number;
   setBrushStrength(v: number): void;
+  getTerrainEditStats(): { count: number; max: number };
 
   getPaintBiome(): number;
   setPaintBiome(id: number): void;
@@ -215,6 +216,15 @@ export class Inspector {
       );
     }
     s.appendChild(hint(t('editor.brush.sizeHint')));
+    const stats = d.getTerrainEditStats();
+    s.appendChild(
+      hint(
+        t('editor.brush.editCount', {
+          count: formatNumber(stats.count, { useGrouping: false }),
+          max: formatNumber(stats.max, { useGrouping: false }),
+        }),
+      ),
+    );
     this.root.appendChild(s);
   }
 
@@ -500,7 +510,16 @@ export class Inspector {
         s.appendChild(
           this.coordField(t('editor.selection.z'), marker.z, (v) => d.updateMarker('z', v)),
         );
-        s.appendChild(button(t('editor.marker.reset'), () => d.resetMarker(), 'small'));
+        s.appendChild(
+          button(
+            t('editor.marker.reset'),
+            () => {
+              d.resetMarker();
+              this.refresh();
+            },
+            'small',
+          ),
+        );
       } else {
         s.appendChild(el('p', 'ed-muted', t('editor.selection.none')));
       }

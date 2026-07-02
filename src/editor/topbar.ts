@@ -18,6 +18,8 @@ export interface TopbarDeps {
   onUploadAsset(): void;
   onPlaytest(): void;
   onViewMode(mode: '3d' | '2d'): void;
+  onUndo(): void;
+  onRedo(): void;
 }
 
 export class Topbar {
@@ -30,6 +32,8 @@ export class Topbar {
   private readonly forkBtn: HTMLButtonElement;
   private readonly uploadBtn: HTMLButtonElement;
   private readonly saveBtn: HTMLButtonElement;
+  private readonly undoBtn: HTMLButtonElement;
+  private readonly redoBtn: HTMLButtonElement;
   private readonly viewButtons = new Map<'3d' | '2d', HTMLButtonElement>();
 
   constructor(parent: HTMLElement, deps: TopbarDeps) {
@@ -61,6 +65,25 @@ export class Topbar {
     this.saveState = el('span', 'ed-save-state', t('editor.topbar.neverSaved'));
     nameWrap.append(this.nameInput, this.dirtyDot, this.saveState);
     this.root.appendChild(nameWrap);
+
+    // Undo/redo buttons: keyboard has Ctrl+Z / Ctrl+Y, touch needs these.
+    const undoWrap = el('div', 'ed-undo-actions');
+    this.undoBtn = button(
+      t('editor.topbar.undo'),
+      deps.onUndo,
+      undefined,
+      t('editor.topbar.undoTitle'),
+    );
+    this.redoBtn = button(
+      t('editor.topbar.redo'),
+      deps.onRedo,
+      undefined,
+      t('editor.topbar.redoTitle'),
+    );
+    this.undoBtn.disabled = true;
+    this.redoBtn.disabled = true;
+    undoWrap.append(this.undoBtn, this.redoBtn);
+    this.root.appendChild(undoWrap);
 
     this.undoBadge = el('span', 'ed-undo-badge');
     this.undoBadge.style.display = 'none';
@@ -169,6 +192,11 @@ export class Topbar {
     this.undoBadge.style.display = depth > 0 ? '' : 'none';
     this.undoBadge.textContent = t('editor.topbar.undoCount', { count: depth });
     this.undoBadge.title = t('editor.topbar.undoCountTitle', { count: depth });
+  }
+
+  setUndoState(canUndo: boolean, canRedo: boolean): void {
+    this.undoBtn.disabled = !canUndo;
+    this.redoBtn.disabled = !canRedo;
   }
 
   setViewMode(mode: '3d' | '2d'): void {

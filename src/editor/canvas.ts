@@ -170,26 +170,44 @@ function drawPlacements(
 
 // Additive height edits: a translucent disc per stamp, warm for raise, cool for
 // lower, so overlapping stamps read as accumulated elevation by opacity.
+// The radial gradient is pre-rendered ONCE into two small offscreen sprites
+// (raise/lower) and blitted scaled: building a fresh createRadialGradient per
+// stamp per repaint burned the whole redraw budget on gradient churn.
+const EDIT_SPRITE_SIZE = 96;
+let editSprites: { raise: HTMLCanvasElement; lower: HTMLCanvasElement } | null = null;
+
+function makeEditSprite(col: string): HTMLCanvasElement {
+  const c = document.createElement('canvas');
+  c.width = EDIT_SPRITE_SIZE;
+  c.height = EDIT_SPRITE_SIZE;
+  const sctx = c.getContext('2d');
+  if (!sctx) return c;
+  const half = EDIT_SPRITE_SIZE / 2;
+  const grad = sctx.createRadialGradient(half, half, 0, half, half, half);
+  grad.addColorStop(0, `rgba(${col},0.22)`);
+  grad.addColorStop(1, `rgba(${col},0)`);
+  sctx.fillStyle = grad;
+  sctx.fillRect(0, 0, EDIT_SPRITE_SIZE, EDIT_SPRITE_SIZE);
+  return c;
+}
+
 function drawTerrainEdits(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
   vp: Viewport,
   edits: readonly HeightStamp[],
 ): void {
+  if (!editSprites) {
+    editSprites = { raise: makeEditSprite('255,150,60'), lower: makeEditSprite('70,150,230') };
+  }
   ctx.save();
   for (const e of edits) {
     const c = cam.worldToScreen(e, vp);
     const r = e.radius * cam.pxPerYard;
     if (c.sx + r < 0 || c.sx - r > vp.width || c.sy + r < 0 || c.sy - r > vp.height) continue;
-    const raise = e.delta >= 0;
-    const grad = ctx.createRadialGradient(c.sx, c.sy, 0, c.sx, c.sy, Math.max(1, r));
-    const col = raise ? '255,150,60' : '70,150,230';
-    grad.addColorStop(0, `rgba(${col},0.22)`);
-    grad.addColorStop(1, `rgba(${col},0)`);
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(c.sx, c.sy, Math.max(1, r), 0, Math.PI * 2);
-    ctx.fill();
+    const sprite = e.delta >= 0 ? editSprites.raise : editSprites.lower;
+    const rr = Math.max(1, r);
+    ctx.drawImage(sprite, c.sx - rr, c.sy - rr, rr * 2, rr * 2);
   }
   ctx.restore();
 }

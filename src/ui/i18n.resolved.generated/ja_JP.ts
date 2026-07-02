@@ -1825,6 +1825,10 @@ export const ja_JP: EnTranslations = {
       "view2dTitle": "俯瞰の記号マップで編集",
       "undoCount": "元に戻す：{count}",
       "undoCountTitle": "{count} 手戻せます（Ctrl+Z で元に戻す、Ctrl+Y でやり直し）",
+      "undo": "Undo",
+      "undoTitle": "直前の変更を元に戻す（Ctrl+Z）",
+      "redo": "Redo",
+      "redoTitle": "元に戻した変更をやり直す（Ctrl+Y）",
       "offline": "オフライン",
       "offlineTitle": "未ログイン：マップはこのブラウザーにのみ保存されます。オンライン保存するにはゲームでログインしてください。",
       "signIn": "ログイン",
@@ -1853,7 +1857,8 @@ export const ja_JP: EnTranslations = {
       "title": "ブラシ",
       "size": "ブラシサイズ",
       "strength": "強さ",
-      "sizeHint": "キー：[ と ] でブラシサイズ、Shift+[ と Shift+] で強さを調整。"
+      "sizeHint": "キー：[ と ] でブラシサイズ、Shift+[ と Shift+] で強さを調整。",
+      "editCount": "地形編集数：{count} / {max}"
     },
     "biome": {
       "title": "バイオーム",
@@ -2046,7 +2051,10 @@ export const ja_JP: EnTranslations = {
       "playtestLaunch": "プレイテストを起動中...",
       "playtestFailed": "プレイテストを開始できませんでした（ストレージがブロックされています）。",
       "draftSaved": "下書きを自動保存しました。",
-      "draftRestored": "自動保存の下書きを復元しました。"
+      "draftRestored": "自動保存の下書きを復元しました。",
+      "autosaveFailed": "自動保存に失敗しました（ブラウザのストレージが満杯かブロックされています）。バックアップとしてマップをエクスポートしてください。",
+      "terrainCapReached": "地形編集の上限に達しました（{max}）。超過分のスカルプトは追加されませんでした。",
+      "placementCapReached": "配置数の上限に達しました（{max}）。超過分のアセットは追加されませんでした。"
     },
     "confirm": {
       "ok": "OK",
@@ -2081,6 +2089,7 @@ export const ja_JP: EnTranslations = {
       "rate_limited": "少し間をおいて、もう一度お試しください。",
       "unauthorized": "セッションの有効期限が切れました。ゲームでもう一度ログインしてください。",
       "network": "サーバーに接続できませんでした。接続を確認してやり直してください。",
+      "timeout": "サーバーの応答がタイムアウトしました。もう一度お試しください。",
       "unknown": "サーバーとの通信で問題が発生しました。"
     },
     "hints": {

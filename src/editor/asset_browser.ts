@@ -19,6 +19,18 @@ import {
 
 const UPLOADED_TAB = 'uploaded';
 const MAX_GRID_ITEMS = 220;
+const SEARCH_DEBOUNCE_MS = 120;
+// Cached thumbnails are ~15 KB canvases; cap the cache so a long session
+// browsing the whole catalog cannot pin unbounded canvas memory.
+const THUMB_CACHE_CAP = 600;
+
+// Per-category counts are static for the generated catalog: compute once at
+// module init instead of an ASSET_CATALOG.filter per category per tab render.
+const CATEGORY_COUNTS: ReadonlyMap<string, number> = (() => {
+  const counts = new Map<string, number>();
+  for (const a of ASSET_CATALOG) counts.set(a.category, (counts.get(a.category) ?? 0) + 1);
+  return counts;
+})();
 
 export interface AssetBrowserDeps {
   onPick(assetId: string, label: string): void;
@@ -101,6 +113,8 @@ export class AssetBrowser {
   private selectedId: string | null = null;
   private uploadedLoaded = false;
   private uploadedLoading = false;
+  private searchTimer = 0;
+  private readonly thumbCache = new Map<string, HTMLCanvasElement>();
 
   constructor(
     parent: HTMLElement,
@@ -116,7 +130,10 @@ export class AssetBrowser {
     this.search.type = 'search';
     this.search.placeholder = t('editor.assets.searchPlaceholder');
     this.search.setAttribute('aria-label', t('editor.assets.search'));
-    this.search.addEventListener('input', () => this.renderGrid());
+    this.search.addEventListener('input', () => {
+      window.clearTimeout(this.searchTimer);
+      this.searchTimer = window.setTimeout(() => this.renderGrid(), SEARCH_DEBOUNCE_MS);
+    });
     this.search.addEventListener('keydown', (ev) => ev.stopPropagation());
     head.appendChild(this.search);
     this.root.appendChild(head);
@@ -161,7 +178,7 @@ export class AssetBrowser {
       id: c,
       label: t('editor.assets.categoryTab', {
         category: categoryLabel(c),
-        count: ASSET_CATALOG.filter((a) => a.category === c).length,
+        count: CATEGORY_COUNTS.get(c) ?? 0,
       }),
     }));
     cats.push({ id: UPLOADED_TAB, label: t('editor.assets.uploadedTab') });
@@ -250,6 +267,17 @@ export class AssetBrowser {
     for (const entry of items) this.grid.appendChild(this.cell(entry));
   }
 
+  /** Thumbnail canvases are deterministic per asset id: cache and reuse them. */
+  private thumbFor(entry: Entry): HTMLCanvasElement {
+    let thumb = this.thumbCache.get(entry.id);
+    if (!thumb) {
+      if (this.thumbCache.size >= THUMB_CACHE_CAP) this.thumbCache.clear();
+      thumb = thumbCanvas(entry);
+      this.thumbCache.set(entry.id, thumb);
+    }
+    return thumb;
+  }
+
   private cell(entry: Entry): HTMLElement {
     const wrap = el('div', 'ed-asset-cell');
     const b = document.createElement('button');
@@ -258,7 +286,7 @@ export class AssetBrowser {
     b.classList.toggle('active', entry.id === this.selectedId);
     b.title = t('editor.assets.pick', { name: entry.label });
     b.setAttribute('aria-label', t('editor.assets.pick', { name: entry.label }));
-    b.appendChild(thumbCanvas(entry));
+    b.appendChild(this.thumbFor(entry));
     b.appendChild(el('span', 'ed-asset-label', entry.label));
     b.addEventListener('click', () => {
       this.selectedId = entry.id;

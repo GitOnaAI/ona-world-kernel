@@ -78,17 +78,28 @@ export function signedIn(): boolean {
   return storedSession() !== null;
 }
 
+/**
+ * Abort a stalled request after this long, surfaced as the 'timeout' error
+ * code (mapped to a t() key by server_errors_core): a hung fetch must never
+ * leave the topbar stuck in "saving" and Ctrl+S swallowed forever.
+ */
+export const CALL_TIMEOUT_MS = 20_000;
+
 async function call(path: string, init: RequestInit = {}): Promise<any> {
   const session = storedSession();
   const headers: Record<string, string> = {
     ...((init.headers as Record<string, string>) ?? {}),
   };
   if (session) headers.Authorization = `Bearer ${session.token}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CALL_TIMEOUT_MS);
   let res: Response;
   try {
-    res = await fetch(path, { ...init, headers });
+    res = await fetch(path, { ...init, headers, signal: controller.signal });
   } catch {
-    throw new EditorApiError(null, 0);
+    throw new EditorApiError(controller.signal.aborted ? 'timeout' : null, 0);
+  } finally {
+    clearTimeout(timer);
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

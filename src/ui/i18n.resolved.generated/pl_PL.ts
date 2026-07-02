@@ -1825,6 +1825,10 @@ export const pl_PL: EnTranslations = {
       "view2dTitle": "Edit on the symbolic overhead map",
       "undoCount": "Undo: {count}",
       "undoCountTitle": "{count} undoable steps (Ctrl+Z to undo, Ctrl+Y to redo)",
+      "undo": "Undo",
+      "undoTitle": "Undo the last change (Ctrl+Z)",
+      "redo": "Redo",
+      "redoTitle": "Redo the last undone change (Ctrl+Y)",
       "offline": "Offline",
       "offlineTitle": "Not signed in: maps save to this browser only. Sign in from the game to save online.",
       "signIn": "Sign in",
@@ -1853,7 +1857,8 @@ export const pl_PL: EnTranslations = {
       "title": "Brush",
       "size": "Brush size",
       "strength": "Strength",
-      "sizeHint": "Keys: [ and ] resize the brush; Shift+[ and Shift+] change strength."
+      "sizeHint": "Keys: [ and ] resize the brush; Shift+[ and Shift+] change strength.",
+      "editCount": "Terrain edits: {count} / {max}"
     },
     "biome": {
       "title": "Biome",
@@ -2046,7 +2051,10 @@ export const pl_PL: EnTranslations = {
       "playtestLaunch": "Launching playtest...",
       "playtestFailed": "Could not start the playtest (storage blocked).",
       "draftSaved": "Draft autosaved.",
-      "draftRestored": "Restored the autosaved draft."
+      "draftRestored": "Restored the autosaved draft.",
+      "autosaveFailed": "Autosave failed (browser storage is full or blocked). Export the map to keep a backup.",
+      "terrainCapReached": "Terrain edit limit reached ({max}). Extra sculpt stamps were not added.",
+      "placementCapReached": "Placement limit reached ({max}). Extra assets were not added."
     },
     "confirm": {
       "ok": "OK",
@@ -2081,6 +2089,7 @@ export const pl_PL: EnTranslations = {
       "rate_limited": "Slow down a little and try again.",
       "unauthorized": "Your session has expired. Sign in from the game again.",
       "network": "Could not reach the server. Check your connection and try again.",
+      "timeout": "The server took too long to respond. Try again.",
       "unknown": "Something went wrong talking to the server."
     },
     "hints": {

@@ -1825,6 +1825,10 @@ export const zh_TW: EnTranslations = {
       "view2dTitle": "在俯視示意圖上編輯",
       "undoCount": "復原：{count}",
       "undoCountTitle": "可復原 {count} 步（Ctrl+Z 復原，Ctrl+Y 重做）",
+      "undo": "Undo",
+      "undoTitle": "復原上一次變更（Ctrl+Z）",
+      "redo": "Redo",
+      "redoTitle": "重做上一次復原的變更（Ctrl+Y）",
       "offline": "離線",
       "offlineTitle": "未登入：地圖只會儲存到此瀏覽器。請在遊戲中登入以線上儲存。",
       "signIn": "登入",
@@ -1853,7 +1857,8 @@ export const zh_TW: EnTranslations = {
       "title": "筆刷",
       "size": "筆刷大小",
       "strength": "強度",
-      "sizeHint": "快捷鍵：[ 和 ] 調整筆刷大小；Shift+[ 和 Shift+] 調整強度。"
+      "sizeHint": "快捷鍵：[ 和 ] 調整筆刷大小；Shift+[ 和 Shift+] 調整強度。",
+      "editCount": "地形編輯數：{count} / {max}"
     },
     "biome": {
       "title": "生態",
@@ -2046,7 +2051,10 @@ export const zh_TW: EnTranslations = {
       "playtestLaunch": "正在啟動試玩...",
       "playtestFailed": "無法啟動試玩（儲存空間遭封鎖）。",
       "draftSaved": "草稿已自動儲存。",
-      "draftRestored": "已還原自動儲存的草稿。"
+      "draftRestored": "已還原自動儲存的草稿。",
+      "autosaveFailed": "自動儲存失敗（瀏覽器儲存空間已滿或被封鎖）。請匯出地圖以保留備份。",
+      "terrainCapReached": "已達到地形編輯上限（{max}）。多餘的雕刻印記未被加入。",
+      "placementCapReached": "已達到放置上限（{max}）。多餘的資源未被加入。"
     },
     "confirm": {
       "ok": "確定",
@@ -2081,6 +2089,7 @@ export const zh_TW: EnTranslations = {
       "rate_limited": "操作太快了，請稍後再試。",
       "unauthorized": "你的工作階段已過期。請重新在遊戲中登入。",
       "network": "無法連線到伺服器。請檢查網路後再試。",
+      "timeout": "伺服器回應逾時。請再試一次。",
       "unknown": "與伺服器通訊時發生問題。"
     },
     "hints": {

@@ -1825,6 +1825,10 @@ export const zh_CN: EnTranslations = {
       "view2dTitle": "在俯视示意图上编辑",
       "undoCount": "撤销：{count}",
       "undoCountTitle": "可撤销 {count} 步（Ctrl+Z 撤销，Ctrl+Y 重做）",
+      "undo": "Undo",
+      "undoTitle": "撤销上一次更改（Ctrl+Z）",
+      "redo": "Redo",
+      "redoTitle": "重做上一次撤销的更改（Ctrl+Y）",
       "offline": "离线",
       "offlineTitle": "未登录：地图只保存到此浏览器。请在游戏中登录以在线保存。",
       "signIn": "登录",
@@ -1853,7 +1857,8 @@ export const zh_CN: EnTranslations = {
       "title": "笔刷",
       "size": "笔刷大小",
       "strength": "强度",
-      "sizeHint": "快捷键：[ 和 ] 调整笔刷大小；Shift+[ 和 Shift+] 调整强度。"
+      "sizeHint": "快捷键：[ 和 ] 调整笔刷大小；Shift+[ 和 Shift+] 调整强度。",
+      "editCount": "地形编辑数：{count} / {max}"
     },
     "biome": {
       "title": "生态",
@@ -2046,7 +2051,10 @@ export const zh_CN: EnTranslations = {
       "playtestLaunch": "正在启动试玩...",
       "playtestFailed": "无法启动试玩（存储被阻止）。",
       "draftSaved": "草稿已自动保存。",
-      "draftRestored": "已恢复自动保存的草稿。"
+      "draftRestored": "已恢复自动保存的草稿。",
+      "autosaveFailed": "自动保存失败（浏览器存储已满或被禁用）。请导出地图以保留备份。",
+      "terrainCapReached": "已达到地形编辑上限（{max}）。多余的雕刻印记未被添加。",
+      "placementCapReached": "已达到放置上限（{max}）。多余的资源未被添加。"
     },
     "confirm": {
       "ok": "确定",
@@ -2081,6 +2089,7 @@ export const zh_CN: EnTranslations = {
       "rate_limited": "操作太快了，请稍后再试。",
       "unauthorized": "你的会话已过期。请重新在游戏中登录。",
       "network": "无法连接服务器。请检查网络后重试。",
+      "timeout": "服务器响应超时。请重试。",
       "unknown": "与服务器通信时出了点问题。"
     },
     "hints": {
