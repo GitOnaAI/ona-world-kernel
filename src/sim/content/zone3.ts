@@ -292,7 +292,7 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
     // blow stokes his Battle Fury, stacking attack power up to a hard cap. A
     // drawn-out fight snowballs, so burn him down or kite him off you to bleed
     // the stacks back off.
-    rampage: { ap: 20, maxStacks: 5, duration: 10, name: 'Battle Fury', school: 'physical' },
+    rampage: { ap: 20, maxStacks: 5, duration: 10, name: 'Mounting Rage', school: 'physical' },
     loot: [
       { copper: 2000, chance: 1 },
       { itemId: 'drogmar_warboots', chance: 0.3 },
@@ -402,7 +402,7 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
       perTick: 6,
       interval: 3,
       duration: 12,
-      name: 'Frostbite',
+      name: 'Winterbite',
       school: 'frost',
     },
     scale: 1.3,
@@ -542,7 +542,7 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
       name: 'Profane Mending',
       school: 'shadow',
     },
-    petSpell: { name: 'Mind Blast', school: 'shadow', min: 38, max: 56, range: 28, every: 2.8 },
+    petSpell: { name: 'Mindfracture', school: 'shadow', min: 38, max: 56, range: 28, every: 2.8 },
     aoePulse: {
       min: 28,
       max: 42,

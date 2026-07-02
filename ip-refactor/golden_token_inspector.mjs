@@ -14,12 +14,25 @@
 // Anything else - a numeric change, an array-length change, an unmapped
 // string change - is a violation: the slice changed behavior. STOP.
 //
-// Usage: node ip-refactor/golden_token_inspector.mjs [worktreeRoot]
+// --allow-state-hashes (ruling addendum, 2026-07-02): a display name embedded in
+// a sampled aura/entity leaf also shifts that frame's `state` digest. With this
+// flag, a changed `frames.<i>.state` hash is COUNTED (reported as a state-hash
+// delta) instead of flagged - but it is sanctioned ONLY when the reverse-map
+// re-digest proof passes: RENAME_PROOF=1 npx vitest run
+// tests/parity/rename_state_proof.test.ts (must be green BEFORE relying on this
+// flag). rng digests, draw counts, nextId, and every non-frame-state hash stay
+// strict either way.
+//
+// Usage: node ip-refactor/golden_token_inspector.mjs [worktreeRoot] [baseRef] [--allow-state-hashes]
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const root = process.argv[2] || process.cwd();
+const args = process.argv.slice(2);
+const allowStateHashes = args.includes("--allow-state-hashes");
+const positional = args.filter((a) => !a.startsWith("--"));
+const root = positional[0] || process.cwd();
+const baseRef = positional[1] || "HEAD";
 const mapPath = join(root, "ip-refactor", "NAME-MAP.md");
 
 // ---- load locked old->new pairs ----
@@ -53,12 +66,18 @@ function applyDisplayMap(s) {
 
 // ---- diff engine ----
 const violations = [];
-let digestChanges = 0, tokenChanges = 0, filesChanged = 0;
+let digestChanges = 0, tokenChanges = 0, filesChanged = 0, stateHashChanges = 0;
+const HASH8 = /^[0-9a-f]{8}$/;
 function walk(file, a, b, path) {
   if (typeof a === "string" && typeof b === "string") {
     if (a === b) return;
     const last = path[path.length - 1];
     if (String(last) === "events" || /(^|\.)events$/.test(path.join("."))) { digestChanges++; return; }
+    if (
+      allowStateHashes &&
+      path.length === 3 && path[0] === "frames" && String(last) === "state" &&
+      HASH8.test(a) && HASH8.test(b)
+    ) { stateHashChanges++; return; }
     const idHit = idPairs.find(([o]) => a === o);
     if (idHit && b === idHit[1]) { tokenChanges++; return; }
     if (applyDisplayMap(a) === b) { tokenChanges++; return; }
@@ -88,14 +107,14 @@ for (const name of readdirSync(goldenDir)) {
   const rel = relative(root, abs).replace(/\\/g, "/");
   let headText;
   try {
-    headText = execFileSync("git", ["-C", root, "show", `HEAD:${rel}`], { encoding: "utf8", maxBuffer: 1 << 28 });
-  } catch { violations.push(`${name}: not in HEAD (new golden file - not sanctioned)`); continue; }
+    headText = execFileSync("git", ["-C", root, "show", `${baseRef}:${rel}`], { encoding: "utf8", maxBuffer: 1 << 28 });
+  } catch { violations.push(`${name}: not in ${baseRef} (new golden file - not sanctioned)`); continue; }
   const workText = readFileSync(abs, "utf8");
   if (headText === workText) continue;
   filesChanged++;
   walk(name, JSON.parse(headText), JSON.parse(workText), []);
 }
 
-console.log(`goldens changed: ${filesChanged} | events-digest deltas: ${digestChanges} | sanctioned token swaps: ${tokenChanges} | violations: ${violations.length}`);
+console.log(`goldens changed: ${filesChanged} | events-digest deltas: ${digestChanges} | state-hash deltas: ${stateHashChanges}${allowStateHashes ? " (allowed; requires a green RENAME_PROOF=1 rename_state_proof run)" : ""} | sanctioned token swaps: ${tokenChanges} | violations: ${violations.length}`);
 for (const v of violations.slice(0, 40)) console.log("VIOLATION:", v);
 process.exit(violations.length ? 1 : 0);
