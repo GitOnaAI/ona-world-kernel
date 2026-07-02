@@ -2509,6 +2509,7 @@ export class Sim {
   }
 
   private updateLootRolls(): void {
+    if (this.pendingLootRolls.size === 0) return; // skip the defensive copy on the common idle tick
     for (const roll of [...this.pendingLootRolls.values()]) {
       if (roll.expiresAt <= this.time) this.resolveLootRoll(roll);
     }
