@@ -21,7 +21,7 @@
 | C2 | Warlock demon-pet re-theme + pet-id sweep | Creatures | ULTRACODE | not-started | — |
 | W1 | Item / set / augment rename | World | plain | not-started | — |
 | W2 | Mob mechanic / aura name rename | World | plain | not-started | — |
-| T1 | De-brand comments / docs / realm copy | Text | plain | done-on-track (track/ip-text @ HEAD, 2026-07-02, Fable 5 session) | track/ip-text |
+| T1 | De-brand comments / docs / realm copy | Text | plain | done-on-track (track/ip-text @ dc407244, 2026-07-02, Fable 5 session) | track/ip-text |
 | Z1 | Integrate + regen + scanner-zero + release-fill handoff | Finale | plain | not-started | — |
 
 Status values: `not-started` -> `in-progress (<who>)` -> `done-on-track (<branch> @ <sha>)` ->
