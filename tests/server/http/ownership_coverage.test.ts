@@ -602,8 +602,10 @@ describe('internal secret-gate mounting sweep: every /internal route is gated (P
     vi.restoreAllMocks();
   });
 
-  it('selects the full 14-route internal surface (11 Phase 18 + the 3 Phase 18b ops routes)', () => {
-    expect(internalSurfaceRoutes.length).toBe(14);
+  it('selects the full 15-route internal surface (11 Phase 18 + the 4 ops routes)', () => {
+    // The ops family is 4 since v0.20.0 added its paginated leaderboard read to
+    // the 3 Phase 18b rows.
+    expect(internalSurfaceRoutes.length).toBe(15);
   });
 
   for (const route of internalSurfaceRoutes) {
@@ -677,7 +679,9 @@ describe('internal secret-gate mounting sweep: every /internal route is gated (P
 // The legacy { error } body the shared active guard writes for a missing bearer.
 const API_NOT_AUTHENTICATED = { error: 'not authenticated', code: 'auth.required' };
 
-// The (method, path) pairs of the Phase 18b authed /api routes.
+// The (method, path) pairs of the Phase 18b authed /api routes, extended with
+// the v0.20.0 release-merge arrivals (the account email backfill + the
+// paginated daily leaderboard, both behind the shared active guard).
 const AUTHED_18B_ROUTES: ReadonlyArray<{ method: string; path: string }> = [
   { method: 'POST', path: '/api/auth/github/start' },
   { method: 'GET', path: '/api/github' },
@@ -686,6 +690,8 @@ const AUTHED_18B_ROUTES: ReadonlyArray<{ method: string; path: string }> = [
   { method: 'GET', path: '/api/daily-rewards' },
   { method: 'POST', path: '/api/daily-rewards/spin' },
   { method: 'GET', path: '/api/daily-rewards/history' },
+  { method: 'GET', path: '/api/daily-rewards/leaderboard' },
+  { method: 'POST', path: '/api/account/email/set-initial' },
 ];
 
 const authed18bRoutes: RouteDef[] = AUTHED_18B_ROUTES.map((spec) => {
@@ -706,8 +712,8 @@ describe('/api auth-mounting sweep: every authed Phase 18b route 401s an unauthe
     resetRateLimits();
   });
 
-  it('selects all seven authed Phase 18b routes from the registry', () => {
-    expect(authed18bRoutes.length).toBe(7);
+  it('selects all nine authed routes from the registry', () => {
+    expect(authed18bRoutes.length).toBe(9);
   });
 
   for (const route of authed18bRoutes) {

@@ -38,6 +38,7 @@ import {
   hashPassword,
   MIN_PASSWORD_LENGTH,
   newToken,
+  normalizeEmail,
   offensiveName,
   validPassword,
   validUsernameShape,
@@ -97,10 +98,9 @@ const USERNAME_NOT_ALLOWED = 'username is not allowed';
 const PASSWORD_TOO_SHORT = `password must be at least ${MIN_PASSWORD_LENGTH} chars`;
 const USERNAME_TAKEN = 'username already taken';
 const INVALID_TWO_FACTOR_CODE = 'invalid authentication code';
-
-// Optional signup-email shape gate (mirrors the legacy inline regex + length cap).
-const SIGNUP_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SIGNUP_EMAIL_MAX_LENGTH = 254;
+// Mandatory signup-email reject (mirrors the legacy /api/register arm; the shape
+// gate itself is the shared normalizeEmail in server/auth.ts).
+const EMAIL_INVALID = 'enter a valid email address';
 // The native-attestation action defaults to 'auth' when the body omits it.
 const DEFAULT_ATTESTATION_ACTION = 'auth';
 
@@ -246,6 +246,14 @@ async function registerHandler(ctx: Ctx): Promise<void> {
     json(ctx.res, 400, { error: PASSWORD_TOO_SHORT, code: 'account.password_too_short' });
     return;
   }
+  // Email is mandatory at signup: it is the recovery address that later proves
+  // account ownership on a password reset, so we capture it up front (mirrors the
+  // legacy arm's check order: after the password gate, before the username lookup).
+  const signupEmail = normalizeEmail(body.email);
+  if (!signupEmail) {
+    json(ctx.res, 400, { error: EMAIL_INVALID, code: 'email.invalid' });
+    return;
+  }
   const existing = await authDb.findAccount(body.username);
   if (existing) {
     json(ctx.res, 409, { error: USERNAME_TAKEN, code: 'account.username_taken' });
@@ -269,23 +277,16 @@ async function registerHandler(ctx: Ctx): Promise<void> {
   }
   const token = newToken();
   await authDb.saveToken(token, account.id);
-  // Optional signup email: store it and send the welcome mail when a valid address
-  // is supplied. Kept optional so a client that registers without one is unaffected.
-  const signupEmailRaw = typeof body.email === 'string' ? body.email.trim() : '';
-  if (
-    signupEmailRaw &&
-    SIGNUP_EMAIL_RE.test(signupEmailRaw) &&
-    signupEmailRaw.length <= SIGNUP_EMAIL_MAX_LENGTH
-  ) {
-    await authDb.setAccountEmail(account.id, signupEmailRaw);
-    authDb.emailAccountCreated({
-      id: account.id,
-      username: account.username,
-      email: signupEmailRaw,
-      locale: null,
-      marketing_opt_in: false,
-    });
-  }
+  // Store the mandatory signup email and send the welcome mail. Validated above,
+  // so this always runs for a fresh registration.
+  await authDb.setAccountEmail(account.id, signupEmail);
+  authDb.emailAccountCreated({
+    id: account.id,
+    username: account.username,
+    email: signupEmail,
+    locale: null,
+    marketing_opt_in: false,
+  });
   void authDb
     .createSuspiciousRegistrationReport({
       accountId: account.id,
@@ -298,7 +299,9 @@ async function registerHandler(ctx: Ctx): Promise<void> {
   void authDb
     .captureReferral(account.id, body.ref)
     .catch((err) => logger.error({ err }, 'referral capture failed'));
-  json(ctx.res, 200, { token, username: account.username });
+  // emailMissing is always false here (email is required above); sent so the
+  // client can use one uniform post-auth check across register and login.
+  json(ctx.res, 200, { token, username: account.username, emailMissing: false });
 }
 
 /** POST /api/login: verify credentials (+ 2FA), gate moderation/IP, issue a token. */
@@ -354,7 +357,10 @@ async function loginHandler(ctx: Ctx): Promise<void> {
   await authDb.touchLogin(account.id, rt.requestMetadata(ctx.req));
   const token = newToken();
   await authDb.saveToken(token, account.id);
-  json(ctx.res, 200, { token, username: account.username });
+  // Tell the client whether this (possibly pre-email) account still needs a
+  // recovery address, so it can force the mandatory-email prompt on sign-in.
+  const emailMissing = !(account.email && account.email.trim());
+  json(ctx.res, 200, { token, username: account.username, emailMissing });
 }
 
 /** POST /api/native-attestation/challenge: issue a short-lived native-app nonce. */

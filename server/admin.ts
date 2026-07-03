@@ -425,6 +425,9 @@ export async function handleAdminApi(
     if (path === '/admin/api/suspicious-players') {
       return ok(res, { players: game.suspiciousPlayers() });
     }
+    if (path === '/admin/api/detection-calibration') {
+      return ok(res, game.detectionCalibration());
+    }
     if (path === '/admin/api/online-history') {
       return ok(res, await onlineHistory(url.searchParams.get('range') ?? '30d'));
     }
@@ -627,6 +630,7 @@ export type AdminRuntime = Pick<
   | 'adminStats'
   | 'liveSessions'
   | 'suspiciousPlayers'
+  | 'detectionCalibration'
   | 'isIpBlocked'
   | 'liveSharedIps'
   | 'liveAccountIds'
@@ -808,6 +812,11 @@ async function onlineHandler(ctx: Ctx): Promise<void> {
 /** GET /admin/api/suspicious-players: bot-detector flags. */
 async function suspiciousPlayersHandler(ctx: Ctx): Promise<void> {
   ok(ctx.res, { players: useAdminRuntime().suspiciousPlayers() });
+}
+
+/** GET /admin/api/detection-calibration: bot-detector calibration histograms. */
+async function detectionCalibrationHandler(ctx: Ctx): Promise<void> {
+  ok(ctx.res, useAdminRuntime().detectionCalibration());
 }
 
 /** GET /admin/api/online-history: bucketed online + site-user history. */
@@ -1224,6 +1233,14 @@ export const routes: RouteDef[] = [
     middleware: [requireAdmin],
     meta: ADMIN_META,
     handler: suspiciousPlayersHandler,
+  },
+  {
+    method: 'GET',
+    path: '/admin/api/detection-calibration',
+    surface: 'admin',
+    middleware: [requireAdmin],
+    meta: ADMIN_META,
+    handler: detectionCalibrationHandler,
   },
   {
     method: 'GET',

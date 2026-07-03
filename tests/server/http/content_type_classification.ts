@@ -86,6 +86,7 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/account/deactivate': PROBLEM_JSON,
   '/api/account/companion-token': PROBLEM_JSON,
   '/api/account/email/change': PROBLEM_JSON,
+  '/api/account/email/set-initial': PROBLEM_JSON,
   // The two email link-click endpoints (verify, unsubscribe) read like server-rendered
   // pages but every branch of handleAccountEmailVerify / handleEmailUnsubscribe answers
   // application/json (the SPA owns the UX), so they are PROBLEM_JSON, NOT HTML. The only
@@ -110,6 +111,7 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/github': PROBLEM_JSON,
   '/api/woc/balance': PROBLEM_JSON,
   '/api/daily-rewards': PROBLEM_JSON,
+  '/api/daily-rewards/leaderboard': PROBLEM_JSON,
   '/api/daily-rewards/spin': PROBLEM_JSON,
   '/api/daily-rewards/history': PROBLEM_JSON,
   '/api/card': BINARY,

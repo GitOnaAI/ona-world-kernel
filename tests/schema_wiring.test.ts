@@ -61,6 +61,12 @@ describe('ensureSchema wires every schema module at boot', () => {
     expect(applied).toContain('CREATE TABLE IF NOT EXISTS reward_points');
     expect(applied).toContain('CREATE TABLE IF NOT EXISTS reward_ledger');
     expect(applied).toContain('CREATE TABLE IF NOT EXISTS swag_claims');
+    // The captured Discord email column (recovery-email capture) must be added at boot,
+    // on both the durable link and the first-time pending-login rows.
+    expect(applied).toContain('ALTER TABLE discord_links ADD COLUMN IF NOT EXISTS discord_email');
+    expect(applied).toContain(
+      'ALTER TABLE discord_pending_logins ADD COLUMN IF NOT EXISTS discord_email',
+    );
   });
 
   it('applies the Discord schema idempotently (a second boot is a no-op: only guarded DDL)', async () => {

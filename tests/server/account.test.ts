@@ -228,7 +228,7 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('account route table', () => {
-  it('registers exactly the 16 account-portal routes (method + path)', () => {
+  it('registers exactly the 17 account-portal routes (method + path)', () => {
     const pairs = routes.map((r) => `${r.method} ${r.path}`).sort();
     expect(pairs).toEqual(
       [
@@ -236,6 +236,7 @@ describe('account route table', () => {
         'POST /api/account/password',
         'POST /api/account/logout',
         'POST /api/account/email',
+        'POST /api/account/email/set-initial',
         'POST /api/account/deactivate',
         'POST /api/account/companion-token',
         'GET /api/account/companion-token',

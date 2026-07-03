@@ -222,6 +222,8 @@ describe('registry completeness: migrated baseline (Phase 10 public reads + Phas
     { method: 'GET', path: '/api/account/companion-token' },
     { method: 'DELETE', path: '/api/account/companion-token' },
     { method: 'POST', path: '/api/account/email/change' },
+    // v0.20.0: the mandatory-email backfill (fills a missing recovery address).
+    { method: 'POST', path: '/api/account/email/set-initial' },
     { method: 'GET', path: '/api/account/email/verify' },
     { method: 'POST', path: '/api/account/export' },
     { method: 'POST', path: '/api/account/marketing' },
@@ -271,6 +273,9 @@ describe('registry completeness: migrated baseline (Phase 10 public reads + Phas
     { method: 'GET', path: '/api/daily-rewards' },
     { method: 'POST', path: '/api/daily-rewards/spin' },
     { method: 'GET', path: '/api/daily-rewards/history' },
+    // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
+    // asserted with the internal family below).
+    { method: 'GET', path: '/api/daily-rewards/leaderboard' },
   ];
   const MIGRATED_PATHS = MIGRATED_ROUTES.map((r) => r.path);
 
@@ -474,8 +479,10 @@ describe('registry completeness: Phase 18/18b oauth + internal surfaces (server/
   it('derives the expected non-empty ladders', () => {
     expect(oauthPostLadder.length).toBe(5);
     expect(oauthGetLadder.length).toBe(2);
-    expect(internalLadder.length).toBe(14);
-    expect(opsFamilyRows.length).toBe(3);
+    // 15 = the Phase 18 eleven (restart-countdown + the 10 Discord-bot routes)
+    // plus the ops family below (v0.20.0 added its paginated leaderboard read).
+    expect(internalLadder.length).toBe(15);
+    expect(opsFamilyRows.length).toBe(4);
   });
 
   it('registers exactly the oauth POST ladder routes', () => {

@@ -173,6 +173,7 @@ function linkRow(accountId: number): DiscordLinkRow {
     discord_user_id: `du${accountId}`,
     discord_username: `un${accountId}`,
     discord_avatar: `av${accountId}`,
+    discord_email: null,
     guild_member: false,
     linked_at: 'x',
   };

@@ -57,6 +57,15 @@ const h = vi.hoisted(() => {
     onlineMinutesForAccount: vi.fn(async () => 0),
     rankForAccount: vi.fn(async () => null),
     leaderboard: vi.fn(async () => [] as unknown[]),
+    leaderboardRowForAccount: vi.fn(async () => null),
+    leaderboardTotal: vi.fn(async () => 0),
+    leaderboardPage: vi.fn(async (_day: string, page: number, pageSize: number) => ({
+      rows: [] as unknown[],
+      page,
+      pageSize,
+      pageCount: 1,
+      total: 0,
+    })),
     spinForAccount: vi.fn(async () => state.spin),
     recordSpin: vi.fn(async () => true),
     addPoints: vi.fn(async () => true),
@@ -86,6 +95,9 @@ vi.mock('../../server/daily_rewards_db', async (importOriginal) => {
     onlineMinutesForAccount = h.db.onlineMinutesForAccount;
     rankForAccount = h.db.rankForAccount;
     leaderboard = h.db.leaderboard;
+    leaderboardRowForAccount = h.db.leaderboardRowForAccount;
+    leaderboardTotal = h.db.leaderboardTotal;
+    leaderboardPage = h.db.leaderboardPage;
     spinForAccount = h.db.spinForAccount;
     recordSpin = h.db.recordSpin;
     addPoints = h.db.addPoints;
@@ -136,15 +148,18 @@ const OPS_SECRET_ENV = 'WOC_DAILY_REWARD_SERVICE_SECRET';
 const OPS_SECRET = 'ops-secret';
 const OPS_HEADERS = { [OPS_HEADER]: OPS_SECRET };
 
-// The six routes, in declared order, as `${method} ${path}`.
+// The eight routes, in declared order, as `${method} ${path}` (v0.20.0 added
+// the paginated leaderboard read to each family).
 const PLAYER_PATHS: ReadonlyArray<readonly [Method, string]> = [
   ['GET', '/api/daily-rewards'],
+  ['GET', '/api/daily-rewards/leaderboard'],
   ['POST', '/api/daily-rewards/spin'],
   ['GET', '/api/daily-rewards/history'],
 ];
 const OPS_PATHS: ReadonlyArray<readonly [Method, string]> = [
   ['POST', '/internal/daily-rewards/pending-payouts'],
   ['POST', '/internal/daily-rewards/payout-history'],
+  ['POST', '/internal/daily-rewards/leaderboard'],
   ['POST', '/internal/daily-rewards/mark-payout'],
 ];
 
@@ -321,13 +336,15 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('daily-rewards route table', () => {
-  it('registers exactly the six routes in the declared order', () => {
+  it('registers exactly the eight routes in the declared order', () => {
     expect(routes.map((r) => `${r.method} ${r.path}`)).toEqual([
       'GET /api/daily-rewards',
+      'GET /api/daily-rewards/leaderboard',
       'POST /api/daily-rewards/spin',
       'GET /api/daily-rewards/history',
       'POST /internal/daily-rewards/pending-payouts',
       'POST /internal/daily-rewards/payout-history',
+      'POST /internal/daily-rewards/leaderboard',
       'POST /internal/daily-rewards/mark-payout',
     ]);
   });
@@ -435,6 +452,32 @@ describe('player routes: thin-handler dispatch', () => {
     // The handler dispatched into the service (which touched the mocked db).
     expect(h.db.ensureDay).toHaveBeenCalled();
     expect(r.reached).toBe(true);
+  });
+
+  it('GET leaderboard answers 200 with the page payload and decodes page/pageSize leniently', async () => {
+    // ?page=abc&pageSize=xyz coerce to NaN then fall back to 0 / 20 (never a 422).
+    const bad = await runRoute('GET', '/api/daily-rewards/leaderboard', {
+      url: '/api/daily-rewards/leaderboard?page=abc&pageSize=xyz',
+      headers: { authorization: BEARER },
+    });
+    expect(bad.status).toBe(200);
+    expect(bad.body).toEqual({
+      day: expect.any(String),
+      leaders: [],
+      page: 0,
+      pageSize: 20,
+      pageCount: 1,
+      total: 0,
+    });
+    expect(h.db.leaderboardPage).toHaveBeenLastCalledWith(expect.any(String), 0, 20);
+    expect(bad.reached).toBe(true);
+
+    // Finite ?page=2&pageSize=50 flow through verbatim.
+    await runRoute('GET', '/api/daily-rewards/leaderboard', {
+      url: '/api/daily-rewards/leaderboard?page=2&pageSize=50',
+      headers: { authorization: BEARER },
+    });
+    expect(h.db.leaderboardPage).toHaveBeenLastCalledWith(expect.any(String), 2, 50);
   });
 
   it('POST spin 403s an ineligible wallet with the legacy lock prose', async () => {
@@ -575,6 +618,23 @@ describe('ops routes: fail-closed secret gate', () => {
     });
     expect(r.reached).toBe(true);
     expect(h.db.recentPayouts).toHaveBeenCalledWith(100);
+  });
+
+  it('runs leaderboard to a 200 admin envelope, passing an explicit ?day verbatim', async () => {
+    process.env[OPS_SECRET_ENV] = OPS_SECRET;
+    const r = await runRoute('POST', '/internal/daily-rewards/leaderboard', {
+      url: '/internal/daily-rewards/leaderboard?day=2026-07-01&page=1&pageSize=25',
+      headers: OPS_HEADERS,
+    });
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({
+      success: true,
+      data: { day: '2026-07-01', leaders: [], page: 1, pageSize: 25, pageCount: 1, total: 0 },
+      error: null,
+    });
+    expect(r.reached).toBe(true);
+    // The requested day flows through verbatim (no clock read for an explicit day).
+    expect(h.db.leaderboardPage).toHaveBeenLastCalledWith('2026-07-01', 1, 25);
   });
 });
 

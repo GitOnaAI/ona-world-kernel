@@ -538,6 +538,18 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: null,
   },
+  // v0.20.0 mandatory-email backfill: fills the recovery address on an account
+  // that has none yet; once one exists it 409s to the verified change flow.
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'POST',
+    path: '/api/account/email/set-initial',
+    handler: 'handleApi arm: /api/account/email/set-initial (handleAccountSetInitialEmail)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.full,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
   // Unauthenticated: the link token in the query string is the authorization.
   {
     dispatcher: DISPATCH.mainApi,
@@ -779,6 +791,18 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     method: 'GET',
     path: '/api/daily-rewards',
     handler: 'handleDailyRewardApi arm: /api/daily-rewards (status)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.full,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  // v0.20.0 pagination: the standalone paginated leaderboard read (page/pageSize
+  // query params, lenient Number(...) || default decode like history's limit).
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'GET',
+    path: '/api/daily-rewards/leaderboard',
+    handler: 'handleDailyRewardApi arm: /api/daily-rewards/leaderboard',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.full,
     limiter: null,
@@ -1035,6 +1059,17 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     method: 'GET',
     path: '/admin/api/suspicious-players',
     handler: 'handleAdminApi arm: /admin/api/suspicious-players',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  // v0.20.0: bot-detector calibration histograms for the admin dashboard.
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/detection-calibration',
+    handler: 'handleAdminApi arm: /admin/api/detection-calibration',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.admin,
     limiter: null,
@@ -1367,8 +1402,9 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
   // handleDailyRewardInternalApi sub-dispatcher, which the /internal composite
   // delegate tries FIRST (before handleInternalApi, whose terminal 404 would
   // otherwise swallow the family: the ordering is load-bearing and parity-pinned).
-  // NEVER part of handleInternalApi and NOT on the RouteDef table (delegate-only,
-  // like the OAuth GET HTML pages). The whole `/internal/daily-rewards/` prefix
+  // NEVER part of handleInternalApi; since Phase 18b the family is ALSO on the
+  // RouteDef table (fail-closed secret gate + the same sub-dispatcher core), with
+  // the composite delegate kept as the rollback arm. The whole `/internal/daily-rewards/` prefix
   // is secret-gated BEFORE path/method resolution, fail-closed (see AUTH_SCOPE),
   // and answers in the admin { success, data, error } envelope on every branch.
   {
@@ -1386,6 +1422,18 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     method: 'POST',
     path: '/internal/daily-rewards/payout-history',
     handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/payout-history',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.secretDailyReward,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  // v0.20.0 pagination: the ops-side paginated leaderboard read (day/page/pageSize
+  // query params, lenient decode; defaults to the current reward day).
+  {
+    dispatcher: DISPATCH.internal,
+    method: 'POST',
+    path: '/internal/daily-rewards/leaderboard',
+    handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/leaderboard',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.secretDailyReward,
     limiter: null,

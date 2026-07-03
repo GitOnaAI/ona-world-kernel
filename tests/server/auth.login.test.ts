@@ -379,9 +379,11 @@ describe('login: success', () => {
 
     const res = await login({ username: USERNAME, password: CORRECT_PASSWORD });
     expect(res.status).toBe(200);
-    const body = res.body as { token: string; username: string };
+    const body = res.body as { token: string; username: string; emailMissing: boolean };
     expect(body.token).toMatch(TOKEN_RE);
     expect(body.username).toBe(USERNAME);
+    // A pre-email account (no recovery address on the row) is told to backfill.
+    expect(body.emailMissing).toBe(true);
     // clearAuthFailures ran: the account is no longer tracked.
     expect(authFailureCount()).toBe(0);
     // touchLogin(id, meta) and saveToken(token, id) with the runtime metadata.
@@ -391,6 +393,18 @@ describe('login: success', () => {
     expect(String(tokenArg)).toMatch(TOKEN_RE);
     expect(idArg).toBe(1);
     expect(String(tokenArg)).toBe(body.token);
+  });
+
+  it('answers emailMissing false when the account already has a recovery address', async () => {
+    setAuthDbForTests({
+      findAccount: async () => account({ email: 'hero@example.com' }),
+      moderationStatusForAccount: async () => modStatus(),
+      touchLogin: async () => {},
+      saveToken: async () => {},
+    });
+    const res = await login({ username: USERNAME, password: CORRECT_PASSWORD });
+    expect(res.status).toBe(200);
+    expect((res.body as { emailMissing: boolean }).emailMissing).toBe(false);
   });
 });
 

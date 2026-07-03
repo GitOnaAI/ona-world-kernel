@@ -26,6 +26,7 @@ import {
   handleAccountLogout,
   handleAccountMarketing,
   handleAccountSetEmail,
+  handleAccountSetInitialEmail,
   handleAccountWhoami,
   handleEmailUnsubscribe,
   verifyLoginTwoFactor,
@@ -36,6 +37,7 @@ import {
   hashPassword,
   newToken,
   normalizeCharName,
+  normalizeEmail,
   offensiveName,
   validPassword,
   validUsernameShape,
@@ -728,6 +730,14 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
           error: 'password must be at least 6 chars',
           code: 'account.password_too_short',
         });
+      // Email is mandatory at signup: it is the recovery address that later proves
+      // account ownership on a password reset, so we capture it up front.
+      const signupEmail = normalizeEmail(body.email);
+      if (!signupEmail)
+        return json(res, 400, {
+          error: 'enter a valid email address',
+          code: 'email.invalid',
+        });
       const existing = await findAccount(body.username);
       if (existing)
         return json(res, 409, { error: 'username already taken', code: 'account.username_taken' });
@@ -751,25 +761,16 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       }
       const token = newToken();
       await saveToken(token, account.id);
-      // Optional email at signup: if a valid address is supplied, store it and
-      // send the welcome mail. Kept optional so existing clients that register
-      // without an email are unaffected (the email is otherwise set later via
-      // the account portal).
-      const signupEmailRaw = typeof body.email === 'string' ? body.email.trim() : '';
-      if (
-        signupEmailRaw &&
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmailRaw) &&
-        signupEmailRaw.length <= 254
-      ) {
-        await setAccountEmail(account.id, signupEmailRaw);
-        emailAccountCreated({
-          id: account.id,
-          username: account.username,
-          email: signupEmailRaw,
-          locale: null,
-          marketing_opt_in: false,
-        });
-      }
+      // Store the mandatory signup email and send the welcome mail. Validated above,
+      // so this always runs for a fresh registration.
+      await setAccountEmail(account.id, signupEmail);
+      emailAccountCreated({
+        id: account.id,
+        username: account.username,
+        email: signupEmail,
+        locale: null,
+        marketing_opt_in: false,
+      });
       void createSuspiciousRegistrationReport({
         accountId: account.id,
         username: account.username,
@@ -780,7 +781,9 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       void captureReferral(account.id, body.ref).catch((err) =>
         logger.error({ err }, 'referral capture failed'),
       );
-      return json(res, 200, { token, username: account.username });
+      // emailMissing is always false here (email is required above); sent so the
+      // client can use one uniform post-auth check across register and login.
+      return json(res, 200, { token, username: account.username, emailMissing: false });
     }
     if (req.method === 'POST' && url === '/api/login') {
       const body = await readBody(req);
@@ -840,7 +843,10 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       await touchLogin(account.id, requestMetadata(req));
       const token = newToken();
       await saveToken(token, account.id);
-      return json(res, 200, { token, username: account.username });
+      // Tell the client whether this (possibly pre-email) account still needs a
+      // recovery address, so it can force the mandatory-email prompt on sign-in.
+      const emailMissing = !(account.email && account.email.trim());
+      return json(res, 200, { token, username: account.username, emailMissing });
     }
     if (req.method === 'POST' && url === '/api/desktop-login/create') {
       // Phase 18b scope fix: the handoff code mints a FULL session via exchange,
@@ -1365,6 +1371,14 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
       return handleAccountSetEmail(req, res, accountId);
+    }
+    // Set the recovery email on an account that has none yet (the mandatory-email
+    // backfill the client forces on sign-in). Bearer-scoped; rejects once an
+    // address already exists (that must go through the verified change flow).
+    if (req.method === 'POST' && url === '/api/account/email/set-initial') {
+      const accountId = await bearerActiveAccount(req, res);
+      if (accountId === null) return;
+      return handleAccountSetInitialEmail(req, res, accountId);
     }
     if (req.method === 'POST' && url === '/api/account/deactivate') {
       const accountId = await bearerActiveAccount(req, res);

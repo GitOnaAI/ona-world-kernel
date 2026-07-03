@@ -1,6 +1,7 @@
 import type {
   AccountCosmetics,
   DailyRewardHistory,
+  DailyRewardLeaderboardPage,
   DailyRewardSpinResult,
   DailyRewardStatus,
   DelveCompanionInfo,
@@ -96,6 +97,7 @@ import {
   GROUND_OBJECTS,
   INSTANCE_SLOT_COUNT,
   ITEMS,
+  isArenaPos,
   isDelvePos,
   MOBS,
   NPCS,
@@ -169,6 +171,7 @@ import {
   retargetMob as retargetMobFn,
   updateMobTarget as updateMobTargetFn,
 } from './mob/targeting';
+import { emitMobYell } from './mob/yells';
 import { combatProfileForMob, effectiveMobMeleeRange, type MobCombatProfile } from './mob_combat';
 import {
   findPlayerPath,
@@ -196,6 +199,13 @@ import { persistedResource } from './serialize_resource';
 import { createSimContext, type SimContext, type SimContextHost } from './sim_context';
 import * as chatMod from './social/chat';
 import * as tradeMod from './social/trade';
+import {
+  emptyWorldBossDaily,
+  rollWorldBossLoot as rollWorldBossLootImpl,
+  WORLD_BOSSES,
+  type WorldBossDaily,
+  type WorldBossDef,
+} from './world_boss';
 
 // Re-export so server/db.ts's `import type { MarketSave } from '../src/sim/sim'`
 // stays valid now that the type lives in market.ts.
@@ -313,7 +323,13 @@ import {
   virtualLevel,
   xpToReachLevel,
 } from './types';
-import { groundHeight, WATER_LEVEL } from './world';
+import {
+  groundHeight,
+  nearSteepWalls,
+  terrainDownhill,
+  terrainSteepnessAt,
+  WATER_LEVEL,
+} from './world';
 
 // TRIVIAL_LEVEL_GAP moved to mob/targeting.ts (used only by isTrivialTo).
 // CORPSE_DURATION moved to combat/damage.ts (C1; used only by the death path).
@@ -414,7 +430,15 @@ const DELVE_COMPANION_LEVEL_PCT = [0, 0.5, 0.75, 1.0]; // index = rank
 // re-exported from there so external importers (src/ui/sim_i18n.ts, tests) are unchanged.
 export { DELVE_IMPLEMENTED_AFFIXES, DELVE_MODULE_NAMES } from './delves/runs';
 
-const MAX_CLIMB_SLOPE = PLAYER_MAX_CLIMB_SLOPE; // rise/run above which a ground move is blocked (cliffs, world rim)
+// Rise/run above which ground is unwalkable (cliffs, mountain walls, the world
+// rim). Uphill steps are blocked both along the step direction AND by the true
+// terrain steepness at the destination (terrainSteepness), so a diagonal
+// switchback cannot beat the limit; airborne movement is gated the same way so
+// jump-spam cannot climb a face; and a player standing on ground steeper than
+// this slides downhill (STEEP_SLIDE_SPEED) and cannot jump until footing is
+// walkable again.
+const MAX_CLIMB_SLOPE = PLAYER_MAX_CLIMB_SLOPE;
+const STEEP_SLIDE_SPEED = RUN_SPEED; // yd/s a player skids downhill off unwalkable ground
 
 // How far a mob pulls same-family neighbours into a fight ("social aggro").
 // Murlocs (the clustered water mobs players call "frogs") used to pull too much,
@@ -467,6 +491,7 @@ export interface Party {
   raid: boolean;
   raidGroups: Map<number, 1 | 2>; // pid -> raid subgroup
   lootStrategies: LootStrategies;
+  lootTurn: number; // round-robin common-item cursor; advances once per awarded item
 }
 
 export interface TradeSession {
@@ -712,6 +737,10 @@ export interface PlayerMeta {
   companionUpgrades: Record<string, number>;
   delveLoreUnlocked: Set<string>;
   delveDaily: { date: string; firstClearXp: Set<string>; markClears: number };
+  // World-boss daily loot record (persisted in CharacterState). Resets at the UTC
+  // day boundary; holds the boss ids already looted today so a player can take
+  // personal loot from each world boss only once per day. See world_boss.ts.
+  worldBossDaily: WorldBossDaily;
 }
 
 // Away-from-keyboard / do-not-disturb presence. `afk` still delivers whispers
@@ -784,6 +813,9 @@ export interface CharacterState {
   companionUpgrades?: Record<string, number>;
   delveLoreUnlocked?: string[];
   delveDaily?: { date: string; firstClearXp: string[]; markClears: number };
+  // World-boss daily loot record. Optional so saves from before world bosses load
+  // cleanly (addPlayer falls back to an empty record).
+  worldBossDaily?: { date: string; looted: string[] };
 }
 
 export interface PetState {
@@ -912,6 +944,13 @@ export class Sim {
   readonly devCommands: boolean;
   private pendingMobRespawns: PendingMobRespawn[] = [];
   private groundAoEs: GroundAoE[] = [];
+  // World-boss scheduler, one slot per WORLD_BOSSES entry. `nextAt` is the next
+  // sim-time (seconds) a boss is due to rise; `entityId` is the live boss entity
+  // (null once none is alive). Driven by updateWorldBosses() in the tick prologue.
+  // Sim-time scheduling keeps it deterministic (no wall clock); on the live server
+  // the sim runs at 20 Hz wall speed, so the interval is real hours.
+  private worldBossNextAt: number[] = WORLD_BOSSES.map((b) => b.intervalSeconds);
+  private worldBossEntityIds: (number | null)[] = WORLD_BOSSES.map(() => null);
 
   constructor(cfg: SimConfig) {
     this.devCommands = cfg.devCommands ?? false;
@@ -1117,6 +1156,62 @@ export class Sim {
     }
   }
 
+  // World-boss scheduler. Per WORLD_BOSSES slot: when the live boss is gone, clear
+  // the slot (and once its lootable corpse window has elapsed, remove the corpse +
+  // any stormlings it left). When the interval comes due, advance it and, if no
+  // boss is currently up, spawn a fresh one. Draws no rng and allocates no ids until
+  // a spawn actually fires (which never happens inside the short parity scenarios),
+  // so existing determinism traces are unaffected.
+  private updateWorldBosses(): void {
+    for (let i = 0; i < WORLD_BOSSES.length; i++) {
+      const def = WORLD_BOSSES[i];
+      const liveId = this.worldBossEntityIds[i];
+      if (liveId !== null) {
+        const boss = this.entities.get(liveId);
+        if (!boss) {
+          this.worldBossEntityIds[i] = null;
+        } else if (boss.dead) {
+          // Lootable corpse lingers WORLD_BOSS_CORPSE_SECONDS for contributors to
+          // loot, then is removed; respawnTimer is Infinity (handleDeath) so the
+          // normal in-place respawn never fires; only this scheduler respawns it.
+          if (boss.corpseTimer <= 0) {
+            for (const addId of boss.summonedIds) this.dropEntity(addId);
+            this.dropEntity(liveId);
+            this.worldBossEntityIds[i] = null;
+          }
+        }
+      }
+      if (this.time >= this.worldBossNextAt[i]) {
+        this.worldBossNextAt[i] += def.intervalSeconds;
+        if (this.worldBossEntityIds[i] === null) {
+          this.worldBossEntityIds[i] = this.spawnWorldBoss(def);
+        }
+      }
+    }
+  }
+
+  // Spawn a world boss at its fixed point and announce it server-wide. Returns the
+  // new entity id, or null if the template is missing. Uses no rng (fixed level +
+  // facing) so the spawn does not perturb the shared draw stream.
+  private spawnWorldBoss(def: WorldBossDef): number | null {
+    const template = MOBS[def.templateId];
+    if (!template) return null;
+    const pos = this.groundPos(def.pos.x, def.pos.z);
+    const mob = createMob(this.nextId++, template, template.maxLevel, pos);
+    mob.facing = 0;
+    mob.prevFacing = 0;
+    this.addEntity(mob);
+    // Anchorless log (no pid, no entityId) => routeEvents broadcasts to every
+    // connected player as a system notice. Localized by sim_i18n's worldBossSpawn
+    // RULE (matched on this exact literal shape).
+    this.emit({
+      type: 'log',
+      text: `${template.name} rises over Thornpeak Heights!`,
+      color: '#ffd100',
+    });
+    return mob.id;
+  }
+
   // -------------------------------------------------------------------------
   // Players: join / leave / persistence
   // -------------------------------------------------------------------------
@@ -1208,6 +1303,7 @@ export class Sim {
       companionUpgrades: {},
       delveLoreUnlocked: new Set(),
       delveDaily: { date: '', firstClearXp: new Set(), markClears: 0 },
+      worldBossDaily: emptyWorldBossDaily(),
     };
     this.players.set(player.id, meta);
     player.skinCatalog = meta.skinCatalog;
@@ -1278,6 +1374,12 @@ export class Sim {
           date: s.delveDaily.date,
           firstClearXp: new Set(s.delveDaily.firstClearXp),
           markClears: s.delveDaily.markClears,
+        };
+      }
+      if (s.worldBossDaily) {
+        meta.worldBossDaily = {
+          date: s.worldBossDaily.date,
+          looted: new Set(s.worldBossDaily.looted),
         };
       }
     }
@@ -1478,6 +1580,10 @@ export class Sim {
         date: meta.delveDaily.date,
         firstClearXp: [...meta.delveDaily.firstClearXp],
         markClears: meta.delveDaily.markClears,
+      },
+      worldBossDaily: {
+        date: meta.worldBossDaily.date,
+        looted: [...meta.worldBossDaily.looted],
       },
     };
     return sanitizeRemovedZone1Content(state).state;
@@ -1720,6 +1826,21 @@ export class Sim {
       spin: { claimed: false, points: null, outcomeKey: null, claimedAt: null },
       tasks: [],
       leaderboard: [],
+      leaderboardTotal: 0,
+    });
+  }
+
+  dailyRewardLeaderboard(
+    page = 0,
+    pageSize = LEADERBOARD_PAGE_SIZE,
+  ): Promise<DailyRewardLeaderboardPage> {
+    return Promise.resolve({
+      day: '1970-01-01',
+      leaders: [],
+      page: Math.max(0, Math.floor(page)),
+      pageCount: 1,
+      total: 0,
+      pageSize,
     });
   }
 
@@ -2020,6 +2141,7 @@ export class Sim {
       arenaIsDown: sim.arenaIsDown.bind(sim),
       arenaAllPids: sim.arenaAllPids.bind(sim),
       rollLoot: sim.rollLoot.bind(sim),
+      rollWorldBossLoot: sim.rollWorldBossLoot.bind(sim),
       applyHeal: sim.applyHeal.bind(sim),
       spellCrit: sim.spellCrit.bind(sim),
       applyAura: sim.applyAura.bind(sim),
@@ -2430,6 +2552,7 @@ export class Sim {
     this.time += DT;
     this.tickCount++;
     this.updatePendingMobRespawns();
+    this.updateWorldBosses();
     tickGroundAoEs(this.ctx);
 
     runDespawnDecay(this.ctx);
@@ -2719,7 +2842,13 @@ export class Sim {
     const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
     const h1 = groundHeight(nx, nz, this.cfg.seed);
     if (h1 < WATER_LEVEL - SWIM_DEPTH) return done(false);
-    if (h1 > h0 && (h1 - h0) / step > MAX_CLIMB_SLOPE) return done(false);
+    if (
+      h1 > h0 &&
+      ((h1 - h0) / step > MAX_CLIMB_SLOPE ||
+        terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+    ) {
+      return done(false);
+    }
     const resolved = this.resolveMove(p.pos.x, p.pos.z, nx, nz, BODY_RADIUS, p);
     p.pos.x = resolved.x;
     p.pos.z = resolved.z;
@@ -2781,7 +2910,14 @@ export class Sim {
     const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
     const h1 = groundHeight(nx, nz, this.cfg.seed);
     if (h1 < WATER_LEVEL - SWIM_DEPTH) return true; // don't trail into deep water
-    if (h1 > h0 && step > 1e-5 && (h1 - h0) / step > MAX_CLIMB_SLOPE) return true; // wall/cliff
+    if (
+      h1 > h0 &&
+      step > 1e-5 &&
+      ((h1 - h0) / step > MAX_CLIMB_SLOPE ||
+        terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+    ) {
+      return true; // wall/cliff
+    }
     const resolved = this.resolveMove(p.pos.x, p.pos.z, nx, nz, BODY_RADIUS, p);
     p.pos.x = resolved.x;
     p.pos.z = resolved.z;
@@ -2829,8 +2965,13 @@ export class Sim {
     if (wantsMove && p.sitting) this.standUp(p);
 
     const hasMoveInput = mx !== 0 || mz !== 0;
-    const moving = hasMoveInput && !isRooted(p);
     const swimming = this.isSwimming(p);
+    // Standing on unwalkably steep ground: no control, no jump, slide downhill.
+    const steepGround =
+      p.onGround &&
+      !swimming &&
+      terrainSteepnessAt(p.pos.x, p.pos.z, this.cfg.seed) > MAX_CLIMB_SLOPE;
+    const moving = hasMoveInput && !isRooted(p) && !steepGround;
     let wishX = 0,
       wishZ = 0,
       wishSpeed = 0;
@@ -2859,20 +3000,46 @@ export class Sim {
     }
 
     const movingOnGround = moving && (p.onGround || swimming);
-    if (movingOnGround || (!p.onGround && (p.vx !== 0 || p.vz !== 0))) {
-      const stepX = movingOnGround ? wishX * wishSpeed : p.vx;
-      const stepZ = movingOnGround ? wishZ * wishSpeed : p.vz;
+    const slide = steepGround ? terrainDownhill(p.pos.x, p.pos.z, this.cfg.seed) : null;
+    if (slide || movingOnGround || (!p.onGround && (p.vx !== 0 || p.vz !== 0))) {
+      if (slide && p.castingAbility) this.cancelCast(p);
+      const stepX = slide ? slide.x * STEEP_SLIDE_SPEED : movingOnGround ? wishX * wishSpeed : p.vx;
+      const stepZ = slide ? slide.z * STEEP_SLIDE_SPEED : movingOnGround ? wishZ * wishSpeed : p.vz;
       let nx = p.pos.x + stepX * DT;
       let nz = p.pos.z + stepZ * DT;
-      // cliffs and the world rim are walls, not ramps
+      // cliffs, steep mountainsides, and the world rim are walls, not ramps:
+      // an uphill step is blocked when the step itself is too steep OR when it
+      // lands on ground whose true gradient is unwalkable (so approaching at an
+      // angle cannot cheat the limit)
       if (p.onGround && !swimming) {
         const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
         const h1 = groundHeight(nx, nz, this.cfg.seed);
         const run = Math.hypot(nx - p.pos.x, nz - p.pos.z);
-        if (h1 > h0 && run > 1e-5 && (h1 - h0) / run > MAX_CLIMB_SLOPE) {
+        if (
+          h1 > h0 &&
+          run > 1e-5 &&
+          ((h1 - h0) / run > MAX_CLIMB_SLOPE ||
+            terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+        ) {
           nx = p.pos.x;
           nz = p.pos.z;
-          if (!p.onGround) {
+        }
+      } else if (!p.onGround) {
+        // Airborne, the same wall rule applies: terrain rising above the body
+        // that could not be walked up cannot be jumped into either. The player
+        // drops at the base of the face instead of beaching partway up it.
+        const h1 = groundHeight(nx, nz, this.cfg.seed);
+        if (h1 > p.pos.y) {
+          const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
+          const run = Math.hypot(nx - p.pos.x, nz - p.pos.z);
+          if (
+            h1 > h0 &&
+            run > 1e-5 &&
+            ((h1 - h0) / run > MAX_CLIMB_SLOPE ||
+              terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+          ) {
+            nx = p.pos.x;
+            nz = p.pos.z;
             p.vx = 0;
             p.vz = 0;
           }
@@ -2914,7 +3081,7 @@ export class Sim {
       }
       return;
     }
-    if (inp.jump && p.onGround && !isRooted(p)) {
+    if (inp.jump && p.onGround && !isRooted(p) && !steepGround) {
       p.vy = JUMP_VELOCITY * this.jumpMult(p);
       p.vx = wishX * wishSpeed;
       p.vz = wishZ * wishSpeed;
@@ -3048,9 +3215,15 @@ export class Sim {
     cancelCastImpl(this.ctx, p);
   }
 
-  private abilityNeedsLineOfSight(ability: AbilityDef): boolean {
+  private abilityNeedsLineOfSight(ability: AbilityDef, source?: Entity): boolean {
     if (!ability.requiresTarget) return false;
-    return ability.school !== 'physical' || ability.range > MELEE_RANGE;
+    if (ability.school !== 'physical' || ability.range > MELEE_RANGE) return true;
+    // Melee/auto-attack skips line of sight everywhere else (it is always at
+    // point-blank range), but the arena's thin enclosing walls sit well within
+    // MELEE_RANGE: without this, a combatant pressed against a wall can swing
+    // through it at an opponent on the far side. Ranked fairness requires every
+    // attack to respect the same walls movement does inside the pit.
+    return source !== undefined && isArenaPos(source.pos.x);
   }
 
   private hasLineOfSight(source: Entity, target: Entity): boolean {
@@ -3058,7 +3231,7 @@ export class Sim {
   }
 
   private lineOfSightBlocked(source: Entity, target: Entity, ability: AbilityDef): boolean {
-    return this.abilityNeedsLineOfSight(ability) && !this.hasLineOfSight(source, target);
+    return this.abilityNeedsLineOfSight(ability, source) && !this.hasLineOfSight(source, target);
   }
 
   private pushbackCast(p: Entity): void {
@@ -3205,7 +3378,10 @@ export class Sim {
   // `source`. Instantaneous displacement (no aura) walked in small steps so it can
   // be terrain-clamped exactly like a warrior charge — the shove stops at the last
   // safe footing before deep water or a cliff rather than stranding the victim off
-  // the world. Returns the yards actually moved (0 if blocked immediately).
+  // the world. Each step is also collider-swept (resolveMove, the same walker uses)
+  // so a wall (an arena side wall in particular) stops the shove instead of letting
+  // it tunnel through in one coarse hop. Returns the yards actually moved (0 if
+  // blocked immediately).
   private applyKnockback(source: Entity, target: Entity, distance: number): number {
     let dx = target.pos.x - source.pos.x;
     let dz = target.pos.z - source.pos.z;
@@ -3229,18 +3405,28 @@ export class Sim {
       const h0 = groundHeight(cx, cz, this.cfg.seed);
       const h1 = groundHeight(nx, nz, this.cfg.seed);
       if (h1 < WATER_LEVEL - SWIM_DEPTH) break; // would land in deep water
-      if (h1 > h0 && (h1 - h0) / adv > MAX_CLIMB_SLOPE) break; // would slam into a cliff
-      cx = nx;
-      cz = nz;
+      if (
+        h1 > h0 &&
+        ((h1 - h0) / adv > MAX_CLIMB_SLOPE ||
+          terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+      ) {
+        break; // would slam into a cliff
+      }
+      // resolveMove sweeps cx,cz -> nx,nz against static colliders (walls,
+      // pillars, delve module bounds/doors) in small sub-steps, so a thin wall
+      // stops the shove at its face instead of the coarse 0.5yd hop skipping
+      // over it.
+      const resolved = this.resolveMove(cx, cz, nx, nz, BODY_RADIUS, target);
+      const blocked = Math.hypot(resolved.x - nx, resolved.z - nz) > BODY_RADIUS * 0.25;
+      cx = resolved.x;
+      cz = resolved.z;
       moved += adv;
+      if (blocked) break; // hit a wall: stop the shove here
     }
     if (moved <= 0) return 0;
-    // resolveMovePoint is a no-op wrapper over resolvePosition outside a delve, and
-    // applies the run's module colliders + portcullis doors when target is inside one.
-    const resolved = this.resolveMovePoint(cx, cz, BODY_RADIUS, target);
-    target.pos.x = resolved.x;
-    target.pos.z = resolved.z;
-    target.pos.y = groundHeight(resolved.x, resolved.z, this.cfg.seed);
+    target.pos.x = cx;
+    target.pos.z = cz;
+    target.pos.y = groundHeight(cx, cz, this.cfg.seed);
     target.vy = 0;
     target.onGround = true;
     target.fallStartY = target.pos.y;
@@ -3560,6 +3746,12 @@ export class Sim {
     rollLootImpl(this.ctx, mob, meta, eligible);
   }
 
+  // World-boss personal loot: an independent roll per contributor, once per day.
+  // Called from combat/damage.ts handleDeath for worldBoss templates via ctx.
+  private rollWorldBossLoot(mob: Entity, contributors: PlayerMeta[]): void {
+    rollWorldBossLootImpl(this.ctx, mob, contributors);
+  }
+
   activeLootRolls(pid = this.playerId): LootRollPrompt[] {
     return activeLootRollsImpl(this.ctx, pid);
   }
@@ -3727,6 +3919,16 @@ export class Sim {
     if (target.kind === 'player' && MOBS[mob.templateId]?.boss) {
       const run = this.delveRunForPlayer(target.id);
       if (run) this.maybeCompanionBark(run, target.id, 'boss_pull');
+    }
+    // Boss engage bark: once per pull, on the first player-driven aggro. A
+    // player-owned pet pull counts (a hunter opening with the pet still wakes
+    // the boss); yelledEngage resets with the other per-pull state on
+    // evade/respawn.
+    const engageYell = MOBS[mob.templateId]?.yells?.engage;
+    const playerPull = target.kind === 'player' || target.ownerId !== null;
+    if (engageYell && playerPull && !mob.yelledEngage) {
+      mob.yelledEngage = true;
+      emitMobYell(this.ctx, mob, engageYell);
     }
     if (social) {
       const family = MOBS[mob.templateId]?.family;
@@ -3926,12 +4128,26 @@ export class Sim {
     let bestX = e.pos.x,
       bestZ = e.pos.z,
       bestProgress = 1e-3;
+    // Swimmers ride the water surface, so slope checks clamp submerged ground
+    // to the waterline (a sloped lake bed is not a wall; see pathfind rideHeight).
+    const ride = (h: number): number => (canSwim && h < WATER_LEVEL ? WATER_LEVEL : h);
+    let h0 = Number.NaN; // lazily sampled: only steep cells pay for heights
     for (const off of MOVE_SLIDE_FAN) {
       const a = desired + off;
       const nx = e.pos.x + Math.sin(a) * step;
       const nz = e.pos.z + Math.cos(a) * step;
       // landlocked creatures stop at the waterline instead of walking under it
       if (!canSwim && groundHeight(nx, nz, this.cfg.seed) < WATER_LEVEL - SWIM_DEPTH) continue;
+      // Mobs, pets, and feared players obey the wall rule too: no uphill step
+      // onto unwalkably steep ground. Screened to the wall bands so the hot
+      // open-world fan pays nothing; inside a band the memoized cell steepness
+      // screens next, and only actual wall cells pay for exact heights. This
+      // is a NEW gate for these movers, so the finer per-step cliff check
+      // players get is not replicated here.
+      if (nearSteepWalls(nx, nz) && terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE) {
+        if (Number.isNaN(h0)) h0 = ride(groundHeight(e.pos.x, e.pos.z, this.cfg.seed));
+        if (ride(groundHeight(nx, nz, this.cfg.seed)) > h0) continue;
+      }
       const r = this.resolveMovePoint(nx, nz, BODY_RADIUS, e);
       const progress = d - Math.hypot(r.x - dest.x, r.z - dest.z);
       if (progress > bestProgress) {
@@ -3979,6 +4195,7 @@ export class Sim {
       const thresholds = tmpl.summonAdds.atHpPct;
       while (mob.firedSummons < thresholds.length && hpFrac <= thresholds[mob.firedSummons]) {
         mob.firedSummons++;
+        if (tmpl.yells?.summon) emitMobYell(this.ctx, mob, tmpl.yells.summon);
         const run = this.delveRunForMob(mob.id);
         if (
           run &&
@@ -3996,6 +4213,7 @@ export class Sim {
     const enrageAllowed = !enrageRun || enrageRun.tierId === 'heroic';
     if (tmpl.enrage && enrageAllowed && !mob.enraged && hpFrac <= tmpl.enrage.belowHpPct) {
       mob.enraged = true;
+      if (tmpl.yells?.enrage) emitMobYell(this.ctx, mob, tmpl.yells.enrage);
       this.emit({ type: 'aura', targetId: mob.id, name: 'Enrage', gained: true });
       this.emit({
         type: 'log',
@@ -4531,6 +4749,14 @@ export class Sim {
   // on Sim (W4) and is reached through two append-only SimContext callbacks.
   lootCorpse(mobId: number, pid?: number): void {
     interaction.lootCorpse(this.ctx, mobId, pid);
+  }
+
+  // Walk-by autoloot: the passive counterpart to lootCorpse, called every
+  // frame as the trigger nears a corpse. Silent on ineligibility (see
+  // interaction.ts); the widened `pid?` overload lets tests drive a
+  // non-primary party member the same way lootCorpse does.
+  autoLoot(mobId: number, pid?: number): void {
+    interaction.autoLootForParty(this.ctx, mobId, pid ?? this.primaryId);
   }
 
   pickUpObject(objId: number, pid?: number): void {

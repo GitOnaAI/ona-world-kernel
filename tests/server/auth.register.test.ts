@@ -152,9 +152,32 @@ describe('register handler', () => {
     });
   });
 
+  it('rejects a missing or invalid email with 400 before any account read or write', async () => {
+    // v0.20.0: email is mandatory at signup (the recovery address), gated after
+    // the password check and BEFORE the username lookup.
+    let lookups = 0;
+    installDb({
+      findAccount: async () => {
+        lookups++;
+        return null;
+      },
+    });
+    const expected = {
+      status: 400,
+      body: { error: 'enter a valid email address', code: 'email.invalid' },
+    };
+    expect(await runHandler({ username: 'newhero', password: 'secret123' })).toEqual(expected);
+    expect(await runHandler({ username: 'newhero', password: 'secret123', email: 'nope' })).toEqual(
+      expected,
+    );
+    expect(lookups).toBe(0);
+  });
+
   it('returns 409 when the username is already taken', async () => {
     installDb({ findAccount: async () => ({ id: 1, username: 'newhero', password_hash: 'x' }) });
-    expect(await runHandler({ username: 'newhero', password: 'secret123' })).toEqual({
+    expect(
+      await runHandler({ username: 'newhero', password: 'secret123', email: 'a@b.co' }),
+    ).toEqual({
       status: 409,
       body: { error: 'username already taken', code: 'account.username_taken' },
     });
@@ -167,7 +190,9 @@ describe('register handler', () => {
         throw Object.assign(new Error('dup'), { code: '23505' });
       },
     });
-    expect(await runHandler({ username: 'newhero', password: 'secret123' })).toEqual({
+    expect(
+      await runHandler({ username: 'newhero', password: 'secret123', email: 'a@b.co' }),
+    ).toEqual({
       status: 409,
       body: { error: 'username already taken', code: 'account.username_taken' },
     });
@@ -183,7 +208,7 @@ describe('register handler', () => {
     const ctx = fakeCtx({
       method: 'POST',
       url: '/api/register',
-      body: { username: 'newhero', password: 'secret123' },
+      body: { username: 'newhero', password: 'secret123', email: 'a@b.co' },
     });
     await expect(handlerFor('/api/register')(ctx)).rejects.toThrow('db exploded');
   });
@@ -197,10 +222,13 @@ describe('register handler', () => {
         saved = { token, id };
       },
     });
-    const out = await runHandler({ username: 'newhero', password: 'secret123' });
+    const out = await runHandler({ username: 'newhero', password: 'secret123', email: 'a@b.co' });
     expect(out.status).toBe(200);
-    const body = out.body as { token: string; username: string };
+    const body = out.body as { token: string; username: string; emailMissing: boolean };
     expect(body.username).toBe('newhero');
+    // The uniform post-auth check: register always answers emailMissing false
+    // (the address was required above).
+    expect(body.emailMissing).toBe(false);
     expect(body.token).toMatch(HEX64);
     expect(body.token.length).toBe(64);
     expect(saved).not.toBeNull();
@@ -228,7 +256,7 @@ describe('register handler', () => {
     ]);
   });
 
-  it('skips the email side effects for an invalid address', async () => {
+  it('never reaches the email side effects for an invalid address (the 400 gate is upstream)', async () => {
     const emailCalls: unknown[] = [];
     const emailCreated: unknown[] = [];
     installDb({
@@ -240,7 +268,7 @@ describe('register handler', () => {
       },
     });
     const out = await runHandler({ username: 'newhero', password: 'secret123', email: 'nope' });
-    expect(out.status).toBe(200);
+    expect(out.status).toBe(400);
     expect(emailCalls).toEqual([]);
     expect(emailCreated).toEqual([]);
   });
@@ -257,7 +285,7 @@ describe('register handler', () => {
         referral++;
       },
     });
-    const out = await runHandler({ username: 'newhero', password: 'secret123' });
+    const out = await runHandler({ username: 'newhero', password: 'secret123', email: 'a@b.co' });
     expect(out.status).toBe(200);
     // The invocations are synchronous (only their promise resolution is deferred),
     // so both fakes are recorded by the time the handler returns.
@@ -350,7 +378,7 @@ describe('register guard chain', () => {
     const req = makeReq({
       method: 'POST',
       url: '/api/register',
-      body: { username: 'newhero', password: 'secret123', turnstileToken: 'ok' },
+      body: { username: 'newhero', password: 'secret123', email: 'a@b.co', turnstileToken: 'ok' },
     });
     const out = await runRoute('POST', '/api/register', { req });
     // Proceeded past Turnstile into the happy-path handler (default faked db).

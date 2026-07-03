@@ -3,6 +3,7 @@ import type * as http from 'node:http';
 import type {
   DailyRewardHistory,
   DailyRewardLeaderboardEntry,
+  DailyRewardLeaderboardPage,
   DailyRewardSpinResult,
   DailyRewardStatus,
 } from '../src/world_api';
@@ -394,13 +395,13 @@ function pickSpinOutcome(seed = Math.random()): (typeof SPIN_OUTCOMES)[number] {
 
 function leaderboardView(
   rows: Awaited<ReturnType<DailyRewardDb['leaderboard']>>,
-  accountId: number,
+  accountId: number | null,
 ): DailyRewardLeaderboardEntry[] {
   return rows.map((row) => ({
     rank: row.rank,
     name: row.username,
     points: row.points,
-    me: row.accountId === accountId,
+    me: accountId !== null && row.accountId === accountId,
   }));
 }
 
@@ -450,6 +451,18 @@ function onlineMultiplierPoints(
   return { points: Math.max(0, Math.floor(basePoints * multiplier)), multiplier };
 }
 
+function currentTaskMultiplier(
+  task: { type: string; points: number; basePoints: number; config: Record<string, unknown> },
+  onlineMinutes: number,
+): number | null {
+  if (task.type === 'quest_completion')
+    return questCompletionPoints(task, onlineMinutes).multiplier;
+  if (task.type === 'arena_result')
+    return onlineMultiplierPoints(task.basePoints ?? task.points, task.config ?? {}, onlineMinutes)
+      .multiplier;
+  return null;
+}
+
 export class DailyRewardService {
   constructor(private readonly db: DailyRewardDb = new PgDailyRewardDb()) {}
 
@@ -470,13 +483,20 @@ export class DailyRewardService {
     await this.db.ensureDay(day, config.prizePoolUsd, config.wocUsdPrice);
     await this.db.seedTasks(day, config.tasks);
     const eligibility = await dailyRewardEligibility(accountId, config);
-    const [score, rank, spin, tasks, leaders] = await Promise.all([
+    const [score, rank, spin, tasks, leaders, leaderboardTotal, onlineMinutes] = await Promise.all([
       this.db.scoreForAccount(day, accountId),
       this.db.rankForAccount(day, accountId),
       this.db.spinForAccount(day, accountId),
       this.db.tasksForAccount(day, accountId),
       this.db.leaderboard(day, accountId, 10),
+      this.db.leaderboardTotal(day),
+      this.db.onlineMinutesForAccount(day, accountId),
     ]);
+    const leaderboardRows = [...leaders];
+    if (rank !== null && rank > 10) {
+      const viewerRow = await this.db.leaderboardRowForAccount(day, accountId);
+      if (viewerRow) leaderboardRows.push(viewerRow);
+    }
     return {
       day,
       resetAt: nextUtcResetIso(day, config.dayStartUtcMinutes),
@@ -493,8 +513,31 @@ export class DailyRewardService {
             claimedAt: spin.createdAt,
           }
         : { claimed: false, points: null, outcomeKey: null, claimedAt: null },
-      tasks: tasks.map((task) => ({ ...task, id: task.taskId, locked: !eligibility.eligible })),
-      leaderboard: leaderboardView(leaders, accountId),
+      tasks: tasks.map((task) => ({
+        ...task,
+        id: task.taskId,
+        multiplier: currentTaskMultiplier(task, onlineMinutes),
+        locked: !eligibility.eligible,
+      })),
+      leaderboard: leaderboardView(leaderboardRows, accountId),
+      leaderboardTotal,
+    };
+  }
+
+  async leaderboardPage(
+    day: string,
+    page: number,
+    pageSize: number,
+    accountId: number | null = null,
+  ): Promise<DailyRewardLeaderboardPage> {
+    const pageData = await this.db.leaderboardPage(day, page, pageSize);
+    return {
+      day,
+      leaders: leaderboardView(pageData.rows, accountId),
+      page: pageData.page,
+      pageSize: pageData.pageSize,
+      pageCount: pageData.pageCount,
+      total: pageData.total,
     };
   }
 
@@ -533,20 +576,21 @@ export class DailyRewardService {
     accountId: number,
     questId: string,
     completedAt: Date = new Date(),
-  ): Promise<void> {
-    if (!questId) return;
+  ): Promise<number> {
+    if (!questId) return 0;
     const { day, config } = await dailyRewardClock(completedAt);
     await this.db.ensureDay(day, config.prizePoolUsd, config.wocUsdPrice);
     await this.db.seedTasks(day, config.tasks);
     const eligibility = await dailyRewardEligibility(accountId, config);
-    if (!eligibility.eligible) return;
+    if (!eligibility.eligible) return 0;
     const tasks = await this.db.tasksForType(day, 'quest_completion');
-    if (tasks.length === 0) return;
+    if (tasks.length === 0) return 0;
     const onlineMinutes = await this.db.onlineMinutesForAccount(day, accountId);
+    let awardedPoints = 0;
     for (const task of tasks) {
       const { points, multiplier } = questCompletionPoints(task, onlineMinutes);
       if (points <= 0) continue;
-      await this.db.addPoints(
+      const recorded = await this.db.addPoints(
         day,
         accountId,
         'task',
@@ -561,7 +605,9 @@ export class DailyRewardService {
           basePoints: task.basePoints,
         },
       );
+      if (recorded) awardedPoints += points;
     }
+    return awardedPoints;
   }
 
   async recordArenaResult(
@@ -573,16 +619,17 @@ export class DailyRewardService {
       ratingAfter: number;
       completedAt?: Date;
     },
-  ): Promise<void> {
+  ): Promise<number> {
     const completedAt = result.completedAt ?? new Date();
     const { day, config } = await dailyRewardClock(completedAt);
     await this.db.ensureDay(day, config.prizePoolUsd, config.wocUsdPrice);
     await this.db.seedTasks(day, config.tasks);
     const eligibility = await dailyRewardEligibility(accountId, config);
-    if (!eligibility.eligible) return;
+    if (!eligibility.eligible) return 0;
     const tasks = await this.db.tasksForType(day, 'arena_result');
-    if (tasks.length === 0) return;
+    if (tasks.length === 0) return 0;
     const onlineMinutes = await this.db.onlineMinutesForAccount(day, accountId);
+    let awardedPoints = 0;
     for (const task of tasks) {
       const taskConfig = task.config ?? {};
       const basePoints = result.won
@@ -590,7 +637,7 @@ export class DailyRewardService {
         : numberConfig(taskConfig, 'lossBasePoints', 10);
       const { points, multiplier } = onlineMultiplierPoints(basePoints, taskConfig, onlineMinutes);
       if (points <= 0) continue;
-      await this.db.addPoints(
+      const recorded = await this.db.addPoints(
         day,
         accountId,
         'task',
@@ -608,7 +655,9 @@ export class DailyRewardService {
           ratingAfter: result.ratingAfter,
         },
       );
+      if (recorded) awardedPoints += points;
     }
+    return awardedPoints;
   }
 
   async history(limit = 30): Promise<DailyRewardHistory> {
@@ -703,6 +752,19 @@ export async function handleDailyRewardApi(
   if (req.method === 'GET' && url.pathname === '/api/daily-rewards') {
     return json(res, 200, await dailyRewardService.status(accountId));
   }
+  if (req.method === 'GET' && url.pathname === '/api/daily-rewards/leaderboard') {
+    const { day } = await dailyRewardClock();
+    return json(
+      res,
+      200,
+      await dailyRewardService.leaderboardPage(
+        day,
+        Number(url.searchParams.get('page')) || 0,
+        Number(url.searchParams.get('pageSize')) || 20,
+        accountId,
+      ),
+    );
+  }
   if (req.method === 'POST' && url.pathname === '/api/daily-rewards/spin') {
     const result = await dailyRewardService.spin(accountId);
     if ('error' in result) return json(res, result.status, { error: result.error });
@@ -742,6 +804,17 @@ export async function handleDailyRewardInternalApi(
     json(res, 200, { success: true, data, error: null });
     return true;
   }
+  if (req.method === 'POST' && url.pathname === '/internal/daily-rewards/leaderboard') {
+    const requestedDay = url.searchParams.get('day') || '';
+    const { day } = requestedDay ? { day: requestedDay } : await dailyRewardClock();
+    const data = await dailyRewardService.leaderboardPage(
+      day,
+      Number(url.searchParams.get('page')) || 0,
+      Number(url.searchParams.get('pageSize')) || 50,
+    );
+    json(res, 200, { success: true, data, error: null });
+    return true;
+  }
   if (req.method === 'POST' && url.pathname === '/internal/daily-rewards/mark-payout') {
     const result = await dailyRewardService.markPayout(await readBody(req));
     if ('error' in result)
@@ -756,10 +829,12 @@ export async function handleDailyRewardInternalApi(
 // ── Route layer (Phase 18b of docs/api-pipeline/) ────────────────────────────
 // Both daily-rewards families as RouteDefs for the shared dispatcher:
 //   GET  /api/daily-rewards                        player status (JSON)
+//   GET  /api/daily-rewards/leaderboard            paginated daily leaderboard (JSON)
 //   POST /api/daily-rewards/spin                   player spin (JSON)
 //   GET  /api/daily-rewards/history                payout history (JSON)
 //   POST /internal/daily-rewards/pending-payouts   payout service ops
 //   POST /internal/daily-rewards/payout-history    payout service ops
+//   POST /internal/daily-rewards/leaderboard       payout service ops
 //   POST /internal/daily-rewards/mark-payout       payout service ops
 // The legacy dispatch stays as the flag-off rollback path until Phase 25: the
 // main.ts prefix arm (startsWith('/api/daily-rewards'), bearerActiveAccount
@@ -854,6 +929,13 @@ export const routes: RouteDef[] = [
     handler: dailyRewardPlayerHandler,
   },
   {
+    method: 'GET',
+    path: '/api/daily-rewards/leaderboard',
+    surface: 'api',
+    middleware: [activeGuard],
+    handler: dailyRewardPlayerHandler,
+  },
+  {
     method: 'POST',
     path: '/api/daily-rewards/spin',
     surface: 'api',
@@ -878,6 +960,14 @@ export const routes: RouteDef[] = [
   {
     method: 'POST',
     path: '/internal/daily-rewards/payout-history',
+    surface: 'internal',
+    meta: { envelope: 'admin' },
+    middleware: [dailyRewardOpsGate],
+    handler: dailyRewardOpsHandler,
+  },
+  {
+    method: 'POST',
+    path: '/internal/daily-rewards/leaderboard',
     surface: 'internal',
     meta: { envelope: 'admin' },
     middleware: [dailyRewardOpsGate],
