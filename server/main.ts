@@ -216,6 +216,9 @@ function initialCharacterState(
   name: string,
   skin: number,
 ): import('../src/sim/sim').CharacterState {
+  // Deliberate: a worldSeed override retargets this template sim too, so new
+  // characters serialize against the same world the realm actually runs
+  // (historically a fixed 20061, independent of WORLD_SEED).
   const sim = new Sim({ seed: TUNING.worldSeed ?? 20061, playerClass: cls, playerName: name });
   sim.setPlayerSkin(sim.playerId, skin);
   const character = sim.serializeCharacter(sim.playerId);
