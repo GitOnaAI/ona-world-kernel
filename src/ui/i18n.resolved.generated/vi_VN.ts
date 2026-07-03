@@ -393,6 +393,7 @@ export const vi_VN: EnTranslations = {
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "Tỷ Lệ Giao Diện",
       "playerFrameScale": "Player Frame Scale",
+      "targetFrameScale": "Target Frame Scale",
       "highContrastBackground": "Nền Tương Phản Cao",
       "startAttackOnAbility": "Tự Đánh Khi Dùng Kỹ Năng",
       "walkByAutoloot": "Walk-by Autoloot",

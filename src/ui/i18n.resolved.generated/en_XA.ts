@@ -393,6 +393,7 @@ export const en_XA: EnTranslations = {
       "showOwnNameplate": "[Šĥóŵ Ɱý Ñáɱéþļáţé]",
       "uiScale": "[ÚÍ Šçáļé]",
       "playerFrameScale": "[Þļáýéŕ Ƒŕáɱé Šçáļé]",
+      "targetFrameScale": "[Ţáŕĝéţ Ƒŕáɱé Šçáļé]",
       "highContrastBackground": "[Ĥíĝĥ-Çóñţŕášţ Ɓáçķĝŕóúñð]",
       "startAttackOnAbility": "[Áúţó-Áţţáçķ óñ Áƀíļíţý Úšé]",
       "walkByAutoloot": "[Ŵáļķ-ƀý Áúţóļóóţ]",

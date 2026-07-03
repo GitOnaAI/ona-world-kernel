@@ -76,6 +76,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.playerFrame.lock': 'プレイヤーフレームを固定',
   'hudChrome.frameReset.label': 'フレーム位置をリセット',
   'hudChrome.options.playerFrameScale': 'プレイヤーフレームの大きさ',
+  'hudChrome.options.targetFrameScale': 'ターゲットフレームの大きさ',
   'hud.core.mapCanvasLabel': 'マップ',
   'hud.core.mapSummary': '{zone}のマップ。',
   'hudChrome.castBar.playerAria': 'あなたの詠唱バー',

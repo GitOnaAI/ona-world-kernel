@@ -393,6 +393,7 @@ export const ja_JP: EnTranslations = {
       "showOwnNameplate": "自分のネームプレートを表示",
       "uiScale": "UIスケール",
       "playerFrameScale": "プレイヤーフレームの大きさ",
+      "targetFrameScale": "ターゲットフレームの大きさ",
       "highContrastBackground": "高コントラスト背景",
       "startAttackOnAbility": "アビリティ使用時に自動攻撃",
       "walkByAutoloot": "通りがかり自動ルート",

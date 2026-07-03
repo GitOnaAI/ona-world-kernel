@@ -393,6 +393,7 @@ export const sv_SE: EnTranslations = {
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "Gränssnittsskala",
       "playerFrameScale": "Player Frame Scale",
+      "targetFrameScale": "Target Frame Scale",
       "highContrastBackground": "Bakgrund med hög kontrast",
       "startAttackOnAbility": "Automatisk attack vid förmågeanvändning",
       "walkByAutoloot": "Walk-by Autoloot",

@@ -230,6 +230,7 @@ describe('options_view: interface dispatch matrix (cluster 5)', () => {
     expect(keysOf(controls)).toEqual([
       'uiScale',
       'playerFrameScale',
+      'targetFrameScale',
       'hudOpacity',
       'tooltipScale',
       'fctScale',

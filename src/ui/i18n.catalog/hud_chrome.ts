@@ -365,9 +365,10 @@ export const hudChromeStrings = {
     // Interface panel: global HUD zoom slider, and the mirror of the landing
     // page's high-contrast backdrop toggle.
     uiScale: 'UI Scale',
-    // Interface panel slider: scales just the player unit frame (wordy, M16:
-    // the five non-Latin fills land in this same change).
+    // Interface panel sliders: scale just the player / target unit frame
+    // (wordy, M16: the five non-Latin fills land in the same change as each).
     playerFrameScale: 'Player Frame Scale',
+    targetFrameScale: 'Target Frame Scale',
     highContrastBackground: 'High-Contrast Background',
     // Interface panel toggle: also engage auto-attack when using an offensive
     // ability, so white swings start without a separate Attack press (on by default).

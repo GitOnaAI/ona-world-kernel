@@ -456,6 +456,13 @@
     display: none;
     z-index: 6;
   }
+  /* Target Frame Scale (--target-frame-scale, targetFrameScale setting): the
+     player frame's twin. Children only, never the drag-positioned frame itself
+     (zoom there would multiply its used left/top and break the MovableFrame
+     drag math); the move button stays unscaled so the tap target keeps its size. */
+  #target-frame > :not(.tf-move-btn) {
+    zoom: var(--target-frame-scale, 1);
+  }
   /* Movable unit frames: the small corner toggle (built by MovableFrame in
      movable_frame.ts) that unlocks
      the frame for dragging and locks it back. Sits just outside the top-right

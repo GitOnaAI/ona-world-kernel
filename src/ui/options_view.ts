@@ -353,6 +353,7 @@ export function buildInterfaceControls(s: OptionsSettingsSource): OptionsControl
   return [
     slider(s, 'uiScale', 'hudChrome.options.uiScale'),
     slider(s, 'playerFrameScale', 'hudChrome.options.playerFrameScale'),
+    slider(s, 'targetFrameScale', 'hudChrome.options.targetFrameScale'),
     slider(s, 'hudOpacity', 'hud.options.hudOpacity'),
     slider(s, 'tooltipScale', 'hud.options.tooltipScale'),
     slider(s, 'fctScale', 'hud.options.fctScale'),

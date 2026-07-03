@@ -114,6 +114,9 @@ export const SETTING_RANGES = {
   // move/lock button (MovableFrame): moved, it also adopts the target frame's
   // narrow bar width. 1.0 = stock.
   playerFrameScale: { min: 0.7, max: 1.15, def: 1 },
+  // The target frame's twin of playerFrameScale, via --target-frame-scale.
+  // Same children-zoom trick (the frame itself is drag-positioned). 1.0 = stock.
+  targetFrameScale: { min: 0.7, max: 1.15, def: 1 },
 } as const;
 
 export const BOOL_SETTINGS = {

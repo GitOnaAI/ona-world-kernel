@@ -393,6 +393,7 @@ export const pl_PL: EnTranslations = {
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "Skala interfejsu",
       "playerFrameScale": "Player Frame Scale",
+      "targetFrameScale": "Target Frame Scale",
       "highContrastBackground": "Tło o wysokim kontraście",
       "startAttackOnAbility": "Automatyczny atak przy użyciu umiejętności",
       "walkByAutoloot": "Walk-by Autoloot",

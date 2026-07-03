@@ -393,6 +393,7 @@ export const tr_TR: EnTranslations = {
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "Arayüz Ölçeği",
       "playerFrameScale": "Player Frame Scale",
+      "targetFrameScale": "Target Frame Scale",
       "highContrastBackground": "Yüksek Kontrastlı Arka Plan",
       "startAttackOnAbility": "Yetenek Kullanımında Otomatik Saldırı",
       "walkByAutoloot": "Walk-by Autoloot",
