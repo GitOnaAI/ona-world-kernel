@@ -188,6 +188,7 @@ import {
   gatheringSkillsView,
   normalizeGatheringProficiency,
 } from './professions/gathering';
+import {
   craftSkillsFor,
   emptyCraftSkills,
   gainCraftSkill,
