@@ -280,7 +280,10 @@ export const sv_SE: EnTranslations = {
       "targetAnnounce": "Markera {name}",
       "partyLabel": "Ditt följe",
       "partyGroup": "Grupp {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Förhandsvisning av karaktärsmodell"

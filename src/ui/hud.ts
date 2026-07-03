@@ -2863,12 +2863,23 @@ export class Hud {
   // the i18n lookups every frame (so a language switch lands on the next tick) and the
   // painter's tooltip closure reads the pool's LIVE record (Top risk 3, never a captured
   // aura). All closures are lazy, so these field initializers are safe.
+  // REUSED container for the per-frame durationUnits() dep (allocation-light
+  // contract): the values re-resolve through t() each frame so a language
+  // switch lands next tick, but the object itself is never reallocated.
+  private readonly auraDurationUnits = { s: 's', m: 'm', h: 'h', d: 'd' };
   private readonly aurasViewDeps: AurasDeps = {
     iconId: (a) => (ABILITIES[a.id] ? a.id : `aura_${a.kind}`),
     auraName: (a) =>
       ABILITIES[a.id] ? abilityDisplayName(ABILITIES[a.id]) : auraDisplayNameFromSource(a.name),
     formatStacks: (n) => formatNumber(n, { maximumFractionDigits: 0 }),
-    durationUnitSuffix: () => t('hudChrome.unitFrame.durationUnitSeconds'),
+    durationUnits: () => {
+      const u = this.auraDurationUnits;
+      u.s = t('hudChrome.unitFrame.durationUnitSeconds');
+      u.m = t('hudChrome.unitFrame.durationUnitMinutes');
+      u.h = t('hudChrome.unitFrame.durationUnitHours');
+      u.d = t('hudChrome.unitFrame.durationUnitDays');
+      return u;
+    },
     auraEffectHtml: (a) => this.auraEffectTooltipHtml(a),
   };
   private readonly aurasPainterDeps: AurasPainterDeps = {

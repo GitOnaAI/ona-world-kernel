@@ -280,7 +280,10 @@ export const en_CA: EnTranslations = {
       "targetAnnounce": "Mark {name}",
       "partyLabel": "Your Band",
       "partyGroup": "Group {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Character Model Preview"

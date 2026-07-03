@@ -280,7 +280,10 @@ export const tr_TR: EnTranslations = {
       "targetAnnounce": "{name} hedefini işaretle",
       "partyLabel": "Takımın",
       "partyGroup": "Grup {n}",
-      "durationUnitSeconds": "sn"
+      "durationUnitSeconds": "sn",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Karakter Modeli Önizlemesi"

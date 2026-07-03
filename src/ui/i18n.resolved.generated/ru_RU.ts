@@ -280,7 +280,10 @@ export const ru_RU: EnTranslations = {
       "targetAnnounce": "Цель: {name}",
       "partyLabel": "Ваша группа",
       "partyGroup": "Группа {n}",
-      "durationUnitSeconds": "с"
+      "durationUnitSeconds": "с",
+      "durationUnitMinutes": "м",
+      "durationUnitHours": "ч",
+      "durationUnitDays": "д"
     },
     "character": {
       "modelPreview": "Предпросмотр модели персонажа"

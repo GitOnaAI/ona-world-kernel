@@ -280,7 +280,10 @@ export const en_XA: EnTranslations = {
       "targetAnnounce": "[Ɱáŕķ {name}]",
       "partyLabel": "[Ýóúŕ Ɓáñð]",
       "partyGroup": "[Ĝŕóúþ {n}]",
-      "durationUnitSeconds": "[š]"
+      "durationUnitSeconds": "[š]",
+      "durationUnitMinutes": "[ɱ]",
+      "durationUnitHours": "[ĥ]",
+      "durationUnitDays": "[ð]"
     },
     "character": {
       "modelPreview": "[Çĥáŕáçţéŕ Ɱóðéļ Þŕéʋíéŵ]"

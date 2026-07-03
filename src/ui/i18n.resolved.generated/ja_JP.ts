@@ -280,7 +280,10 @@ export const ja_JP: EnTranslations = {
       "targetAnnounce": "ターゲット：{name}",
       "partyLabel": "あなたのパーティ",
       "partyGroup": "グループ {n}",
-      "durationUnitSeconds": "秒"
+      "durationUnitSeconds": "秒",
+      "durationUnitMinutes": "分",
+      "durationUnitHours": "時",
+      "durationUnitDays": "日"
     },
     "character": {
       "modelPreview": "キャラクターモデルプレビュー"

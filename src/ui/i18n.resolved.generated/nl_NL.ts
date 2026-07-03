@@ -280,7 +280,10 @@ export const nl_NL: EnTranslations = {
       "targetAnnounce": "Markeer {name}",
       "partyLabel": "Je Bende",
       "partyGroup": "Groep {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Voorbeeld van Personagemodel"

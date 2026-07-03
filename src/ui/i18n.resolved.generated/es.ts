@@ -280,7 +280,10 @@ export const es: EnTranslations = {
       "targetAnnounce": "Objetivo: {name}",
       "partyLabel": "Tu grupo",
       "partyGroup": "Grupo {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Vista previa del modelo del personaje"

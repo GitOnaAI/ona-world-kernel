@@ -280,7 +280,10 @@ export const ko_KR: EnTranslations = {
       "targetAnnounce": "대상: {name}",
       "partyLabel": "내 파티",
       "partyGroup": "{n}번 그룹",
-      "durationUnitSeconds": "초"
+      "durationUnitSeconds": "초",
+      "durationUnitMinutes": "분",
+      "durationUnitHours": "시",
+      "durationUnitDays": "일"
     },
     "character": {
       "modelPreview": "캐릭터 모델 미리보기"

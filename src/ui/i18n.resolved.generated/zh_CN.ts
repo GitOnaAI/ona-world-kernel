@@ -280,7 +280,10 @@ export const zh_CN: EnTranslations = {
       "targetAnnounce": "目标：{name}",
       "partyLabel": "你的队伍",
       "partyGroup": "小队 {n}",
-      "durationUnitSeconds": "秒"
+      "durationUnitSeconds": "秒",
+      "durationUnitMinutes": "分",
+      "durationUnitHours": "时",
+      "durationUnitDays": "天"
     },
     "character": {
       "modelPreview": "角色模型预览"

@@ -280,7 +280,10 @@ export const da_DK: EnTranslations = {
       "targetAnnounce": "Markér {name}",
       "partyLabel": "Dit følge",
       "partyGroup": "Gruppe {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Forhåndsvisning af karaktermodel"
