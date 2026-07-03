@@ -29,18 +29,24 @@
 //       (1) CONSTANT across request index (doubling the request count exactly
 //           doubles each counter, so no per-request accumulation / global scan whose
 //           cost grows with prior requests),
-//       (2) REGISTRY-SIZE INDEPENDENT (a 1-route registry and a 200-route registry
-//           produce identical per-request work for a static match, so dispatch +
-//           observation is O(1), not a per-request scan over the table),
+//       (2) REGISTRY-SIZE INDEPENDENT AT THE SEAMS (a 1-route registry and a
+//           200-route registry produce identical per-request COUNTED work for a
+//           static match; note a matcher scan INTERNAL to one dispatch still
+//           counts 1 at every seam, so this pin alone does not prove O(1) matching,
+//           see the honest-scope paragraph below),
 //       (3) BOUNDED-CARDINALITY (the sink label is the :param TEMPLATE, so distinct
 //           concrete paths collapse to one series and cannot blow up the sink), and
 //       (4) INERT when off (the 'legacy' entry emits ZERO onion work: sink count 0,
 //           handler never called, so the flag-off rollback default adds nothing).
-//     Why this proxy protects the non-goal: a realtime regression here is the
-//     pipeline doing MORE work per request than a fixed constant (an O(routes) or
-//     O(requests) scan, or unbounded sink cardinality growing memory). These counts
-//     catch exactly that class deterministically; the constant-FACTOR ms overhead is
-//     the wall-clock arm's job.
+//     Why this proxy protects the non-goal, and its honest scope: the counted
+//     seams deterministically catch per-request work that grows with prior
+//     requests (accumulation / a scan over request history), extra seam
+//     invocations, the flag-off path doing onion work, and unbounded sink
+//     cardinality growing memory. They CANNOT see CPU cost internal to a single
+//     seam call: an O(routes) matcher scan inside one dispatch still counts 1 at
+//     every seam, so that class, plus the constant-FACTOR ms overhead, belongs to
+//     the wall-clock arm (ARM C) and the perf:load soak. Run ARM C before the
+//     Phase 25 flag flip and on release cadence; it is not part of `npm test`.
 //
 //   ARM C - WALL-CLOCK (env PERF_GATE_WALLCLOCK=1, SKIPPED by default). The real p99
 //     comparison: warm up, then run >= 2000 iterations through the onion path and the
@@ -278,7 +284,7 @@ describe('perf_gate ARM B: the onion does bounded, constant work per request (np
     expect(delegateCalls).toBe(0);
   });
 
-  it('per-request work is independent of the registry size (static match is O(1), not a per-request table scan)', async () => {
+  it('per-request work is independent of the registry size (added registry entries change nothing observable at the seams)', async () => {
     // Build a big registry: 200 padding routes plus the same probe. A static match
     // hits the router's exact-map, so per-request observable work must be identical
     // to the 1-route case. If matching became a per-request scan, this would still

@@ -240,12 +240,29 @@ describe('no consolidated tunable literal is duplicated at a call site', () => {
     expect(mainSrc).not.toContain('maxPayload: 16 * 1024');
     expect(mainSrc).toContain('const WS_MAX_PAYLOAD_BYTES = 16 * 1024;');
     expect(count(mainSrc, '16 * 1024')).toBe(1); // owner def only
+    // Alternate spellings of the same value must not sneak in at a new call site
+    // (the '16 * 1024' count above only pins that one spelling).
+    expect(mainSrc).not.toMatch(/16_?384/);
+  });
+
+  it('startServer actually wires the timeouts: createServer maxHeaderSize + applyServerTimeouts', () => {
+    // The unit tests prove applyServerTimeouts works on a bare server; these two
+    // source pins prove startServer USES it, so deleting the boot wiring (which is
+    // behavior-neutral on the pinned Node version, the constants equal its
+    // defaults) cannot silently leave a future Node's different defaults live.
+    expect(mainSrc).toContain(
+      'http.createServer({ maxHeaderSize: MAX_HEADER_SIZE_BYTES }, routeHttpRequest)',
+    );
+    expect(mainSrc).toContain('applyServerTimeouts(server);');
   });
 
   it('the bug-report body cap references the reports.ts constant', () => {
     expect(mainSrc).toContain('readBody(req, BUG_REPORT_MAX_BODY_BYTES)');
     expect(mainSrc).not.toContain('readBody(req, 1024 * 1024)');
     expect(reportsSrc).toContain('export const BUG_REPORT_MAX_BODY_BYTES = 1024 * 1024;');
+    // Ban the decimal spellings of 1 MiB too; the pins above only see '1024 * 1024'.
+    expect(mainSrc).not.toMatch(/1_?048_?576/);
+    expect(reportsSrc).not.toMatch(/1_?048_?576/);
   });
 
   it('the daily prune interval + DB boot loop reference named constants', () => {
@@ -283,5 +300,9 @@ describe('no consolidated tunable literal is duplicated at a call site', () => {
     expect(dailySrc).not.toContain("get('limit')) || 30");
     expect(dailySrc).not.toContain("get('limit')) || 20");
     expect(dailySrc).not.toContain("get('limit')) || 100");
+    // Generic ban: ANY decode default in this module must be a named constant, so
+    // a NEW query param with a re-typed numeric fallback is caught, not just the
+    // six spellings above.
+    expect(dailySrc).not.toMatch(/get\('[^']+'\)\)\s*\|\|\s*\d/);
   });
 });

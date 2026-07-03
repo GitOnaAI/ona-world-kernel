@@ -215,6 +215,24 @@ describe('routeHttpRequest /metrics gate (integration)', () => {
       expect(res.body).toBe('ok');
     }
   });
+
+  it('memoizes the config: mutating env WITHOUT reset does not re-read mid-flight', async () => {
+    // Pins activeConfig()'s once-per-process contract (STEP 5 criterion 1): after
+    // the first read, deleting METRICS_TOKEN from the ambient env must NOT flip the
+    // gate to feature-off 404; only resetActiveConfigForTests re-reads. A
+    // regression that calls loadConfig(process.env) per request passes every other
+    // case in this file but fails here.
+    process.env.METRICS_TOKEN = TOKEN;
+    main.resetActiveConfigForTests();
+    const before = await drive('/metrics');
+    expect(before.statusCode).toBe(401);
+    delete process.env.METRICS_TOKEN;
+    const after = await drive('/metrics');
+    expect(after.statusCode).toBe(401); // memoized: still gated, NOT 404
+    main.resetActiveConfigForTests();
+    const reread = await drive('/metrics');
+    expect(reread.statusCode).toBe(404); // the reset is what re-reads
+  });
 });
 
 describe('logApiDispatchSelection (boot log)', () => {
