@@ -811,8 +811,8 @@ export class Hud {
   private targetAbsorbEl = $('#tf-absorb');
   // The target's resource bar (mana / rage / energy), the classic target-frame
   // power readout. The painter's type classes drive it; a target with no
-  // resource (a plain beast) keeps every type class off and the bar hides via
-  // CSS (#tf-resource with no type class is display:none).
+  // resource (a plain beast) keeps every type class off and the rail stays as
+  // an empty dark bar (classic WoW look: the frame never changes height).
   private targetResourceEl = $('#tf-resource');
   private targetResEl = $('#tf-res');
   private targetResTextEl = $('#tf-res-text');
@@ -2153,6 +2153,15 @@ export class Hud {
       });
     }
     if (this.playerFrameEl) {
+      // Classic self-target: clicking the player frame body targets yourself.
+      // The corner move button stops its own propagation; buttons inside the
+      // frame and the anchored aura rows (aurasOnPlayerFrame) never self-target,
+      // so a buff right-click-cancel or a stray icon click stays what it was.
+      this.playerFrameEl.addEventListener('click', (ev) => {
+        const clicked = ev.target as HTMLElement | null;
+        if (clicked?.closest('button, #buff-bar, #debuff-bar')) return;
+        this.sim.targetEntity(this.sim.playerId);
+      });
       this.playerFrameMover = new MovableFrame({
         frame: this.playerFrameEl,
         storageKey: PLAYER_FRAME_POS_KEY,
@@ -5160,10 +5169,17 @@ export class Hud {
             // mobs show their mana/rage/energy; a resource-less target (a plain
             // beast, rtype null) maps to 'none' EXPLICITLY (unitResourceClass
             // buckets null with mana), so every type class turns off and the
-            // bar hides. A dead target hides it too.
+            // rail renders EMPTY (zero fill, no text) but stays visible, the
+            // classic look where the frame never changes height. Dead: same.
             resourceKind: target.dead || !target.resourceType ? 'none' : target.resourceType,
-            resFrac: target.resource / Math.max(1, target.maxResource),
-            resText: target.dead ? '' : `${Math.round(target.resource)} / ${target.maxResource}`,
+            resFrac:
+              target.dead || !target.resourceType
+                ? 0
+                : target.resource / Math.max(1, target.maxResource),
+            resText:
+              target.dead || !target.resourceType
+                ? ''
+                : `${Math.round(target.resource)} / ${target.maxResource}`,
             levelText: isBoss ? BOSS_SKULL_GLYPH : String(target.level),
             name: entityDisplayName(target),
             // id-keyed gate, byte-faithful to the old lastPortraitTarget !== target.id;

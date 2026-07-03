@@ -666,12 +666,10 @@
     left: auto;
     right: -3px;
   }
-  /* The target's power bar: visible only when the painter set a resource type
-     class (mana / rage / energy). A resource-less target (a plain beast) keeps
-     them all off and the bar collapses, rather than showing an empty gray rail. */
-  #tf-resource:not(.mana):not(.rage):not(.energy) {
-    display: none;
-  }
+  /* The target's power bar rail is ALWAYS present (classic WoW look): a
+     resource-less target (a plain beast) keeps every type class off, its fill
+     scales to zero, and the empty dark rail stays under the health bar, so the
+     frame never changes height between a caster and a beast. */
   /* "resting" zZz marker on the player portrait while seated / eating / drinking */
   .rest-indicator {
     position: absolute;
