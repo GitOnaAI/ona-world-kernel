@@ -19,6 +19,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -33,6 +35,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -47,6 +51,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -61,6 +67,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -76,6 +84,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -90,6 +100,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -120,6 +132,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -138,6 +152,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -152,6 +168,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -166,6 +184,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -180,6 +200,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -194,6 +216,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -208,6 +232,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
@@ -222,6 +248,8 @@ export const pending: Record<string, readonly string[]> = {
     "auth.recovery.logOut",
     "auth.recovery.save",
     "auth.recovery.title",
+    "hudChrome.dailyRewards.pointsGained",
+    "hudChrome.dailyRewards.taskMultiplier",
     "hudChrome.dailyRewards.totalPlayer",
     "hudChrome.dailyRewards.totalPlayers",
     "wallet.extensionHelp"
