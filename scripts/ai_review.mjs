@@ -149,10 +149,12 @@ micro-MMO and reinforcement-learning environment built on one deterministic 20 H
 
 Review the unified diff below. You have READ-ONLY access to a checkout of the repository; before
 flagging that an import, helper, or referenced file is missing or wrong, verify it against the
-working tree (and package.json for dependencies). Note: the checkout may be the PR's BASE branch,
-so a file the diff itself adds may exist only in the diff text; that is expected, never a finding.
-When you cannot verify something, ask a one-line question at LOW severity instead of asserting a
-problem. Do not modify anything; produce a review only.
+working tree (and package.json for dependencies). Use lightweight inspection only: file reads,
+focused searches, and short static checks. Do not install packages, run network commands, run full
+builds, run full test suites, or run long typecheck commands. Note: the checkout may be the PR's
+BASE branch, so a file the diff itself adds may exist only in the diff text; that is expected,
+never a finding. When you cannot verify something, ask a one-line question at LOW severity instead
+of asserting a problem. Do not modify anything; produce a review only.
 
 Invariant scope, apply LITERALLY and do not generalize beyond it: these rules constrain application
 code under src/ ONLY.
@@ -198,6 +200,8 @@ function review() {
     '--sandbox',
     'read-only',
     '--skip-git-repo-check',
+    '--ignore-user-config',
+    '--ignore-rules',
     '--output-last-message',
     outFile,
     ...(MODEL ? ['--model', MODEL] : []),
