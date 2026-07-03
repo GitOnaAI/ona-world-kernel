@@ -20,7 +20,7 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 389,
+      "nextId": 392,
       "state": "5bc471b0",
       "events": "741638a5",
       "rng": {
@@ -34,8 +34,8 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "6ecbff42",
+      "nextId": 393,
+      "state": "6d0d2479",
       "events": "741638a5",
       "rng": {
         "draws": 0,
@@ -54,12 +54,13 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
           },
           "gatheringProficiency": {},
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -78,7 +79,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -121,9 +122,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "49c350ae",
-      "events": "7bf95546",
+      "nextId": 393,
+      "state": "26cc6175",
+      "events": "fd3b6802",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -141,7 +142,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -161,6 +162,7 @@
               "itemId": "minor_healing_potion"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -179,7 +181,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -222,9 +224,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "e2ece824",
-      "events": "f3f760b9",
+      "nextId": 393,
+      "state": "2cce9eab",
+      "events": "22b10b21",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -242,7 +244,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "helmet": "cryptbone_helm",
@@ -267,6 +269,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -285,7 +288,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 120,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -328,9 +331,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "168701ac",
-      "events": "458e51dd",
+      "nextId": 393,
+      "state": "2e4a8253",
+      "events": "facd6b85",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -348,7 +351,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "helmet": "roadwardens_helm",
@@ -373,6 +376,7 @@
               "itemId": "cryptbone_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -391,7 +395,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 110,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -434,9 +438,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "366582a0",
-      "events": "2490dbf8",
+      "nextId": 393,
+      "state": "4bc10073",
+      "events": "e8f4bcd0",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -454,7 +458,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -482,6 +486,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -500,7 +505,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -543,9 +548,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "776d97f9",
-      "events": "fed0e7d1",
+      "nextId": 393,
+      "state": "a95edbbe",
+      "events": "121a8671",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -563,7 +568,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -591,6 +596,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -621,7 +627,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -665,9 +671,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "26d084b2",
-      "events": "70823a2c",
+      "nextId": 393,
+      "state": "8f964ac5",
+      "events": "b9c16b70",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -685,7 +691,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -709,6 +715,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -739,7 +746,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -783,9 +790,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "53709351",
-      "events": "41e1197e",
+      "nextId": 393,
+      "state": "9d2cd4c6",
+      "events": "d903c782",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -803,7 +810,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -827,6 +834,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -846,7 +854,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -869,7 +877,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -913,9 +921,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "0181df0d",
-      "events": "059e38cc",
+      "nextId": 393,
+      "state": "ad3ac93a",
+      "events": "c40bb25c",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -933,7 +941,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -961,6 +969,7 @@
               "itemId": "wolf_fang"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -980,7 +989,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -1003,7 +1012,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -1047,9 +1056,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "5f2ae588",
-      "events": "960bfa6c",
+      "nextId": 393,
+      "state": "73daf1ed",
+      "events": "b1460df4",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -1067,7 +1076,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -1095,6 +1104,7 @@
               "itemId": "wolf_fang"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -1120,7 +1130,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -1143,7 +1153,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -1187,9 +1197,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "ad64e6b5",
-      "events": "f32f2351",
+      "nextId": 393,
+      "state": "79296fbc",
+      "events": "b1502d29",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -1207,7 +1217,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -1231,6 +1241,7 @@
               "itemId": "roadwardens_helm"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -1260,7 +1271,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -1283,7 +1294,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -1327,9 +1338,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "bde0e18d",
-      "events": "a5f485e1",
+      "nextId": 393,
+      "state": "23a42110",
+      "events": "c16bba39",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -1347,7 +1358,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -1375,6 +1386,7 @@
               "itemId": "wolf_fang"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -1404,7 +1416,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -1427,7 +1439,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -1471,8 +1483,8 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "bde0e18d",
+      "nextId": 393,
+      "state": "23a42110",
       "events": "741638a5",
       "rng": {
         "draws": 0,
@@ -1491,7 +1503,7 @@
           "craftSkills": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -1519,6 +1531,7 @@
               "itemId": "wolf_fang"
             }
           ],
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -1548,7 +1561,7 @@
               "name": "Might of the Bear",
               "remaining": 900,
               "school": "nature",
-              "sourceId": 389,
+              "sourceId": 392,
               "value": 12
             }
           ],
@@ -1571,7 +1584,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 210,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
