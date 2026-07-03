@@ -8,9 +8,9 @@
 //
 // Requires `npm run dev` on :5173 (or GAME_URL env var).
 
-import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import puppeteer from 'puppeteer-core';
 import { BROWSER_PATH } from './browser_path.mjs';
 
 const BASE_URL = (process.env.GAME_URL ?? 'http://localhost:5173') + '/?gfx=ultra';
@@ -147,10 +147,16 @@ await page.evaluate((bid) => {
 await page.evaluate(() => {
   // Zone/subzone banners
   const el = document.querySelector('#subzone-banner');
-  if (el) { el.style.opacity = '0'; el.style.display = 'none'; }
+  if (el) {
+    el.style.opacity = '0';
+    el.style.display = 'none';
+  }
   for (const id of ['#zone-banner', '#zone-title', '#zone-label-banner']) {
     const b = document.querySelector(id);
-    if (b) { b.style.opacity = '0'; b.style.display = 'none'; }
+    if (b) {
+      b.style.opacity = '0';
+      b.style.display = 'none';
+    }
   }
   // Chat panel (outer wrapper that contains chatlog-tabs + chatlog-frame)
   const cw = document.querySelector('#chatlog-wrap');
@@ -160,9 +166,9 @@ await page.evaluate(() => {
   if (pf) pf.style.display = 'none';
   // Keep #nameplates visible so the boss nameplate renders; it also renders
   // a player self-nameplate node which we hide by selector below.
-  document.querySelectorAll('.nameplate-self, [data-self="1"]').forEach(
-    (n) => { n.style.display = 'none'; },
-  );
+  document.querySelectorAll('.nameplate-self, [data-self="1"]').forEach((n) => {
+    n.style.display = 'none';
+  });
 });
 
 // Wait for the renderer to settle with the new camera position and for any
@@ -172,7 +178,10 @@ await sleep(8000);
 // One more hide pass in case the subzone timer re-shows it during the wait
 await page.evaluate(() => {
   const el = document.querySelector('#subzone-banner');
-  if (el) { el.style.opacity = '0'; el.style.display = 'none'; }
+  if (el) {
+    el.style.opacity = '0';
+    el.style.display = 'none';
+  }
   const cw = document.querySelector('#chatlog-wrap');
   if (cw) cw.style.display = 'none';
 });

@@ -20,9 +20,9 @@
 // Requires `npm run dev` (or GAME_URL env var). No src/ edits; all game
 // manipulation via page.evaluate at runtime.
 
-import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import puppeteer from 'puppeteer-core';
 import { BROWSER_PATH } from './browser_path.mjs';
 
 const BASE_URL = (process.env.GAME_URL ?? 'http://localhost:5173') + '/?gfx=ultra';
