@@ -280,7 +280,10 @@ export const id_ID: EnTranslations = {
       "targetAnnounce": "Tandai {name}",
       "partyLabel": "Kelompok Anda",
       "partyGroup": "Grup {n}",
-      "durationUnitSeconds": "d"
+      "durationUnitSeconds": "d",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Pratinjau Model Karakter"
@@ -394,6 +397,7 @@ export const id_ID: EnTranslations = {
       "uiScale": "Skala UI",
       "playerFrameScale": "Player Frame Scale",
       "targetFrameScale": "Target Frame Scale",
+      "aurasOnPlayerFrame": "Buffs on the Player Frame",
       "highContrastBackground": "Latar Kontras Tinggi",
       "startAttackOnAbility": "Serangan Otomatis Saat Memakai Kemampuan",
       "walkByAutoloot": "Walk-by Autoloot",
@@ -748,7 +752,13 @@ export const id_ID: EnTranslations = {
       "sortName": "Nama",
       "searchPlaceholder": "Cari barang",
       "searchAria": "Cari barang tas berdasarkan nama",
-      "noMatch": "Tidak ada barang yang cocok dengan saringanmu."
+      "noMatch": "Tidak ada barang yang cocok dengan saringanmu.",
+      "capacity": "{used}/{total}",
+      "capacityAria": "Bag slots used: {used} of {total}",
+      "backpack": "Backpack",
+      "bagSocketAria": "{name}: {slots}",
+      "socketEmpty": "Empty bag slot",
+      "unequipHint": "Click to remove this bag"
     },
     "raidConvert": {
       "toPartyDone": "Raid Anda telah diubah kembali menjadi rombongan.",
@@ -4154,7 +4164,8 @@ export const id_ID: EnTranslations = {
       "drink": "Minuman",
       "tool": "Perkakas",
       "potion": "Ramuan",
-      "elixir": "Eliksir"
+      "elixir": "Eliksir",
+      "bag": "Bag"
     },
     "stats": {
       "armor": "Zirah",
@@ -4196,7 +4207,8 @@ export const id_ID: EnTranslations = {
       "useManaPotion": "Pakai: Memulihkan {amount} mana seketika. Bisa dipakai dalam pertempuran. Jeda 1 mnt.",
       "clickUseInstant": "Klik untuk memakai seketika dalam pertempuran",
       "clickUse": "Klik untuk memakai",
-      "clickBuyback": "Klik untuk membeli kembali"
+      "clickBuyback": "Klik untuk membeli kembali",
+      "bagSlots": "{slots} Slot Bag"
     },
     "bags": {
       "title": "Tas",
@@ -5497,6 +5509,21 @@ export const id_ID: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Mahkota Sang Raja"
+      },
+      "linen_pouch": {
+        "name": "Kantong Linen"
+      },
+      "travelers_knapsack": {
+        "name": "Ransel Pengelana"
+      },
+      "wolfhide_satchel": {
+        "name": "Tas Kulit Serigala"
+      },
+      "gravewoven_bag": {
+        "name": "Tas Tenunan Makam"
+      },
+      "mistcallers_duffel": {
+        "name": "Tas Sang Pemanggil Kabut"
       },
       "copper_mining_pick": {
         "name": "Beliung Tambang Tembaga"

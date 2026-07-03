@@ -280,7 +280,10 @@ export const ru_RU: EnTranslations = {
       "targetAnnounce": "Цель: {name}",
       "partyLabel": "Ваша группа",
       "partyGroup": "Группа {n}",
-      "durationUnitSeconds": "с"
+      "durationUnitSeconds": "с",
+      "durationUnitMinutes": "м",
+      "durationUnitHours": "ч",
+      "durationUnitDays": "д"
     },
     "character": {
       "modelPreview": "Предпросмотр модели персонажа"
@@ -394,6 +397,7 @@ export const ru_RU: EnTranslations = {
       "uiScale": "Масштаб интерфейса",
       "playerFrameScale": "Размер рамки игрока",
       "targetFrameScale": "Размер рамки цели",
+      "aurasOnPlayerFrame": "Баффы у рамки игрока",
       "highContrastBackground": "Фон высокой контрастности",
       "startAttackOnAbility": "Автоатака при использовании способности",
       "walkByAutoloot": "Автосбор добычи при проходе",
@@ -748,7 +752,13 @@ export const ru_RU: EnTranslations = {
       "sortName": "Название",
       "searchPlaceholder": "Поиск предметов",
       "searchAria": "Поиск предметов в сумках по названию",
-      "noMatch": "Нет предметов, соответствующих фильтрам."
+      "noMatch": "Нет предметов, соответствующих фильтрам.",
+      "capacity": "{used}/{total}",
+      "capacityAria": "Занято ячеек сумок: {used} из {total}",
+      "backpack": "Рюкзак",
+      "bagSocketAria": "{name}: {slots}",
+      "socketEmpty": "Пустая ячейка для сумки",
+      "unequipHint": "Нажмите, чтобы снять эту сумку"
     },
     "raidConvert": {
       "toPartyDone": "Ваш рейд снова преобразован в группу.",
@@ -4154,7 +4164,8 @@ export const ru_RU: EnTranslations = {
       "drink": "Напиток",
       "tool": "Инструмент",
       "potion": "Зелье",
-      "elixir": "Эликсир"
+      "elixir": "Эликсир",
+      "bag": "Bag"
     },
     "stats": {
       "armor": "Броня",
@@ -4196,7 +4207,8 @@ export const ru_RU: EnTranslations = {
       "useManaPotion": "Использование: мгновенно восстанавливает {amount} маны. Можно использовать в бою. Восстановление 1 мин.",
       "clickUseInstant": "Нажмите, чтобы мгновенно использовать в бою",
       "clickUse": "Нажмите, чтобы использовать",
-      "clickBuyback": "Нажмите, чтобы выкупить"
+      "clickBuyback": "Нажмите, чтобы выкупить",
+      "bagSlots": "{slots} Slot Bag"
     },
     "bags": {
       "title": "Сумки",
@@ -5497,6 +5509,21 @@ export const ru_RU: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Корона Монарха"
+      },
+      "linen_pouch": {
+        "name": "Льняной мешочек"
+      },
+      "travelers_knapsack": {
+        "name": "Ранец путешественника"
+      },
+      "wolfhide_satchel": {
+        "name": "Сумка из волчьей шкуры"
+      },
+      "gravewoven_bag": {
+        "name": "Могильотканая сумка"
+      },
+      "mistcallers_duffel": {
+        "name": "Вещмешок Призывателя туманов"
       },
       "copper_mining_pick": {
         "name": "Медная кирка"

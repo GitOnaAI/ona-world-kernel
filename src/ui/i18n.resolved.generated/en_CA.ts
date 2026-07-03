@@ -280,7 +280,10 @@ export const en_CA: EnTranslations = {
       "targetAnnounce": "Mark {name}",
       "partyLabel": "Your Band",
       "partyGroup": "Group {n}",
-      "durationUnitSeconds": "s"
+      "durationUnitSeconds": "s",
+      "durationUnitMinutes": "m",
+      "durationUnitHours": "h",
+      "durationUnitDays": "d"
     },
     "character": {
       "modelPreview": "Character Model Preview"
@@ -394,6 +397,7 @@ export const en_CA: EnTranslations = {
       "uiScale": "UI Scale",
       "playerFrameScale": "Player Frame Scale",
       "targetFrameScale": "Target Frame Scale",
+      "aurasOnPlayerFrame": "Buffs on the Player Frame",
       "highContrastBackground": "High-Contrast Background",
       "startAttackOnAbility": "Auto-Attack on Ability Use",
       "walkByAutoloot": "Walk-by Autoloot",
@@ -748,7 +752,13 @@ export const en_CA: EnTranslations = {
       "sortName": "Name",
       "searchPlaceholder": "Search items",
       "searchAria": "Search bag items by name",
-      "noMatch": "No items match your filters."
+      "noMatch": "No items match your filters.",
+      "capacity": "{used}/{total}",
+      "capacityAria": "Bag slots used: {used} of {total}",
+      "backpack": "Backpack",
+      "bagSocketAria": "{name}: {slots}",
+      "socketEmpty": "Empty bag slot",
+      "unequipHint": "Click to remove this bag"
     },
     "raidConvert": {
       "toPartyDone": "Your raid has converted back to a party.",
@@ -4154,7 +4164,8 @@ export const en_CA: EnTranslations = {
       "drink": "Drink",
       "tool": "Tool",
       "potion": "Potion",
-      "elixir": "Elixir"
+      "elixir": "Elixir",
+      "bag": "Bag"
     },
     "stats": {
       "armor": "Armour",
@@ -4196,7 +4207,8 @@ export const en_CA: EnTranslations = {
       "useManaPotion": "Use: Instantly restores {amount} mana. Usable in combat. 2 min cooldown.",
       "clickUseInstant": "Click to use instantly in combat",
       "clickUse": "Click to use",
-      "clickBuyback": "Click to buy back"
+      "clickBuyback": "Click to buy back",
+      "bagSlots": "{slots} Slot Bag"
     },
     "bags": {
       "title": "Bags",
@@ -5497,6 +5509,21 @@ export const en_CA: EnTranslations = {
       },
       "monarch_crown_helm": {
         "name": "Monarch's Crown"
+      },
+      "linen_pouch": {
+        "name": "Linen Pouch"
+      },
+      "travelers_knapsack": {
+        "name": "Traveler's Knapsack"
+      },
+      "wolfhide_satchel": {
+        "name": "Wolfhide Satchel"
+      },
+      "gravewoven_bag": {
+        "name": "Gravewoven Bag"
+      },
+      "mistcallers_duffel": {
+        "name": "Mistcaller's Duffel"
       },
       "copper_mining_pick": {
         "name": "Copper Mining Pick"

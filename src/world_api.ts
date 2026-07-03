@@ -112,7 +112,7 @@ export type {
 export type { RaidLockout } from './world_api/dungeons';
 export type { MailInfo, MailKindView, MailMessageView } from './world_api/mail';
 export type { MarketInfo, MarketListingView } from './world_api/market';
-export type { PartyInfo, PartyMemberInfo } from './world_api/party';
+export type { PartyInfo, PartyMemberAura, PartyMemberInfo } from './world_api/party';
 export type { PlayerProfessionsView } from './world_api/professions';
 export type {
   DevLeaderboardEntry,
@@ -291,6 +291,8 @@ export const COMMAND_NAMES = [
   'lockpick_abort',
   'collect_delve_chest_loot',
   'telemetry',
+  'equip_bag',
+  'unequip_bag',
   'mail_send',
   'mail_take',
   'mail_delete',
