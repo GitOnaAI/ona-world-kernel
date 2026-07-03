@@ -28,7 +28,7 @@
       "tick": 3,
       "time": 0.15,
       "nextId": 395,
-      "state": "9dabedb4",
+      "state": "ebc435ca",
       "events": "d09fefba",
       "rng": {
         "draws": 2,
@@ -92,6 +92,7 @@
           "aiState": "idle",
           "attackPower": 46,
           "combatTimer": 99.15,
+          "comboUntil": -1,
           "critChance": 0.06,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.06,
@@ -140,6 +141,7 @@
           "aiState": "idle",
           "attackPower": 10,
           "combatTimer": 99.15,
+          "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
@@ -188,6 +190,7 @@
         {
           "aiState": "idle",
           "combatTimer": 99,
+          "comboUntil": -1,
           "corpseTimer": 61.85,
           "critChance": 0.05,
           "dead": true,
