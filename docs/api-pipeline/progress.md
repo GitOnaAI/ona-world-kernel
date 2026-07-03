@@ -62,7 +62,7 @@ Mark a row's Status as "In progress" or "Done" and fill Started / Completed
 | Phase 23 | Done | 2026-07-02 | 2026-07-03 |
 | Phase 23 QA | Done | 2026-07-03 | 2026-07-03 |
 | v0.20.0 release merge + audit | Done | 2026-07-03 | 2026-07-03 |
-| Phase 24 | Not started |  |  |
+| Phase 24 | Done | 2026-07-03 | 2026-07-03 |
 | Phase 24 QA | Not started |  |  |
 | Phase 25 | Not started |  |  |
 | Phase 25 QA | Not started |  |  |
@@ -1461,10 +1461,10 @@ recommended).
 ## Phase 24: Validated config + server timeouts + no-magic-values consolidation
 
 Deliverables:
-- [ ] A validated fail-fast config read ONCE at boot via the pure loadConfig(env) from P2 (HSTS-in-prod, REQUIRE_WEB_LOGIN, realm/native-app origins, limiter DSN, the dispatch flag), replacing scattered process.env reads; log the active dispatch path at boot and alert if the old path is active in prod
-- [ ] Set requestTimeout/headersTimeout/keepAliveTimeout/maxHeaderSize in startServer() with chosen named-constant values mindful of the WS upgrade handshake and the 1 MB card upload
-- [ ] Consolidate every tunable into named constants with unit + comment; POLICIES values DERIVE from existing constants
-- [ ] Add the perf/tick-jitter acceptance gate (pipeline adds < X ms p99, tick p95 stays under 0.8 x DT)
+- [x] A validated fail-fast config read ONCE at boot via the pure loadConfig(env) from P2 (HSTS-in-prod, REQUIRE_WEB_LOGIN, realm/native-app origins, limiter DSN, the dispatch flag), replacing scattered process.env reads; log the active dispatch path at boot and alert if the old path is active in prod
+- [x] Set requestTimeout/headersTimeout/keepAliveTimeout/maxHeaderSize in startServer() with chosen named-constant values mindful of the WS upgrade handshake and the 1 MB card upload
+- [x] Consolidate every tunable into named constants with unit + comment; POLICIES values DERIVE from existing constants
+- [x] Add the perf/tick-jitter acceptance gate (pipeline adds < X ms p99, tick p95 stays under 0.8 x DT)
 
 QA:
 - [ ] Fixes applied
@@ -1473,6 +1473,63 @@ QA:
 - [ ] Reviews clean
 
 Notes:
+
+DONE 2026-07-03 (one session, Explore + four hand-spawned slice agents + two in-phase
+reviewers apply-all). New/changed symbols: loadConfig (server/http/config.ts) is the
+validated fail-fast boot edge (DATABASE_URL kept, doubling as the tier-2 limiter DSN,
+there is no separate limiter env; API_DISPATCH set-but-invalid now THROWS, unset stays
+DEFAULT_DISPATCH; REQUIRE_WEB_LOGIN + API_CONTENT_TYPE_ENFORCE + API_ORIGIN_CHECK_ENFORCE
+throw on garbage; PUBLIC_ORIGIN must parse as a bare http(s) origin; a non-empty REALMS
+needs a usable Name=origin entry; new fields requireWebLogin, metricsToken) with a six-item
+conscious-exceptions comment block (per-request secret gates, game.ts dev reads, domain
+config getters, the middleware env= seams, the db.ts pool, the tolerant realm keys).
+server/main.ts: the 8 module-scope env consts are gone; boot-consumed values thread off
+the startServer-primed Config and request-time consumers read the lazy memoized
+activeConfig() (+ resetActiveConfigForTests), so a bare import stays env-free (importable
+spine intact); loadConfig runs FIRST in startServer (fails before the DB retry loop);
+logApiDispatchSelection logs the active path and logger.warn ALERTS on legacy+production;
+github_contributors is runtime-configured (its duplicate GITHUB_* module reads removed).
+The P23 carried must-gate LANDED: handleMetricsGate (server/http/health.ts) serves
+GET /metrics 404 feature-off when METRICS_TOKEN is unset, else Bearer + length-guarded
+timingSafeEqual with an opaque 401, every arm no-store, both dispatch modes gated
+(top-level arm); DEPLOY.md gained the ops note (set the token on server AND scraper).
+The redactor email value-pattern (P23 carry) landed with RFC-BOUNDED quantifiers after
+privacy review measured the first unbounded regex quadratic (seconds on a 60 KB value):
+EMAIL_RE {1,64}@{1,255}.{2,24} + an includes('@') probe scans linearly (about 9 ms at
+80 KB), with pathological-input regression tests under a 2 s cap. PgRateLimitStore now
+receives the composite httpMetricSink (module-scope reorder). NEW
+server/http/server_timeouts.ts: REQUEST_TIMEOUT_MS 300000 / HEADERS_TIMEOUT_MS 60000 /
+KEEP_ALIVE_TIMEOUT_MS 5000 / MAX_HEADER_SIZE_BYTES 16384, measured EQUAL to the installed
+node defaults so behavior is byte-identical, wired via createServer({maxHeaderSize}) +
+applyServerTimeouts; headersTimeout > keepAliveTimeout pinned; PACKET PREMISE CORRECTED:
+the card cap is MAX_CARD_BYTES = 4 MiB (player_card.ts), not "1 MB" (the 1 MiB body is
+bug-reports). Consolidation: WS_MAX_PAYLOAD_BYTES (16 KiB, never-widen comment),
+BUG_REPORT_MAX_BODY_BYTES deduped (exported from reports.ts, imported by main.ts),
+DAILY_PRUNE_INTERVAL_MS, DB_BOOT_MAX_ATTEMPTS + DB_BOOT_RETRY_MS, DB_POOL_MAX_CLIENTS,
+AUTH_MAX_PER_MINUTE (the rateLimited default budget), six daily-rewards decode defaults;
+msg_rate_limit.ts stays module-owned WS-plane by explicit decision; POLICIES already
+derived (P19), now pinned by tests/server/tunables.test.ts (identity AND literal per
+policy, plus a targeted no-duplicate source scan). NEW server/http/perf_gate.ts:
+DT_MS = 1000/TICK_RATE (=50), TICK_P95_CEILING_RATIO 0.8 (ceiling 40 ms),
+PIPELINE_ADDED_P99_BUDGET_MS 1.0; tests/server/perf_gate.test.ts has two deterministic
+always-on arms (TickProfiler synthetic p95 + a bounded-work onion-vs-legacy proxy: O(1)
+dispatch, registry-size independent, template-bounded sink cardinality) and an env-gated
+wall-clock arm (PERF_GATE_WALLCLOCK=1; measured added-p99 about 0.005 ms, tick p95 about
+0.44 ms); single-threaded vitest cannot reproduce tick-GAP jitter, npm run perf:load stays
+the live soak. DECISIONS: no timed drain window added (none exists; additive behavior,
+deferred to P25 as an explicit decision item); no full-ip log exception (nothing needs
+it); the daily-rewards pagination upper clamp is a pre-existing gap left untouched
+(non-behavioral contract). Reviews apply-all: privacy-security-review 0 BLOCKING, 1
+should-fix (the ReDoS, fixed same session); qa-checklist READY 0 BLOCKING (DEPLOY.md ops
+note + the rateLimited default-binding pin applied). DEPLOY-ENV AUDIT WARNING: the
+stricter PUBLIC_ORIGIN/REALMS validators throw at boot on garbage values a deploy env may
+currently tolerate; audit the real env before this branch ships. Maintainer to-do
+resolved with a corrected premise: the private bot_detector repo main ALREADY implemented
+the calibration contract (PR #7), so the overlay was refreshed FROM it instead of
+committing the merge-session stopgap upstream; its environment_probe.test.ts is locally
+removed (imports src/game/client_env, unshipped main-repo client work). Validation:
+tsc 0, npm run gate PASS all 9 steps (752 files / 8580 passed + 13 skipped),
+build:server green. NEXT: Phase 24 QA gate (phase-24-qa.md).
 
 ## Phase 25: Docs + new:endpoint scaffold + flag-default flip
 

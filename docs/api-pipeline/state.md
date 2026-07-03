@@ -11,6 +11,58 @@ workstream), NOT a gameplay change, NOT a WS wire change.
 
 ## Current phase
 
+Phase 24 (validated config + server timeouts + no-magic-values + perf gate) DONE
+(2026-07-03). ONLY PHASE 25 REMAINS (docs + new:endpoint scaffold + flag-default flip).
+loadConfig(env) is now the validated FAIL-FAST boot edge, called once as startServer's
+first step (before the DB retry loop) and memoized behind main.ts activeConfig() (+
+resetActiveConfigForTests) so request-time consumers read lazily and a bare import stays
+env-free: throws name the key, never a value (DATABASE_URL, which IS the tier-2 limiter
+DSN, no separate env; API_DISPATCH set-but-invalid, unset stays 'legacy';
+REQUIRE_WEB_LOGIN / API_CONTENT_TYPE_ENFORCE / API_ORIGIN_CHECK_ENFORCE garbage;
+non-origin PUBLIC_ORIGIN; unusable non-empty REALMS). New Config fields requireWebLogin +
+metricsToken; the six conscious read-once exceptions are documented at the top of
+config.ts (per-request secret gates, game.ts dev reads, domain config getters, middleware
+env= seams, db.ts pool, tolerant realm keys). Boot logs the dispatch path
+(logApiDispatchSelection) and ALERT-warns on legacy+production. The P23 must-gate LANDED:
+GET /metrics is 404 feature-off until METRICS_TOKEN is set, then Bearer + length-guarded
+timingSafeEqual (opaque 401), no-store on every arm, gated in BOTH dispatch modes;
+DEPLOY.md carries the ops note (token on server AND scraper or scraping goes dark). The
+redactor email value-pattern landed RFC-BOUNDED ({1,64}@{1,255}.{2,24} + an includes('@')
+probe) after review measured the unbounded form quadratic (seconds at 60 KB, same thread
+as the 20 Hz loop); pathological-input pins cap it at 2 s. PgRateLimitStore now gets the
+composite httpMetricSink. NEW server/http/server_timeouts.ts codifies the four node:http
+timeouts EQUAL to the installed node defaults (REQUEST_TIMEOUT_MS 300000,
+HEADERS_TIMEOUT_MS 60000 > KEEP_ALIVE_TIMEOUT_MS 5000, MAX_HEADER_SIZE_BYTES 16384 via
+createServer options): zero behavior change, named and pinned; the packet's "1 MB card"
+premise was WRONG (card cap is 4 MiB MAX_CARD_BYTES; the 1 MiB body is bug-reports).
+Consolidated named constants: WS_MAX_PAYLOAD_BYTES (16 KiB never-widen),
+BUG_REPORT_MAX_BODY_BYTES (deduped, reports.ts exports), DAILY_PRUNE_INTERVAL_MS,
+DB_BOOT_MAX_ATTEMPTS/DB_BOOT_RETRY_MS, DB_POOL_MAX_CLIENTS, AUTH_MAX_PER_MINUTE
+(rateLimited default), six daily-rewards decode defaults; msg_rate_limit.ts stays
+module-owned WS-plane by decision; tunables.test.ts pins every POLICIES row by identity
+AND literal plus a targeted no-duplicate source scan. NEW server/http/perf_gate.ts
+(DT_MS = 1000/TICK_RATE = 50, TICK_P95_CEILING_RATIO 0.8 -> 40 ms,
+PIPELINE_ADDED_P99_BUDGET_MS 1.0) + tests/server/perf_gate.test.ts: deterministic
+always-on arms (TickProfiler synthetic p95; bounded-work onion-vs-legacy proxy: O(1)
+dispatch, registry-size independent, template-bounded cardinality) and a
+PERF_GATE_WALLCLOCK=1 arm (measured added-p99 about 0.005 ms vs the 1.0 budget, tick p95
+about 0.44 ms vs 40); tick-GAP jitter under load stays with npm run perf:load (not
+reproducible in single-threaded vitest). DECISIONS: NO timed drain window (none exists
+today; additive, now a P25 decision item); no full-ip log exception; daily-rewards
+pagination upper clamp stays a pre-existing gap (non-behavioral contract). Reviews
+apply-all: privacy-security 0 BLOCKING / 1 should-fix (ReDoS, fixed); qa-checklist READY
+0 BLOCKING (DEPLOY.md note + rateLimited default-binding pin applied). DEPLOY-ENV AUDIT
+WARNING before this branch ships: the stricter PUBLIC_ORIGIN/REALMS validators fail a
+boot that today tolerates a garbage value; audit the real deploy env. The packet's
+maintainer to-do resolved with a CORRECTED premise: private bot_detector repo main (PR
+#7) already implemented the calibration contract, the working-tree overlay was refreshed
+FROM it (stopgap discarded, nothing committed upstream), and its
+environment_probe.test.ts is locally removed (imports src/game/client_env, main-repo
+client work that has not shipped). Validation: tsc 0, npm run gate PASS all 9 steps (752
+files / 8580 passed + 13 skipped), build:server green. Full record: progress.md Phase 24
+Notes. NEXT: the Phase 24 QA gate (phase-24-qa.md), then Phase 25
+(phase-25-docs-flag-flip.md).
+
 Phase 23 (structured logging + /metrics exporter + drain-aware health) DONE (2026-07-03).
 The Phase 8 observability seam is now LIVE: server/main.ts injects a composite
 teeMetricSink(createAccessLogSink(logger), httpMetrics.sink) into all FOUR createApiDispatcher

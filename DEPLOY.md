@@ -163,6 +163,12 @@ For off-box safety, sync the directory to S3 occasionally:
   handshake. `ANTIBOT_ENFORCE=1` lets the detector act on its findings (e.g. kick);
   when unset, detection is observe-only. With the no-op stub, enforcement has no
   effect regardless of this flag.
+- **Metrics endpoint**: `GET /metrics` (Prometheus exposition) is **off until
+  configured**: it answers 404 unless `METRICS_TOKEN` is set in the server
+  runtime env. When set, the scraper must send `Authorization: Bearer <token>`
+  (anything else gets an opaque 401). Configure the token on **both** the server
+  and the Prometheus scrape job in the same change or scraping goes dark.
+  `/livez` and `/readyz` stay open for load-balancer checks.
 - Logs: `sudo docker compose -f /opt/eastbrook/docker-compose.yml logs -f game`.
 - If the instance ever feels tight, stop → change instance type →
   start. Everything lives in Docker plus one EBS volume, so nothing
