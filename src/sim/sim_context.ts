@@ -572,6 +572,11 @@ export interface SimContextCallbacks {
   // path calls before granting (buy/loot/pickup/fish/conjure/collect/trade/
   // turn-in). Stays on Sim next to the addItem/removeItem/countItem hub.
   canAddItem(itemId: string, count: number, pid?: number): boolean;
+
+  // Ravenpost mail (mail/post_office.ts): the quest turn-in core
+  // (quests/quest_commands.ts) queues the giver's authored thank-you letter
+  // through this; the binding points at the PostOffice instance on Sim.
+  queueQuestLetter(questId: string, pid: number): void;
 }
 
 // The seam consumed by extracted modules.
@@ -910,5 +915,7 @@ export function createSimContext(host: SimContextHost): SimContext {
     marketListingBelongsTo: host.marketListingBelongsTo,
     // B1 bags capacity pre-check (addItem/removeItem/countItem bound above; deduped).
     canAddItem: host.canAddItem,
+    // Ravenpost mail: the quest turn-in letter hook (points at the PostOffice on Sim).
+    queueQuestLetter: host.queueQuestLetter,
   };
 }

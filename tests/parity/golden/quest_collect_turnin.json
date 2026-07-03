@@ -15,8 +15,8 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "880ae687",
+      "nextId": 393,
+      "state": "877795cc",
       "events": "741638a5",
       "rng": {
         "draws": 0,
@@ -39,12 +39,13 @@
           "counters": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
           },
           "gatheringProficiency": {},
+          "mailWelcomed": true,
           "talents": {
             "choices": {},
             "ranks": {}
@@ -63,7 +64,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -106,9 +107,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "9ce7e70d",
-      "events": "714d6ddf",
+      "nextId": 393,
+      "state": "cbec6b84",
+      "events": "25f9e31f",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -130,12 +131,13 @@
           "counters": {},
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
           },
           "gatheringProficiency": {},
+          "mailWelcomed": true,
           "questLog": [
             [
               "q_boars",
@@ -166,7 +168,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -209,9 +211,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "cf6d3f06",
-      "events": "f5ba3286",
+      "nextId": 393,
+      "state": "87b9c675",
+      "events": "40b8e83e",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -235,7 +237,7 @@
           },
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -247,6 +249,7 @@
               "itemId": "boar_hide"
             }
           ],
+          "mailWelcomed": true,
           "questLog": [
             [
               "q_boars",
@@ -277,7 +280,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -320,9 +323,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "715107b5",
-      "events": "1858db2d",
+      "nextId": 393,
+      "state": "e35d39ec",
+      "events": "a3665dd5",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -346,7 +349,7 @@
           },
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -358,6 +361,7 @@
               "itemId": "boar_hide"
             }
           ],
+          "mailWelcomed": true,
           "questLog": [
             [
               "q_boars",
@@ -388,7 +392,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -431,9 +435,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "092a5d8d",
-      "events": "3b371ba6",
+      "nextId": 393,
+      "state": "fd091db6",
+      "events": "5b54bb46",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -457,7 +461,7 @@
           },
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
@@ -469,6 +473,7 @@
               "itemId": "boar_hide"
             }
           ],
+          "mailWelcomed": true,
           "questLog": [
             [
               "q_boars",
@@ -499,7 +504,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -542,9 +547,9 @@
     {
       "tick": 0,
       "time": 0,
-      "nextId": 390,
-      "state": "b1a59e8e",
-      "events": "5c5c3b4e",
+      "nextId": 393,
+      "state": "1ea631c5",
+      "events": "6b752ce2",
       "rng": {
         "draws": 0,
         "digest": "811c9dc5"
@@ -571,13 +576,14 @@
           },
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
           },
           "gatheringProficiency": {},
           "lifetimeXp": 350,
+          "mailWelcomed": true,
           "questsDone": [
             "q_boars"
           ],
@@ -600,7 +606,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
@@ -643,8 +649,8 @@
     {
       "tick": 2,
       "time": 0.1,
-      "nextId": 390,
-      "state": "dda2a33c",
+      "nextId": 393,
+      "state": "8b3a56ff",
       "events": "741638a5",
       "rng": {
         "draws": 0,
@@ -672,13 +678,14 @@
           },
           "delveClears": {},
           "delveDaily": {},
-          "entityId": 389,
+          "entityId": 392,
           "equipment": {
             "chest": "recruit_tunic",
             "mainhand": "worn_sword"
           },
           "gatheringProficiency": {},
           "lifetimeXp": 350,
+          "mailWelcomed": true,
           "questsDone": [
             "q_boars"
           ],
@@ -701,7 +708,7 @@
           "fallStartY": 1.5,
           "fiveSecondRule": 99.1,
           "hp": 90,
-          "id": 389,
+          "id": 392,
           "kind": "player",
           "level": 1,
           "lootFfaTimer": "Infinity",
