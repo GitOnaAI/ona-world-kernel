@@ -901,6 +901,12 @@ export const hudChromeStrings = {
       nature: 'Nature',
     },
   },
+  // World-boss spawn announcement. The sim emits this server-wide in English when a
+  // world boss rises; src/ui/sim_i18n.ts re-localizes it through this key, splicing
+  // the localized boss name. English-only domain so an English-only PR compiles.
+  worldBoss: {
+    spawn: '{name} rises over Thornpeak Heights!',
+  },
   // Loot window title shown only when the chest entity is missing (the normal path
   // uses the chest's localized entity name); replaces a former hard-coded 'Chest'.
   loot: {

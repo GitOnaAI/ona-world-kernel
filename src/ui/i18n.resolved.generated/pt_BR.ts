@@ -827,6 +827,9 @@ export const pt_BR: EnTranslations = {
         "nature": "Natureza"
       }
     },
+    "worldBoss": {
+      "spawn": "{name} ergue-se sobre as Alturas de Thornpeak!"
+    },
     "loot": {
       "chestTitle": "Baú"
     },
@@ -3495,7 +3498,8 @@ export const pt_BR: EnTranslations = {
     },
     "cast": {
       "fishing": "Pesca",
-      "demonHeal": "Cura demoníaca"
+      "demonHeal": "Cura demoníaca",
+      "thunzharrStormcall": "Chamado da Tempestade"
     }
   },
   "questUi": {
@@ -5432,6 +5436,30 @@ export const pt_BR: EnTranslations = {
       },
       "vanguard_chrome_armor_plate": {
         "name": "Vanguarda Cromada"
+      },
+      "crownforged_gauntlets": {
+        "name": "Manoplas Forjacoroa"
+      },
+      "nighttalon_grips": {
+        "name": "Pegas Garra Noturna"
+      },
+      "soulflame_gloves": {
+        "name": "Luvas Chama d'Alma"
+      },
+      "stormcallers_handguards": {
+        "name": "Protetores de mão do Chamatormenta"
+      },
+      "crownforged_girdle": {
+        "name": "Cinturão Forjacoroa"
+      },
+      "nighttalon_waistband": {
+        "name": "Cinta Garra Noturna"
+      },
+      "soulflame_cord": {
+        "name": "Cordão Chama d'Alma"
+      },
+      "stormcallers_waistguard": {
+        "name": "Guarda-cintura do Chamatormentas"
       }
     },
     "mobs": {
@@ -5623,6 +5651,12 @@ export const pt_BR: EnTranslations = {
       },
       "acolyte_tessa": {
         "name": "Acólita Tessa"
+      },
+      "thunzharr_waking_peak": {
+        "name": "Thunzharr, o Pico Desperto"
+      },
+      "thunzharr_stormling": {
+        "name": "Elemental de tormenta desperto"
       },
       "ironvein_foreman": {
         "name": "Capataz Veio de Ferro"
@@ -6853,8 +6887,8 @@ export const pt_BR: EnTranslations = {
       },
       "necromancers": {
         "name": "Vestes do necromante",
-        "bonus2": "Reduz em 50% o atraso de conjuração causado por dano.",
-        "bonus3": "Dano recebido não atrasa suas conjurações."
+        "bonus2": "Você não pode ser repelido (100% de resistência a repulsão).",
+        "bonus3": "Aumenta o intelecto em 10 e o vigor em 10."
       },
       "nighttalon": {
         "name": "Traje de couro Garranoite",
@@ -6863,13 +6897,13 @@ export const pt_BR: EnTranslations = {
       },
       "soulflame": {
         "name": "Vestes de Chama da Alma",
-        "bonus2": "Reduz em 50% o atraso de conjuração causado por dano.",
-        "bonus3": "Dano recebido não atrasa suas conjurações."
+        "bonus2": "Você não pode ser repelido (100% de resistência a repulsão).",
+        "bonus3": "Aumenta o intelecto em 15 e o espírito em 15."
       },
       "stormcallers": {
         "name": "Vestes do Chamatormentas",
-        "bonus2": "Reduz em 50% o atraso de conjuração causado por dano.",
-        "bonus3": "Dano recebido não atrasa suas conjurações."
+        "bonus2": "Você não pode ser repelido (100% de resistência a repulsão).",
+        "bonus3": "Aumenta o intelecto em 15 e o espírito em 15."
       },
       "wyrmshadow": {
         "name": "Traje Sombraverme",

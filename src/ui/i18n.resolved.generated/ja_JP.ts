@@ -827,6 +827,9 @@ export const ja_JP: EnTranslations = {
         "nature": "自然"
       }
     },
+    "worldBoss": {
+      "spawn": "{name}がソーンピーク高地に立ち上がった！"
+    },
     "loot": {
       "chestTitle": "宝箱"
     },
@@ -3495,7 +3498,8 @@ export const ja_JP: EnTranslations = {
     },
     "cast": {
       "fishing": "釣り",
-      "demonHeal": "悪魔の治癒"
+      "demonHeal": "悪魔の治癒",
+      "thunzharrStormcall": "嵐の呼び声"
     }
   },
   "questUi": {
@@ -5432,6 +5436,30 @@ export const ja_JP: EnTranslations = {
       },
       "vanguard_chrome_armor_plate": {
         "name": "ヴァンガードクローム"
+      },
+      "crownforged_gauntlets": {
+        "name": "冠鍛えのガントレット"
+      },
+      "nighttalon_grips": {
+        "name": "夜爪の握り"
+      },
+      "soulflame_gloves": {
+        "name": "魂炎のグローブ"
+      },
+      "stormcallers_handguards": {
+        "name": "嵐呼びの手甲"
+      },
+      "crownforged_girdle": {
+        "name": "冠鍛えのベルト"
+      },
+      "nighttalon_waistband": {
+        "name": "夜爪の腰帯"
+      },
+      "soulflame_cord": {
+        "name": "魂炎の腰紐"
+      },
+      "stormcallers_waistguard": {
+        "name": "嵐呼びの腰当て"
       }
     },
     "mobs": {
@@ -5623,6 +5651,12 @@ export const ja_JP: EnTranslations = {
       },
       "acolyte_tessa": {
         "name": "侍祭テッサ"
+      },
+      "thunzharr_waking_peak": {
+        "name": "サンザール、目覚めし峰"
+      },
+      "thunzharr_stormling": {
+        "name": "目覚めた嵐の精"
       },
       "ironvein_foreman": {
         "name": "鉄脈の現場監督"
@@ -6853,8 +6887,8 @@ export const ja_JP: EnTranslations = {
       },
       "necromancers": {
         "name": "死霊術師の法衣",
-        "bonus2": "ダメージによる詠唱押し戻しを50%軽減します。",
-        "bonus3": "詠唱中にダメージを受けても押し戻されません。"
+        "bonus2": "ノックバックされなくなります（ノックバック耐性100%）。",
+        "bonus3": "知力が10、スタミナが10上昇します。"
       },
       "nighttalon": {
         "name": "夜爪の革装束",
@@ -6863,13 +6897,13 @@ export const ja_JP: EnTranslations = {
       },
       "soulflame": {
         "name": "魂炎の法衣",
-        "bonus2": "ダメージによる詠唱押し戻しを50%軽減します。",
-        "bonus3": "詠唱中にダメージを受けても押し戻されません。"
+        "bonus2": "ノックバックされなくなります（ノックバック耐性100%）。",
+        "bonus3": "知力が15、精神力が15上昇します。"
       },
       "stormcallers": {
         "name": "嵐呼びの法衣",
-        "bonus2": "ダメージによる詠唱押し戻しを50%軽減します。",
-        "bonus3": "詠唱中にダメージを受けても押し戻されません。"
+        "bonus2": "ノックバックされなくなります（ノックバック耐性100%）。",
+        "bonus3": "知力が15、精神力が15上昇します。"
       },
       "wyrmshadow": {
         "name": "竜影の装束",

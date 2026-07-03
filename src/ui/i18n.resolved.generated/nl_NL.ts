@@ -827,6 +827,9 @@ export const nl_NL: EnTranslations = {
         "nature": "Natuur"
       }
     },
+    "worldBoss": {
+      "spawn": "{name} rises over Thornpeak Heights!"
+    },
     "loot": {
       "chestTitle": "Kist"
     },
@@ -3495,7 +3498,8 @@ export const nl_NL: EnTranslations = {
     },
     "cast": {
       "fishing": "Vissen",
-      "demonHeal": "Demonengenezing"
+      "demonHeal": "Demonengenezing",
+      "thunzharrStormcall": "Stormroep"
     }
   },
   "questUi": {
@@ -5432,6 +5436,30 @@ export const nl_NL: EnTranslations = {
       },
       "vanguard_chrome_armor_plate": {
         "name": "Voorhoede-Chroom"
+      },
+      "crownforged_gauntlets": {
+        "name": "Kroongesmede Handschoenen"
+      },
+      "nighttalon_grips": {
+        "name": "Nachtklauw-Grepen"
+      },
+      "soulflame_gloves": {
+        "name": "Zielsvlam-Handschoenen"
+      },
+      "stormcallers_handguards": {
+        "name": "Handbeschermers van de Stormroeper"
+      },
+      "crownforged_girdle": {
+        "name": "Kroongesmede Gordel"
+      },
+      "nighttalon_waistband": {
+        "name": "Nachtklauw-Lendenband"
+      },
+      "soulflame_cord": {
+        "name": "Zielsvlam-Koord"
+      },
+      "stormcallers_waistguard": {
+        "name": "Lendenbescherming van de Stormroeper"
       }
     },
     "mobs": {
@@ -5623,6 +5651,12 @@ export const nl_NL: EnTranslations = {
       },
       "acolyte_tessa": {
         "name": "Acoliet Tessa"
+      },
+      "thunzharr_waking_peak": {
+        "name": "Thunzharr, the Waking Peak"
+      },
+      "thunzharr_stormling": {
+        "name": "Roused Stormling"
       },
       "ironvein_foreman": {
         "name": "IJzerader-Voorman"
@@ -6853,8 +6887,8 @@ export const nl_NL: EnTranslations = {
       },
       "necromancers": {
         "name": "Gewaden van de necromant",
-        "bonus2": "Vermindert terugslag bij spreuken door schade met 50%.",
-        "bonus3": "Opgelopen schade vertraagt je spreuken niet."
+        "bonus2": "Je kunt niet worden teruggeslagen (100% terugslagweerstand).",
+        "bonus3": "Verhoogt intellect met 10 en uithoudingsvermogen met 10."
       },
       "nighttalon": {
         "name": "Nachtklauw leren uitrusting",
@@ -6863,13 +6897,13 @@ export const nl_NL: EnTranslations = {
       },
       "soulflame": {
         "name": "Zielenvlamgewaden",
-        "bonus2": "Vermindert terugslag bij spreuken door schade met 50%.",
-        "bonus3": "Opgelopen schade vertraagt je spreuken niet."
+        "bonus2": "Je kunt niet worden teruggeslagen (100% terugslagweerstand).",
+        "bonus3": "Verhoogt intellect met 15 en geest met 15."
       },
       "stormcallers": {
         "name": "Gewaden van de Stormroeper",
-        "bonus2": "Vermindert terugslag bij spreuken door schade met 50%.",
-        "bonus3": "Opgelopen schade vertraagt je spreuken niet."
+        "bonus2": "Je kunt niet worden teruggeslagen (100% terugslagweerstand).",
+        "bonus3": "Verhoogt intellect met 15 en geest met 15."
       },
       "wyrmshadow": {
         "name": "Wurmschaduw-uitrusting",

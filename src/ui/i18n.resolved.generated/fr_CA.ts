@@ -827,6 +827,9 @@ export const fr_CA: EnTranslations = {
         "nature": "nature"
       }
     },
+    "worldBoss": {
+      "spawn": "{name} se dresse sur les Hauteurs de Thornpeak !"
+    },
     "loot": {
       "chestTitle": "Coffre"
     },
@@ -3495,7 +3498,8 @@ export const fr_CA: EnTranslations = {
     },
     "cast": {
       "fishing": "Pêche",
-      "demonHeal": "Soin démoniaque"
+      "demonHeal": "Soin démoniaque",
+      "thunzharrStormcall": "Appel de la tempête"
     }
   },
   "questUi": {
@@ -5432,6 +5436,30 @@ export const fr_CA: EnTranslations = {
       },
       "vanguard_chrome_armor_plate": {
         "name": "Avant-garde chrome"
+      },
+      "crownforged_gauntlets": {
+        "name": "Gantelets Forgécouronne"
+      },
+      "nighttalon_grips": {
+        "name": "Poignes Serre-de-nuit"
+      },
+      "soulflame_gloves": {
+        "name": "Gants Flamme-d'âme"
+      },
+      "stormcallers_handguards": {
+        "name": "Protège-mains d'Appel-tempête"
+      },
+      "crownforged_girdle": {
+        "name": "Ceinturon Forgécouronne"
+      },
+      "nighttalon_waistband": {
+        "name": "Ceinture Serre-de-nuit"
+      },
+      "soulflame_cord": {
+        "name": "Corde Flamme-d'âme"
+      },
+      "stormcallers_waistguard": {
+        "name": "Protège-taille d'Appel-tempête"
       }
     },
     "mobs": {
@@ -5623,6 +5651,12 @@ export const fr_CA: EnTranslations = {
       },
       "acolyte_tessa": {
         "name": "Acolyte Tessa"
+      },
+      "thunzharr_waking_peak": {
+        "name": "Thunzharr, le Pic Éveillé"
+      },
+      "thunzharr_stormling": {
+        "name": "Élémentaire de tempête éveillé"
       },
       "ironvein_foreman": {
         "name": "Contremaître Veinefer"
@@ -6853,8 +6887,8 @@ export const fr_CA: EnTranslations = {
       },
       "necromancers": {
         "name": "Robe du nécromancien",
-        "bonus2": "Réduit de 50% le recul des incantations causé par les dégâts.",
-        "bonus3": "Les dégâts subis ne retardent pas l'incantation."
+        "bonus2": "Vous ne pouvez pas être projeté en arrière (100% de résistance à la projection).",
+        "bonus3": "Augmente l'intelligence de 10 et l'endurance de 10."
       },
       "nighttalon": {
         "name": "Tenue de cuir Serre-nuit",
@@ -6863,13 +6897,13 @@ export const fr_CA: EnTranslations = {
       },
       "soulflame": {
         "name": "Robe de Flamme d’âme",
-        "bonus2": "Réduit de 50% le recul des incantations causé par les dégâts.",
-        "bonus3": "Les dégâts subis ne retardent pas l'incantation."
+        "bonus2": "Vous ne pouvez pas être projeté en arrière (100% de résistance à la projection).",
+        "bonus3": "Augmente l'intelligence de 15 et l'esprit de 15."
       },
       "stormcallers": {
         "name": "Robe de l’Appel-tempête",
-        "bonus2": "Réduit de 50% le recul des incantations causé par les dégâts.",
-        "bonus3": "Les dégâts subis ne retardent pas l'incantation."
+        "bonus2": "Vous ne pouvez pas être projeté en arrière (100% de résistance à la projection).",
+        "bonus3": "Augmente l'intelligence de 15 et l'esprit de 15."
       },
       "wyrmshadow": {
         "name": "Tenue d’Ombre-drake",
