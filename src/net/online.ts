@@ -430,13 +430,13 @@ export class Api {
     });
     const text = await res.text();
     if (!res.ok) {
-      let msg = `request failed (${res.status})`;
+      let data: unknown;
       try {
-        msg = JSON.parse(text).error ?? msg;
+        data = JSON.parse(text);
       } catch {
-        /* non-JSON error body */
+        /* non-JSON error body: apiErrorFromBody keeps the diagnostic message */
       }
-      throw new ApiError(msg, res.status);
+      throw apiErrorFromBody(data, res.status);
     }
     return JSON.parse(text);
   }
