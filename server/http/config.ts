@@ -21,19 +21,27 @@
 // CONSCIOUS EXCEPTIONS to the read-once-here rule (deliberately NOT threaded
 // through Config; each reads its env at the point and time it needs it, by
 // design, so loadConfig only VALIDATES parseability where noted, never relocates
-// the read):
+// the read). Ambient NODE_ENV mode checks and the test-only-seam production
+// guards (the resetActiveConfigForTests-style throws) are outside this rule's
+// scope: NODE_ENV has no garbage state and those guards must stay self-contained.
 //   (1) Per-request secret gates that treat env-unset as feature-off / fail-closed
 //       at request time: require_internal_secret.ts + internal.ts
 //       (RESTART_COUNTDOWN_SECRET, DISCORD_BOT_SECRET) and daily_rewards.ts
 //       (WOC_DAILY_REWARD_SERVICE_SECRET, WOC_DAILY_REWARD_SERVICE_URL).
-//   (2) game.ts per-tick / per-command dev reads (ALLOW_DEV_COMMANDS per command,
-//       ANTIBOT_ENFORCE, PERF_TICK_LOG, SELF_SNAPSHOT_FULL). ALLOW_DEV_COMMANDS is
-//       ALSO surfaced on Config for the parity/status reads, but the cheat gate in
-//       game.ts stays a per-command read on purpose.
+//   (2) Per-request dev-gate reads of ALLOW_DEV_COMMANDS: the game.ts per-tick /
+//       per-command cheat gates (alongside ANTIBOT_ENFORCE, PERF_TICK_LOG,
+//       SELF_SNAPSHOT_FULL) and the two /api/perf report gates (the main.ts legacy
+//       arm and the leaderboard.ts migrated arm, each kept a live per-request read
+//       so the two dispatch arms cannot diverge before the Phase 25 ladder
+//       deletion). ALLOW_DEV_COMMANDS is also surfaced on Config (allowDevCommands)
+//       as the validated single-source pin for a later-phase consumer; every live
+//       cheat gate stays a per-command env read on purpose.
 //   (3) Domain feature-config getters that own their own env (discord.ts, github.ts
 //       OAuth, oauth.ts, native_attestation.ts, email/, auth.ts banlist,
 //       chat_filter_db.ts, woc_balance.ts, perf_report.ts, TRUSTED_PROXY_IPS in
-//       ratelimit.ts).
+//       ratelimit.ts), plus daily_rewards.ts's module-load cache-TTL test knob
+//       WOC_DAILY_REWARD_CONFIG_TTL_MS (a garbage value degrades to cache-off,
+//       never breaks a request).
 //   (4) The security-header / enforce-flag middlewares keep their own
 //       `env = process.env` seam (security_headers.ts HSTS-in-prod,
 //       content_type.ts API_CONTENT_TYPE_ENFORCE, origin_check.ts
@@ -43,7 +51,10 @@
 //       (requireWebLogin) because server/main.ts consumed it as a module const.
 //   (5) db.ts module-scope DATABASE_URL read + pool construction (a pg pool
 //       connects lazily, so a bare import opens nothing; loadConfig owns the
-//       fail-fast throw on an empty DATABASE_URL).
+//       fail-fast throw on an empty DATABASE_URL). db.ts also reads the one-shot
+//       MARKET_BACKFILL_DRY_RUN ops flag at the point of the Phase 20 backfill
+//       inside ensureSchema ('1' deliberately halts boot for inspection; any other
+//       value is off, no garbage state).
 //   (6) The realm/origin keys (server/realm.ts) that resolve at module load with a
 //       deliberate warn-and-fallback (REALM_NAME, REALM_TYPE, REALM_RESET_TZ): those
 //       are tolerant BY DESIGN (a bad value warns and falls back, a currently-working
@@ -67,6 +78,9 @@ export interface Config {
   // (server/ratelimit_db.ts) shares this one pool, so an empty value is fatal.
   readonly databaseUrl: string;
   readonly port: number;
+  // The validated single-source surface of ALLOW_DEV_COMMANDS, held for a
+  // later-phase consumer; the live cheat gates (game.ts, the two /api/perf arms)
+  // deliberately re-read env per command (see conscious exception (2) above).
   readonly allowDevCommands: boolean;
   readonly turnstileSecret: string;
   readonly maxWsPerIpHard: number;

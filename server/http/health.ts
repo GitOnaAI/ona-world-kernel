@@ -110,7 +110,9 @@ function secretsMatch(actual: string, expected: string): boolean {
 }
 
 // Extract the credential from an Authorization: Bearer <token> header, or '' when
-// the header is absent, repeated, or not a Bearer scheme. Case-insensitive scheme.
+// the header is absent or not a Bearer scheme. Case-insensitive scheme. A repeated
+// header resolves to its FIRST value (node itself keeps only the first
+// authorization header, so the array branch is defensive, not a bypass).
 function bearerCredential(header: string | string[] | undefined): string {
   const raw = Array.isArray(header) ? header[0] : header;
   if (typeof raw !== 'string') return '';
