@@ -155,6 +155,27 @@ the VisualDef snippet (instant NPC/MOB wiring; a PLAYER cosmetic body still
 requires the SkinCatalog union work, see the snippet). ~200 credits + a few
 cents of gpt-image-2.
 
+### 7. rig-manual (zero-cost local rigging onto the KayKit skeleton)
+```
+node scripts/asset_pipeline/pipeline.mjs rig-manual --raw <raw.glb> --name <snake_case> \
+  [--reference public/models/chars/players/knight.glb] [--pre-rotated] [--job id]
+```
+Skips Tripo's rig + retarget entirely: the raw generated mesh (every skinmodel
+job keeps its `raw.glb`) is transformed into the reference rig's BIND space
+(yaw to face +Z, uniform scale fitting the T-pose arm line to the reference
+wrist line, feet on the bind ground) and skin weights are computed locally
+(`lib/manual_rig.mjs`: distance-to-bone-segment, K=4, 1/d^4 falloff, laterality
+guard). The output carries the reference model's ENTIRE clip library natively
+(all 22 KayKit clips for the knight, including Block/strafes/Walking_Backwards
+that the Tripo preset library cannot provide) plus the REAL handslot.r/.l
+bones, for $0.00 vs ~$1.65 of rig + retargets. Two constraints, both verified:
+vertices must be authored in the space of inverse(IBM) (the rig's REST pose is
+NOT its bind pose; using rest-world coordinates shreds every animated frame),
+and the raw mesh must be a T-pose. Best on humanoids whose proportions are
+close to the reference (the skinmodel lane's redesigns are, by construction);
+review the clip previews for weight bleed on outlier silhouettes. Run `qa
+--job` after, like every lane.
+
 ## Asset library (viewer + inspector, static OR live 3D)
 ```
 node scripts/asset_pipeline/pipeline.mjs library [--full] [--category weapons,skins] [--open]

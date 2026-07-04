@@ -21,6 +21,8 @@
 //   node scripts/asset_pipeline/pipeline.mjs skinset --set prismatic|chrome [--tripo] [--apply]
 //   node scripts/asset_pipeline/pipeline.mjs skinmodel --class hunter --theme "pool party" \
 //     --name pool_party_hunter [--face-limit 8000] [--grip-rot deg] [--apply]  (League-style skin)
+//   node scripts/asset_pipeline/pipeline.mjs rig-manual --raw <raw.glb> --name <key>  (free local rig,
+//     KayKit skeleton + all 22 native clips; see CLAUDE.md)
 //   node scripts/asset_pipeline/pipeline.mjs validate --file x.glb --kind weapon|prop|creature [--family sword]
 //   node scripts/asset_pipeline/pipeline.mjs preview --file x.glb [--out dir]
 //   node scripts/asset_pipeline/pipeline.mjs library [--serve [--port 5180]] [--category weapons,skins] [--open]
@@ -127,6 +129,7 @@ const STEP_ORDER = {
     'preview',
     'preview_held',
   ],
+  rigmanual: ['manual_rig', 'preview', 'preview_held'],
 };
 
 /** Apply --redo: drop the named ledger steps (comma-separated) AND everything
@@ -973,6 +976,64 @@ async function cmdSkinmodel() {
   });
 }
 
+/** Manual (code-computed) rigging: bind a raw generated mesh onto the KayKit
+ *  reference skeleton with weights computed locally (lib/manual_rig.mjs). The
+ *  output carries the reference rig's ENTIRE clip library natively (all 22
+ *  KayKit clips for the knight) plus the real handslot bones, at zero Tripo
+ *  cost. Assumes a Tripo-style raw mesh (T-pose, facing +X); --pre-rotated
+ *  skips the yaw for meshes already facing +Z. */
+async function cmdRigManual() {
+  const raw = opt('raw');
+  const name = opt('name');
+  if (!raw || !name) throw new Error('rig-manual needs --raw <glb> and --name <snake_case>');
+  if (!/^[a-z0-9_]+$/.test(name)) throw new Error(`--name must be snake_case: ${name}`);
+  const reference = resolve(REPO_ROOT, opt('reference', 'public/models/chars/players/knight.glb'));
+  const job = Job.open({ job: opt('job'), kind: 'skinmodel', name });
+  applyRedo(job, 'rigmanual');
+  job.set('kind', 'skinmodel');
+  job.set('name', name);
+  job.set('rigMethod', 'manual');
+
+  const built = job.path(`${name}.glb`);
+  const fit = await job.step('manual_rig', async () => {
+    const { manualRigOntoReference } = await import('./lib/manual_rig.mjs');
+    return manualRigOntoReference(resolve(raw), reference, built, {
+      preRotated: flag('pre-rotated'),
+    });
+  });
+  job.log(`manual rig: scale ${fit.scale}, ${fit.verts} verts skinned, ${fit.clips} native clips`);
+
+  const { CATEGORY_SPECS: SPECS, KAYKIT_REQUIRED_CLIPS } = await import('./lib/families.mjs');
+  const check = await validateCreature(built, {
+    requiredClips: KAYKIT_REQUIRED_CLIPS,
+    spec: SPECS.skinmodel,
+  });
+  job.set('validation', check);
+  for (const w of check.warnings) job.log(`WARN: ${w}`);
+  if (!check.ok) {
+    for (const e of check.errors) job.log(`ERROR: ${e}`);
+    printReport(job, { ok: false, errors: check.errors });
+    throw new Error('manual rig failed validation');
+  }
+
+  await previewStage(job, built);
+  await job.step('preview_held', async () => {
+    const files = await renderHeldPreviews(
+      resolve(REPO_ROOT, 'public/models/weapons/sword_a.glb'),
+      job.path('preview'),
+      { character: built, lift: 0.04, maxHeight: 2.0 },
+    );
+    return { files };
+  });
+
+  printReport(job, {
+    ok: true,
+    glb: built,
+    fit,
+    rig: 'manual (reference skeleton + local weights)',
+  });
+}
+
 async function cmdSkinset() {
   const setName = opt('set') ?? 'prismatic';
   const { SUIT_SETS, SUIT_PROMPTS, MODEL_CLASSES, gradientMapAtlas } = await import(
@@ -1210,6 +1271,7 @@ const COMMANDS = {
   skin: cmdSkin,
   skinset: cmdSkinset,
   skinmodel: cmdSkinmodel,
+  'rig-manual': cmdRigManual,
   validate: cmdValidate,
   preview: cmdPreview,
   'preview-held': cmdPreviewHeld,

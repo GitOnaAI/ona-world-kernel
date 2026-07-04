@@ -22,6 +22,7 @@ Full reference: `scripts/asset_pipeline/CLAUDE.md`. This is the operational loop
 | Mob / NPC / animated character | creature | `creature --name <key> --prompt "..."` |
 | Player-class skin (texture swap) | skin | `skin --class <cls> --suffix <x> --tripo --prompt "..."` |
 | League-style themed CHARACTER skin | skinmodel | `skinmodel --class <cls> --theme "pool party" --name <key>` |
+| Free rig of a raw mesh (KayKit skeleton) | rig-manual | `rig-manual --raw <job>/raw.glb --name <key>` |
 
 skinmodel is the flagship: it renders the REAL base class model, has gpt-image-2 redesign
 that exact character around the theme (same identity, chibi proportions), builds it with
