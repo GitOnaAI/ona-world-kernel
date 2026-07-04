@@ -93,6 +93,7 @@ const KAYKIT_WEAPON_ACCESSORY: Record<string, string> = {
   wand_a: 'VAR_WAND',
   wand_b: 'VAR_WAND',
   adv_wand: 'VAR_WAND',
+  emberfang_sword: 'VAR_SWORD',
 };
 
 // Per-family grip for the variant pack. The model origin IS the grip, so we attach

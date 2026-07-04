@@ -1,0 +1,494 @@
+// GLB post-processing: turns raw Tripo output into a game-convention asset.
+//
+// Conventions enforced here (measured from shipped assets, see lib/families.mjs
+// and scripts/assets/build_assets.mjs):
+// - Weapons: origin AT the grip, blade/head along +Y, family height, centered XZ.
+// - Props: base at y=0, centered XZ, explicit world-unit height.
+// - Creatures: geometry untouched (the game normalizes via VisualDef.height);
+//   animation clips merged from the retarget outputs and renamed to the game
+//   clip vocabulary; in-place check (the sim owns movement, root motion slides).
+// - All: prune+dedup, textures re-encoded WebP (max 512), meshopt on statics
+//   (matching build_assets.mjs 'static'); rigged models keep plain encoding
+//   like CombatMech.glb (resample+prune+dedup only, never simplify/join).
+import { statSync } from 'node:fs';
+import { getBounds, NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import {
+  dedup,
+  meshopt,
+  prune,
+  resample,
+  textureCompress,
+  transformMesh,
+} from '@gltf-transform/functions';
+import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer';
+
+let ioPromise = null;
+async function io() {
+  if (!ioPromise) {
+    ioPromise = (async () => {
+      await MeshoptDecoder.ready;
+      await MeshoptEncoder.ready;
+      return new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({
+        'meshopt.decoder': MeshoptDecoder,
+        'meshopt.encoder': MeshoptEncoder,
+      });
+    })();
+  }
+  return ioPromise;
+}
+
+export async function openGlb(path) {
+  return (await io()).read(path);
+}
+
+export async function saveGlb(doc, path) {
+  await (await io()).write(path, doc);
+  return path;
+}
+
+// ---------------------------------------------------------------------------
+// mat4 helpers (column-major, glTF convention)
+// ---------------------------------------------------------------------------
+
+export function mat4Multiply(a, b) {
+  const out = new Array(16).fill(0);
+  for (let c = 0; c < 4; c++) {
+    for (let r = 0; r < 4; r++) {
+      let s = 0;
+      for (let k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k];
+      out[c * 4 + r] = s;
+    }
+  }
+  return out;
+}
+
+export const mat4RotZ = (t) => [
+  Math.cos(t),
+  Math.sin(t),
+  0,
+  0,
+  -Math.sin(t),
+  Math.cos(t),
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0,
+  0,
+  1,
+];
+export const mat4RotX = (t) => [
+  1,
+  0,
+  0,
+  0,
+  0,
+  Math.cos(t),
+  Math.sin(t),
+  0,
+  0,
+  -Math.sin(t),
+  Math.cos(t),
+  0,
+  0,
+  0,
+  0,
+  1,
+];
+export const mat4RotY = (t) => [
+  Math.cos(t),
+  0,
+  -Math.sin(t),
+  0,
+  0,
+  1,
+  0,
+  0,
+  Math.sin(t),
+  0,
+  Math.cos(t),
+  0,
+  0,
+  0,
+  0,
+  1,
+];
+export const mat4Scale = (s) => [s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1];
+export const mat4Translate = (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
+
+// ---------------------------------------------------------------------------
+// Inspection
+// ---------------------------------------------------------------------------
+
+/** Structural report: sizes, tris, clips, joints, textures, bounds. */
+export async function inspectGlb(path) {
+  const doc = await openGlb(path);
+  const root = doc.getRoot();
+  let tris = 0;
+  let verts = 0;
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const idx = prim.getIndices();
+      const pos = prim.getAttribute('POSITION');
+      tris += Math.round((idx ? idx.getCount() : (pos?.getCount() ?? 0)) / 3);
+      verts += pos?.getCount() ?? 0;
+    }
+  }
+  const textures = root.listTextures().map((t) => {
+    const size = t.getSize();
+    return {
+      name: t.getName() || null,
+      mime: t.getMimeType(),
+      width: size?.[0] ?? 0,
+      height: size?.[1] ?? 0,
+      bytes: t.getImage()?.byteLength ?? 0,
+    };
+  });
+  const clips = root.listAnimations().map((a) => {
+    let duration = 0;
+    for (const sampler of a.listSamplers()) {
+      const input = sampler.getInput();
+      if (input) duration = Math.max(duration, input.getMax([0])[0] ?? 0);
+    }
+    return { name: a.getName(), duration: +duration.toFixed(3) };
+  });
+  const skins = root.listSkins();
+  const joints = skins.length ? skins[0].listJoints().map((j) => j.getName()) : [];
+  const scene = root.listScenes()[0];
+  const bounds = scene ? getBounds(scene) : { min: [0, 0, 0], max: [0, 0, 0] };
+  return {
+    path,
+    bytes: statSync(path).size,
+    tris,
+    verts,
+    meshes: root.listMeshes().length,
+    materials: root.listMaterials().map((m) => m.getName() || null),
+    textures,
+    clips,
+    skins: skins.length,
+    joints,
+    bounds,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Static-mesh normalization (weapons, props)
+// ---------------------------------------------------------------------------
+
+/** Bake every node's world transform into its mesh vertices and reset ALL node
+ *  TRS, so later whole-model transforms can be applied uniformly. Static
+ *  (non-skinned) scenes only (the weapon/prop lanes).
+ *
+ *  Order matters: world matrices are captured for EVERY node BEFORE any TRS is
+ *  reset (a mesh-bearing node with children must not lose its transform before
+ *  the children read theirs), transform-bearing ancestor nodes without meshes
+ *  are reset too (a residual wrapper rotation would double-apply at render
+ *  time), and a mesh shared by two nodes is baked from a pristine clone per
+ *  extra node (in-place baking the first would compound both transforms). */
+function bakeNodeTransforms(doc) {
+  const records = []; // {node, mesh, world} captured pre-mutation
+  const allNodes = [];
+  const walk = (node) => {
+    allNodes.push(node);
+    const mesh = node.getMesh();
+    if (mesh) records.push({ node, mesh, world: node.getWorldMatrix() });
+    for (const child of node.listChildren()) walk(child);
+  };
+  for (const scene of doc.getRoot().listScenes()) {
+    for (const node of scene.listChildren()) walk(node);
+  }
+
+  const byMesh = new Map();
+  for (const r of records) {
+    if (!byMesh.has(r.mesh)) byMesh.set(r.mesh, []);
+    byMesh.get(r.mesh).push(r);
+  }
+  for (const [mesh, uses] of byMesh) {
+    // Clone for every use beyond the first BEFORE the in-place bake mutates
+    // the shared accessors.
+    for (let i = 1; i < uses.length; i++) {
+      const clone = mesh.clone();
+      uses[i].node.setMesh(clone);
+      uses[i].mesh = clone;
+    }
+    for (const use of uses) transformMesh(use.mesh, use.world);
+  }
+  for (const node of allNodes) {
+    node.setTranslation([0, 0, 0]).setRotation([0, 0, 0, 1]).setScale([1, 1, 1]);
+  }
+}
+
+function forEachPosition(doc, fn) {
+  const done = new Set();
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const pos = prim.getAttribute('POSITION');
+      if (!pos || done.has(pos)) continue;
+      done.add(pos);
+      const el = [0, 0, 0];
+      for (let i = 0; i < pos.getCount(); i++) {
+        pos.getElement(i, el);
+        fn(el);
+      }
+    }
+  }
+}
+
+function measureBounds(doc) {
+  const min = [Infinity, Infinity, Infinity];
+  const max = [-Infinity, -Infinity, -Infinity];
+  forEachPosition(doc, (p) => {
+    for (let k = 0; k < 3; k++) {
+      if (p[k] < min[k]) min[k] = p[k];
+      if (p[k] > max[k]) max[k] = p[k];
+    }
+  });
+  return { min, max };
+}
+
+function applyToAllMeshes(doc, matrix) {
+  for (const mesh of doc.getRoot().listMeshes()) transformMesh(mesh, matrix);
+}
+
+/** Radial "mass" (vertex count weighted by distance from the Y axis) of the top
+ *  and bottom `frac` slabs. Distinguishes an axe head from its handle end. */
+function endMoments(doc, frac = 0.3) {
+  const { min, max } = measureBounds(doc);
+  const h = max[1] - min[1];
+  const topCut = max[1] - h * frac;
+  const botCut = min[1] + h * frac;
+  let top = 0;
+  let bottom = 0;
+  forEachPosition(doc, ([x, y, z]) => {
+    const r = Math.hypot(x - (min[0] + max[0]) / 2, z - (min[2] + max[2]) / 2);
+    if (y >= topCut) top += r;
+    if (y <= botCut) bottom += r;
+  });
+  return { top, bottom };
+}
+
+/** Normalize a generated weapon GLB to the family convention: long axis +Y,
+ *  correct end up (per family), family height, origin at the grip, centered XZ.
+ *  `flip` forcibly inverts the up-end decision (agent escape hatch after
+ *  reviewing the preview). Returns the applied numbers for the report. */
+export async function normalizeWeapon(inPath, outPath, family, { flip = false, maxTex } = {}) {
+  const doc = await openGlb(inPath);
+  bakeNodeTransforms(doc);
+
+  // 1. Long axis to +Y.
+  let { min, max } = measureBounds(doc);
+  const ext = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
+  const longest = ext.indexOf(Math.max(...ext));
+  if (longest === 0) applyToAllMeshes(doc, mat4RotZ(Math.PI / 2));
+  else if (longest === 2) applyToAllMeshes(doc, mat4RotX(-Math.PI / 2));
+
+  // 2. Correct end up. Blades and points go tip-up (small end up); axes,
+  //    hammers, and staff ornaments carry their mass at the top.
+  const { top, bottom } = endMoments(doc);
+  const bigEndUp = top >= bottom;
+  let flipped = false;
+  if (bigEndUp !== family.heavyEndUp) flipped = true;
+  if (flip) flipped = !flipped;
+  if (flipped) applyToAllMeshes(doc, mat4RotZ(Math.PI));
+
+  // 3. Scale to family height, origin at the grip, centered XZ.
+  ({ min, max } = measureBounds(doc));
+  const h = max[1] - min[1];
+  if (h <= 1e-6) throw new Error('degenerate weapon mesh (zero height)');
+  const s = family.height / h;
+  applyToAllMeshes(doc, mat4Scale(s));
+  ({ min, max } = measureBounds(doc));
+  const targetMinY = -family.gripFrac * family.height;
+  const cx = (min[0] + max[0]) / 2;
+  const cz = (min[2] + max[2]) / 2;
+  applyToAllMeshes(doc, mat4Translate(-cx, targetMinY - min[1], -cz));
+
+  await doc.transform(
+    prune(),
+    dedup(),
+    ...(await textureTransforms(maxTex ?? 512)),
+    meshopt({ encoder: MeshoptEncoder, level: 'high' }),
+  );
+  await saveGlb(doc, outPath);
+  return { scale: +s.toFixed(4), flipped, height: family.height, gripFrac: family.gripFrac };
+}
+
+/** Normalize a generated prop GLB: base at y=0, centered XZ, world-unit height,
+ *  optional yaw (radians) so the front/opening faces +Z. */
+export async function normalizeProp(inPath, outPath, { height, rotateY = 0, maxTex } = {}) {
+  if (!height || height <= 0) throw new Error('normalizeProp needs a world-unit --height');
+  const doc = await openGlb(inPath);
+  bakeNodeTransforms(doc);
+  if (rotateY) applyToAllMeshes(doc, mat4RotY(rotateY));
+  let { min, max } = measureBounds(doc);
+  const h = max[1] - min[1];
+  if (h <= 1e-6) throw new Error('degenerate prop mesh (zero height)');
+  const s = height / h;
+  applyToAllMeshes(doc, mat4Scale(s));
+  ({ min, max } = measureBounds(doc));
+  const cx = (min[0] + max[0]) / 2;
+  const cz = (min[2] + max[2]) / 2;
+  applyToAllMeshes(doc, mat4Translate(-cx, -min[1], -cz));
+  await doc.transform(
+    prune(),
+    dedup(),
+    ...(await textureTransforms(maxTex ?? 512)),
+    meshopt({ encoder: MeshoptEncoder, level: 'high' }),
+  );
+  await saveGlb(doc, outPath);
+  return { scale: +s.toFixed(4), height };
+}
+
+async function textureTransforms(maxTex) {
+  let sharp = null;
+  try {
+    sharp = (await import('sharp')).default;
+  } catch {
+    return []; // sharp unavailable: keep original textures
+  }
+  return [textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [maxTex, maxTex] })];
+}
+
+// ---------------------------------------------------------------------------
+// Rigged-model clip merge (creatures / characters)
+// ---------------------------------------------------------------------------
+
+/** Merge retargeted animation GLBs into one rigged, game-named model.
+ *  `base` is the first retarget output (geometry + skeleton + its clip);
+ *  `clips` = [{path, preset, game}] covering every desired game clip name,
+ *  where multiple entries may point at the same multi-clip file. Channels are
+ *  re-pointed by NODE NAME (same rig task, identical skeletons), the exact
+ *  bake_mech_anims.mjs technique. Optimizes like build_assets 'character'
+ *  (resample+prune+dedup+webp, no meshopt: plain encoding like CombatMech.glb,
+ *  and never simplify/join). */
+export async function assembleRiggedModel(base, clips, outPath, { maxTex } = {}) {
+  const target = await openGlb(base);
+  const troot = target.getRoot();
+  // Drop whatever clips the base shipped with; they get re-added by name below.
+  for (const anim of troot.listAnimations()) anim.dispose();
+
+  const nodesByName = new Map();
+  for (const node of troot.listNodes()) nodesByName.set(node.getName(), node);
+  const buffer = troot.listBuffers()[0] ?? target.createBuffer();
+
+  const added = [];
+  const skippedBones = new Set();
+  for (const { path, preset, game } of clips) {
+    const src = await openGlb(path);
+    const anims = src.getRoot().listAnimations();
+    const srcAnim = pickAnimation(anims, preset);
+    if (!srcAnim) {
+      added.push({ game, preset, ok: false, reason: `no matching clip in ${path}` });
+      continue;
+    }
+    const anim = target.createAnimation(game);
+    const cloneAccessor = (a) =>
+      target
+        .createAccessor(a.getName())
+        .setType(a.getType())
+        .setArray(a.getArray().slice())
+        .setNormalized(a.getNormalized())
+        .setBuffer(buffer);
+    const samplerMap = new Map();
+    for (const s of srcAnim.listSamplers()) {
+      const sampler = target
+        .createAnimationSampler()
+        .setInterpolation(s.getInterpolation())
+        .setInput(cloneAccessor(s.getInput()))
+        .setOutput(cloneAccessor(s.getOutput()));
+      samplerMap.set(s, sampler);
+      anim.addSampler(sampler);
+    }
+    let channels = 0;
+    for (const ch of srcAnim.listChannels()) {
+      const name = ch.getTargetNode()?.getName();
+      const dst = name ? nodesByName.get(name) : null;
+      if (!dst) {
+        if (name) skippedBones.add(name);
+        continue;
+      }
+      const channel = target
+        .createAnimationChannel()
+        .setTargetNode(dst)
+        .setTargetPath(ch.getTargetPath())
+        .setSampler(samplerMap.get(ch.getSampler()));
+      anim.addChannel(channel);
+      channels++;
+    }
+    if (channels === 0) {
+      // An empty clip must not keep its game name: the required-clips
+      // validation checks names, and a present-but-empty Attack would pass the
+      // gate yet freeze in game.
+      anim.dispose();
+    }
+    added.push({ game, preset, ok: channels > 0, channels });
+  }
+
+  await target.transform(resample(), prune(), dedup(), ...(await textureTransforms(maxTex ?? 512)));
+  await saveGlb(target, outPath);
+  return { added, skippedBones: [...skippedBones] };
+}
+
+/** Pick the animation matching a preset from a (usually single-clip) file. */
+function pickAnimation(anims, preset) {
+  if (anims.length === 1) return anims[0];
+  const tail = preset.split(':').pop().toLowerCase();
+  return (
+    anims.find((a) => a.getName().toLowerCase() === tail) ??
+    anims.find((a) => a.getName().toLowerCase().includes(tail)) ??
+    null
+  );
+}
+
+/** In-place check: per clip, the XZ translation range of root-level joints.
+ *  A range above `limit` world units means baked root motion, which slides
+ *  against sim-owned movement. Returns [{clip, range}] offenders. */
+export async function checkInPlace(path, { limit } = {}) {
+  const doc = await openGlb(path);
+  const root = doc.getRoot();
+  const skins = root.listSkins();
+  if (!skins.length) return [];
+  // Scale the threshold to the model (creature GLBs keep Tripo's native units):
+  // in-place hip sway is a few percent of body height; travel is far more.
+  const scene = root.listScenes()[0];
+  const b = scene ? getBounds(scene) : null;
+  const height = b ? Math.max(1e-3, b.max[1] - b.min[1]) : 1;
+  const effLimit = limit ?? Math.max(0.15, height * 0.12);
+  const joints = skins.flatMap((s) => s.listJoints());
+  const parents = new Set();
+  for (const j of joints) for (const c of j.listChildren()) parents.add(c);
+  const rootJoints = new Set(joints.filter((j) => !parents.has(j)));
+  // Include the conventional root-motion carriers by substring (Bip01_Pelvis,
+  // mixamorig:Hips, etc.), wherever they sit in the hierarchy.
+  for (const j of joints) {
+    if (/(root|hips|pelvis|armature)/i.test(j.getName())) rootJoints.add(j);
+  }
+  const offenders = [];
+  for (const anim of root.listAnimations()) {
+    let range = 0;
+    for (const ch of anim.listChannels()) {
+      if (ch.getTargetPath() !== 'translation') continue;
+      const node = ch.getTargetNode();
+      if (!node || !rootJoints.has(node)) continue;
+      const out = ch.getSampler()?.getOutput();
+      if (!out) continue;
+      const el = [0, 0, 0];
+      const min = [Infinity, Infinity, Infinity];
+      const max = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < out.getCount(); i++) {
+        out.getElement(i, el);
+        for (let k = 0; k < 3; k++) {
+          if (el[k] < min[k]) min[k] = el[k];
+          if (el[k] > max[k]) max[k] = el[k];
+        }
+      }
+      range = Math.max(range, max[0] - min[0], max[2] - min[2]);
+    }
+    if (range > effLimit) offenders.push({ clip: anim.getName(), range: +range.toFixed(3) });
+  }
+  return offenders;
+}
