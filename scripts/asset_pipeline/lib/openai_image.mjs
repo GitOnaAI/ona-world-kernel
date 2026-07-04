@@ -15,8 +15,12 @@ const OPENAI_BASE = 'https://api.openai.com/v1';
 export const IMAGE_MODEL = process.env.ASSET_PIPELINE_IMAGE_MODEL || 'gpt-image-2';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Backoff with jitter, capped: 520 bursts under CONCURRENT images/edits calls
+// last minutes, so a short fixed backoff burns every retry inside the burst.
+// Serialize concept stages across processes where possible (see CLAUDE.md).
+const backoff = (attempt) => Math.min(45000, 3000 * 2 ** attempt) * (0.7 + Math.random() * 0.6);
 
-async function openaiFetch(path, init, { retries = 3 } = {}) {
+async function openaiFetch(path, init, { retries = 5 } = {}) {
   const key = openaiKey();
   if (!key) throw new Error('OPENAI_API_KEY is not set (the gpt-image-2 stage is optional)');
   let lastErr;
@@ -30,7 +34,7 @@ async function openaiFetch(path, init, { retries = 3 } = {}) {
     } catch (err) {
       // Network error: retry with backoff.
       lastErr = err;
-      await sleep(2000 * 2 ** attempt);
+      await sleep(backoff(attempt));
       continue;
     }
     const json = await res.json().catch(() => null);
@@ -40,7 +44,7 @@ async function openaiFetch(path, init, { retries = 3 } = {}) {
     // client errors fail fast.
     if (res.status === 429 || res.status >= 500) {
       lastErr = new Error(msg);
-      await sleep(2000 * 2 ** attempt);
+      await sleep(backoff(attempt));
       continue;
     }
     throw new Error(msg);

@@ -75,6 +75,17 @@ preview PNGs under `tmp/asset_pipeline/<job>/preview/`: `front.png`, `right.png`
   (they change the look, not the silhouette); a radically new BODY shape is the Combat Mech
   cosmetic-body path, which needs a `SkinCatalog` union change and is NOT automated by this lane.
 
+## 3b. QA gate (mandatory before apply)
+```
+node scripts/asset_pipeline/pipeline.mjs qa --job <id>
+```
+Lane-aware structural re-verification (rig + required clips, grip convention + HUD icon +
+held-on-all-7-characters renders for weapons, handslots + KayKit vocabulary for skinmodels,
+preview coverage) plus the REAL itemized cost: each recorded Tripo task is priced from the
+API's own `credits_consumed` (1 credit = $0.01) and gpt-image-2 usage at token rates.
+PASS/WARN/FAIL scorecard; `qa.json` in the job dir; exits 1 on FAIL (fix with `--redo` or a
+regenerate before integrating). ALWAYS report the printed TOTAL cost per asset to the user.
+
 ## 4. Apply, guard tests, manifest
 Rerun with `--apply` (still `--job <id>` so nothing regenerates). Then:
 - weapon: `npx vitest run tests/held_weapon_models.test.ts`

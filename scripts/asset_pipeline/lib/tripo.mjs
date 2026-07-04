@@ -100,6 +100,12 @@ export async function balance() {
   return request('/account/balance');
 }
 
+/** Fetch one task's detail (status, credits_consumed, output). Used by the QA
+ *  cost report to price each recorded task id. */
+export async function getTask(taskId) {
+  return request(`/tasks/${taskId}`);
+}
+
 /** Upload a local image or model file; returns a file_token string. */
 export async function uploadFile(path) {
   const buf = await readFile(path);

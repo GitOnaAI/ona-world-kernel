@@ -12,8 +12,17 @@ origins, y=0 bases, in-place clips, WebP 512 textures, meshopt), so a generated 
 to the existing KayKit/Quaternius-style set without looking imported.
 
 Run: `node scripts/asset_pipeline/pipeline.mjs <command> [options]` (`--help` prints usage).
-Commands: `weapon`, `prop`, `creature`, `skin`, `skinset`, `skinmodel`, `library`, `validate`,
-`preview`, `preview-held`, `status`, `balance`, `inspect`, `inplace-check`.
+Commands: `weapon`, `prop`, `creature`, `skin`, `skinset`, `skinmodel`, `library`, `qa`,
+`validate`, `preview`, `preview-held`, `status`, `balance`, `inspect`, `inplace-check`.
+
+**`qa --job <id>` is the mandatory last step for every generated asset.** It re-verifies
+the finished job structurally (lane-aware: rig + required clips, grip convention + HUD icon
++ held-on-all-7-characters renders for weapons, handslots + KayKit clip vocabulary for
+skinmodels, preview coverage) and prices it for REAL: every recorded Tripo task id is
+queried for its actual `credits_consumed` (1 credit = $0.01) and stored gpt-image-2 usage
+blocks are priced at the published token rates (`lib/cost.mjs`). Prints a PASS/WARN/FAIL
+scorecard with itemized dollars, writes `qa.json` into the job dir, and exits 1 on FAIL.
+The structural gate complements (never replaces) eyeballing the previews for look.
 
 Style coherence is grounded in the game's REAL art, not adjectives: when
 `OPENAI_API_KEY` is set, every concept ships with a style board (renders of

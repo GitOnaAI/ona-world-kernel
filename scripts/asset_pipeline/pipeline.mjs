@@ -180,19 +180,22 @@ async function conceptStage(job, { kind, description, family, image }) {
       } catch (err) {
         job.log(`style board unavailable (${String(err.message).slice(0, 80)}); plain concept`);
       }
+      let usage = null;
       if (board) {
         job.log(`gpt-image-2 concept (style-referenced): ${prompt.slice(0, 100)}...`);
-        await editImages({
+        const r = await editImages({
           prompt: `${STYLE_REF_INSTRUCTION} Now create: ${prompt}`,
           images: [board],
           dest,
           size: '1024x1024',
         });
+        usage = r.usage;
       } else {
         job.log(`gpt-image-2 concept: ${prompt.slice(0, 120)}...`);
-        await generateConceptImage({ prompt, dest });
+        const r = await generateConceptImage({ prompt, dest });
+        usage = r.usage;
       }
-      return { input: dest, conceptPath: dest, source: 'gpt-image-2' };
+      return { input: dest, conceptPath: dest, source: 'gpt-image-2', usage };
     });
   }
   return job.step('concept', async () => {
@@ -793,13 +796,13 @@ async function cmdSkinmodel() {
     const { skinModelPrompt } = await import('./lib/prompts.mjs');
     const dest = job.path('concept.png');
     job.log(`gpt-image-2 skin redesign: "${theme}" ${cls}...`);
-    await editImages({
+    const r = await editImages({
       prompt: skinModelPrompt({ theme, className: cls }),
       images: views.files,
       dest,
       size: '1024x1536',
     });
-    return { dest };
+    return { dest, usage: r.usage };
   });
 
   // 3. Best-quality Tripo build: v3.1 + smart_low_poly (clean topology at a
@@ -1129,6 +1132,16 @@ async function cmdLibrary() {
   }
 }
 
+async function cmdQa() {
+  const jobId = opt('job');
+  if (!jobId) throw new Error('qa needs --job <id>');
+  const { runJobQa, printQa } = await import('./lib/qa.mjs');
+  const job = Job.open({ job: jobId });
+  const r = await runJobQa(job);
+  printQa(r);
+  if (r.verdict === 'FAIL') process.exitCode = 1;
+}
+
 async function cmdStatus() {
   const jobId = opt('job');
   if (jobId) {
@@ -1187,6 +1200,7 @@ const COMMANDS = {
   preview: cmdPreview,
   'preview-held': cmdPreviewHeld,
   library: cmdLibrary,
+  qa: cmdQa,
   status: cmdStatus,
   balance: cmdBalance,
   inspect: cmdInspect,
