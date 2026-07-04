@@ -14,6 +14,20 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ru_RU: Partial<Record<TranslationKey, string>> = {
+  'auth.emailPlaceholder': 'ivan@example.com',
+  'auth.recovery.logOut': 'Выйти',
+  'delveRiteUi.easy': 'Лёгкий',
+  'delveRiteUi.hard': 'Сложный',
+  'delveUi.object.bell_rope': 'Колокольная Верёвка',
+  'editor.topbar.redo': 'Повторить',
+  'editor.topbar.undo': 'Отменить',
+  'hudChrome.bags.bagSocketAria': '{name}: {slots}',
+  'hudChrome.bags.capacity': '{used}/{total}',
+  'hudChrome.mailbox.back': 'Назад',
+  'hudChrome.mailbox.tabSend': 'Отправить',
+  'hudChrome.mailbox.toLabel': 'Кому',
+  'itemUi.kind.bag': 'Сумка',
+  'itemUi.tooltip.bagSlots': 'Сумка на {slots} ячеек',
   // Guild roster last-seen (M16 non-Latin fill)
   'hudChrome.social.lastSeen': 'Последний вход: {when}',
   'hudChrome.social.lastSeenNever': 'никогда',

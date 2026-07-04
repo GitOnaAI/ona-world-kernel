@@ -14,6 +14,20 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ko_KR: Partial<Record<TranslationKey, string>> = {
+  'auth.emailPlaceholder': 'you@example.com',
+  'auth.recovery.logOut': '로그아웃',
+  'delveRiteUi.easy': '쉬움',
+  'delveRiteUi.hard': '어려움',
+  'delveUi.object.bell_rope': '종 밧줄',
+  'editor.topbar.redo': '다시 실행',
+  'editor.topbar.undo': '실행 취소',
+  'hudChrome.bags.bagSocketAria': '{name}: {slots}',
+  'hudChrome.bags.capacity': '{used}/{total}',
+  'hudChrome.mailbox.back': '뒤로 가기',
+  'hudChrome.mailbox.tabSend': '보내기',
+  'hudChrome.mailbox.toLabel': '받는 사람',
+  'itemUi.kind.bag': '가방',
+  'itemUi.tooltip.bagSlots': '{slots}칸 가방',
   // Guild roster last-seen (M16 non-Latin fill)
   'hudChrome.social.lastSeen': '마지막 접속: {when}',
   'hudChrome.social.lastSeenNever': '없음',

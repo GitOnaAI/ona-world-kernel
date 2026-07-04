@@ -14,6 +14,20 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const zh_TW: Partial<Record<TranslationKey, string>> = {
+  'auth.emailPlaceholder': 'you@example.com',
+  'auth.recovery.logOut': '登出',
+  'delveRiteUi.easy': '簡單',
+  'delveRiteUi.hard': '困難',
+  'delveUi.object.bell_rope': '鐘繩',
+  'editor.topbar.redo': '重做',
+  'editor.topbar.undo': '復原',
+  'hudChrome.bags.bagSocketAria': '{name}：{slots}',
+  'hudChrome.bags.capacity': '{used}/{total}',
+  'hudChrome.mailbox.back': '返回',
+  'hudChrome.mailbox.tabSend': '寄信',
+  'hudChrome.mailbox.toLabel': '收件人',
+  'itemUi.kind.bag': '背包',
+  'itemUi.tooltip.bagSlots': '{slots}格背包',
   // Guild roster last-seen (M16 non-Latin fill)
   'hudChrome.social.lastSeen': '最後上線: {when}',
   'hudChrome.social.lastSeenNever': '從未',
