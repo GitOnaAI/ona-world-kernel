@@ -291,6 +291,9 @@ export function collectInventory() {
         path: `tmp/asset_pipeline/${id}`,
         abs: existsSync(builtGlb) ? builtGlb : null,
         bytes: existsSync(builtGlb) ? statSync(builtGlb).size : 0,
+        // Weapon-lane jobs carry their grip family so the live viewer can
+        // equip them on characters exactly like applied weapons.
+        family: state.kind === 'weapon' ? (weaponFamilyFor(name)?.name ?? null) : null,
         job: {
           id,
           lane: state.kind ?? null,

@@ -33,9 +33,15 @@ function loadTex(url) {
   return new Promise((res, rej) => texLoader.load(url, res, undefined, rej));
 }
 
+// Applied weapons live under category 'weapons'; freshly generated ones are
+// job assets on the weapon lane. Both must equip identically.
+function isWeaponAsset(asset) {
+  return asset.category === 'weapons' || asset.job?.lane === 'weapon';
+}
+
 function displayHeight(asset) {
   if (asset.kind === 'skin') return 2.6;
-  if (asset.category === 'weapons')
+  if (isWeaponAsset(asset))
     return asset.family === 'staff' ? 2.3 : asset.family === 'dagger' ? 1.3 : 2.0;
   if (asset.category === 'props') {
     const b = asset.inspect?.bounds;
@@ -342,7 +348,7 @@ window.LiveViewer = {
         );
       };
       if (heldBySelect) {
-        const isWeapon = asset.category === 'weapons';
+        const isWeapon = isWeaponAsset(asset);
         heldBySelect.parentElement.style.display = isWeapon ? '' : 'none';
         if (isWeapon) {
           const opts = ['<option value="">weapon only</option>'].concat(
@@ -350,6 +356,13 @@ window.LiveViewer = {
           );
           heldBySelect.innerHTML = opts.join('');
           heldBySelect.onchange = () => setHeldBy(heldBySelect.value || null);
+          // Weapons open EQUIPPED by default: the knight holding it, playing
+          // its attack clip, so grip and scale are reviewable at a glance.
+          const knight = (charOptions ?? []).find((c) => c.label === 'knight');
+          if (knight) {
+            heldBySelect.value = knight.repoGlb;
+            await setHeldBy(knight.repoGlb);
+          }
         }
       }
     } catch (err) {
