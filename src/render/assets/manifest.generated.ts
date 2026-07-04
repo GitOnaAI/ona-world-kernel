@@ -175,7 +175,6 @@ export const MEDIA_ASSETS: Record<string, string> =
   "models/creatures/demon.glb": "/media/models/creatures/demon.5a26751441d5.glb",
   "models/creatures/demonalt.glb": "/media/models/creatures/demonalt.2ade9fc07ae9.glb",
   "models/creatures/dragonevolved.glb": "/media/models/creatures/dragonevolved.ade414f75155.glb",
-  "models/creatures/edda_reedhand.glb": "/media/models/creatures/edda_reedhand.6f9a283c3fe5.glb",
   "models/creatures/fox.glb": "/media/models/creatures/fox.2694028b47e8.glb",
   "models/creatures/frog.glb": "/media/models/creatures/frog.0d77a9e6b9a7.glb",
   "models/creatures/ghost.glb": "/media/models/creatures/ghost.553f37c4127b.glb",

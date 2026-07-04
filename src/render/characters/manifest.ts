@@ -216,20 +216,6 @@ const CHICKEN_COW: ClipMap = {
   jump: 'Jump',
 };
 
-// Meshy-generated humanoid rig (edda_reedhand.glb): the separate GLBs the Meshy
-// rig+animate pipeline returns (rigged base, walk, run, idle, cast, hit, death)
-// were merged into one file per character by scripts/_merge_meshy_rig.mjs,
-// matching skeleton nodes by name. A caster, so attack aliases the cast clip.
-const MESHY_HUMANOID: ClipMap = {
-  idle: 'Idle',
-  walk: 'Walk',
-  run: 'Run',
-  attack: ['Cast'],
-  cast: 'Cast',
-  hit: ['Hit'],
-  death: 'Death',
-};
-
 // Raid 02 asset-pipeline rig (stone_cantor.glb): Mixamo-rigged, ships exactly
 // Idle / Cast / Walk / Death. A caster, so attack aliases the cast clip; run
 // aliases walk (no run clip); no hit-react clip (the pipeline no-ops missing
@@ -910,16 +896,16 @@ export const VISUALS: Record<string, VisualDef> = {
     height: HUMANOID_H,
     clips: kaykit(['1H_Melee_Attack_Chop']),
   },
-  // Edda Reedhand (The Drowned Litany companion NPC): Meshy-generated marsh
-  // cultist with a lantern, a recurring ally for the whole run so worth a
-  // distinct look over the generic humanoid fallback
-  // (docs/prd/drowned-litany-asset-generation-plan.md).
+  // Edda Reedhand (The Drowned Litany companion NPC, healer): the druid player
+  // rig, staff in hand, backpack authored on the model (a traveling marsh
+  // herbalist). The earlier Meshy mesh clashed with the KayKit proportions; a
+  // player rig also gives her the full clip set, so her heals play the real
+  // Spellcasting channel. Fixed staff (no weaponSlots: NPC gear never changes).
   npc_edda_reedhand: {
-    url: `${CREATURES}/edda_reedhand.glb`,
-    // 2x human height, same reason as the Reedbound Acolyte below: the
-    // realistically proportioned Meshy mesh reads small next to the chibi rigs.
-    height: 3.5,
-    clips: MESHY_HUMANOID,
+    url: `${PLAYERS}/druid.glb`,
+    height: HUMANOID_H,
+    clips: kaykit(['2H_Melee_Attack_Chop']),
+    attach: [{ url: `${WEAPONS}/staff.glb`, bone: 'handslot.r' }],
   },
   // Reedbound Acolyte (The Drowned Litany trash mob): Stone Cantor model from
   // the Raid 02 asset batch. The earlier Meshy mesh (reedbound_acolyte.glb) was
