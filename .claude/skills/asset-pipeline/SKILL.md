@@ -18,9 +18,17 @@ Full reference: `scripts/asset_pipeline/CLAUDE.md`. This is the operational loop
 | Ask | Lane | Command core |
 |---|---|---|
 | Held weapon (sword, axe, staff, ...) | weapon | `weapon --name <key_with_family> --prompt "..."` |
-| World object / scenery | prop | `prop --name <key> --height <world units> --prompt "..."` |
+| World object / building / scenery | prop | `prop --name <key> --height <units> --prompt "..." [--building]` |
 | Mob / NPC / animated character | creature | `creature --name <key> --prompt "..."` |
-| Player-class skin variant | skin | `skin --class <cls> --suffix <letter> --recolor hue=..` |
+| Player-class skin (texture swap) | skin | `skin --class <cls> --suffix <x> --tripo --prompt "..."` |
+| League-style themed CHARACTER skin | skinmodel | `skinmodel --class <cls> --theme "pool party" --name <key>` |
+
+skinmodel is the flagship: it renders the REAL base class model, has gpt-image-2 redesign
+that exact character around the theme (same identity, chibi proportions), builds it with
+Tripo's best model (v3.1 + smart_low_poly), retargets the FULL KayKit clip vocabulary
+in-place (so `clips: kaykit([...])` drives it unchanged), and injects calibrated
+`handslot.r/.l` bones (pose transplanted from the knight reference) so it holds weapons
+through the game's own attach path. Review `preview/held_attack.png` to see it swing a sword.
 
 Weapon keys MUST contain a family token (sword, dagger, staff, hammer, axe, halberd, spear,
 scythe, wand) or the `tests/held_weapon_models.test.ts` contract fails. Prefer the
@@ -30,9 +38,11 @@ deterministic `--recolor` for skins; `--prompt` repaints need `OPENAI_API_KEY`.
 Run the lane command WITHOUT `--apply` first. Then Read (the Read tool, they are images) the
 preview PNGs under `tmp/asset_pipeline/<job>/preview/`: `front.png`, `right.png`, `back.png`,
 `left.png`, `hero.png`, plus `clip_<Name>.png` per animation for creatures. Check:
-- Weapon: blade/tip up (head up for axe/hammer/staff), looks like the request; also
-  `held_hero.png` / `held_right.png` show it gripped by the knight with the exact in-game
-  attach math (regenerate standalone via the `preview-held` command).
+- Weapon: blade/tip up (head up for axe/hammer/staff), looks like the request; the preview
+  dir carries `held_hero/right/attack.png` (knight) AND `held_<model>_{hero,right,attack}.png`
+  for ALL 7 class bodies with mid-attack frames: a weapon must hold correctly on every
+  character. In the live viewer (`library --serve`) use the "held by" dropdown to watch any
+  character (including generated skinmodel bodies) swing it.
 - Prop: upright, front facing the camera in `front.png`.
 - Creature: every clip frame posed (a T-pose clip frame means a broken retarget); for
   non-biped rigs the walk clip is reused for Idle/Run/Attack/Death, judge if that reads OK.

@@ -72,11 +72,11 @@ export async function validateProp(path, { height }) {
   return { ok: errors.length === 0, errors, warnings, report };
 }
 
-export async function validateCreature(path, { requiredClips = [] } = {}) {
+export async function validateCreature(path, { requiredClips = [], spec } = {}) {
   const report = await inspectGlb(path);
   const errors = [];
   const warnings = [];
-  pushBudget(report, CATEGORY_SPECS.creature, errors, warnings);
+  pushBudget(report, spec ?? CATEGORY_SPECS.creature, errors, warnings);
   if (report.skins === 0) errors.push('creature GLB has no skin (rigging missing)');
   const clipNames = new Set(report.clips.map((c) => c.name));
   for (const need of requiredClips) {

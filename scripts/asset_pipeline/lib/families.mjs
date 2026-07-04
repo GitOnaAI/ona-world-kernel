@@ -107,6 +107,16 @@ export const CATEGORY_SPECS = {
     maxBytes: 1536 * 1024,
     maxTris: 8000,
   },
+  // Player-grade cosmetic bodies (the skinmodel lane): best-quality generation
+  // (v3.1 + smart_low_poly) runs richer than mob-grade creatures; shipped class
+  // models are 5.8k-8k tris and the chars budget absorbs ~2MB heroes.
+  skinmodel: {
+    outDir: 'public/models/chars/skins',
+    faceLimit: 8000,
+    maxTex: 1024,
+    maxBytes: 2560 * 1024,
+    maxTris: 11000,
+  },
 };
 
 /** Game clip vocabulary a creature/humanoid ClipMap needs, mapped onto the Tripo
@@ -143,3 +153,40 @@ export function quadClipPlan(rigType) {
 
 /** ClipMap snippet fields required by src/render/characters/manifest.ts. */
 export const REQUIRED_CLIPMAP_FIELDS = ['idle', 'walk', 'run', 'attack', 'death'];
+
+/** The FULL KayKit-vocabulary clip plan for generated PLAYER-GRADE bodies
+ *  (the skinmodel lane). Clips are retargeted from the Tripo biped preset
+ *  library (rig model v1.0-20240301, preset:biped:*) and named with the EXACT
+ *  KayKit clip names the game's kaykit() ClipMap factory expects, so a
+ *  generated body integrates with `clips: kaykit([...])` like every shipped
+ *  class model, and the animation STYLE stays coherent with the KayKit set.
+ *  `game` entries listed as arrays copy one retargeted clip under several
+ *  KayKit names (sit covers both floor-sit clips). Presets without a KayKit
+ *  equivalent (Walking_Backwards, Block, strafes, Spellcast_Raise) are omitted:
+ *  the game's baseAction()/emote fallbacks degrade gracefully to idle/walk. */
+export const KAYKIT_CLIP_PLAN = [
+  { game: 'Idle', presets: ['preset:biped:idle'] },
+  { game: 'Walking_A', presets: ['preset:biped:walk'] },
+  { game: 'Running_A', presets: ['preset:biped:run'] },
+  { game: '1H_Melee_Attack_Chop', presets: ['preset:biped:slash'] },
+  { game: '2H_Melee_Attack_Chop', presets: ['preset:biped:chop'] },
+  { game: '2H_Ranged_Shoot', presets: ['preset:biped:shoot'] },
+  { game: 'Spellcasting', presets: ['preset:biped:cast_a_spell'] },
+  { game: 'Spellcast_Shoot', presets: ['preset:biped:fire'] },
+  { game: 'Hit_A', presets: ['preset:biped:hit_to_body_01'] },
+  { game: 'Death_A', presets: ['preset:biped:defeat_02'] },
+  { game: 'Jump_Idle', presets: ['preset:biped:jump'] },
+  { game: ['Sit_Floor_Down', 'Sit_Floor_Idle'], presets: ['preset:biped:sit'] },
+  { game: 'Lie_Idle', presets: ['preset:biped:swim'] },
+  { game: 'Cheer', presets: ['preset:biped:cheer'] },
+];
+
+/** The KayKit clip names a player-grade body must carry as a minimum for the
+ *  kaykit() ClipMap to fully drive it (attack slot name depends on the class). */
+export const KAYKIT_REQUIRED_CLIPS = [
+  'Idle',
+  'Walking_A',
+  'Running_A',
+  '1H_Melee_Attack_Chop',
+  'Death_A',
+];

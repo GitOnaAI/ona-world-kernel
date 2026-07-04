@@ -14,20 +14,38 @@ import { openaiKey } from './env.mjs';
 const OPENAI_BASE = 'https://api.openai.com/v1';
 export const IMAGE_MODEL = process.env.ASSET_PIPELINE_IMAGE_MODEL || 'gpt-image-2';
 
-async function openaiFetch(path, init) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function openaiFetch(path, init, { retries = 3 } = {}) {
   const key = openaiKey();
   if (!key) throw new Error('OPENAI_API_KEY is not set (the gpt-image-2 stage is optional)');
-  const res = await fetch(`${OPENAI_BASE}${path}`, {
-    ...init,
-    headers: { Authorization: `Bearer ${key}`, ...(init.headers ?? {}) },
-  });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(
-      `OpenAI ${path} HTTP ${res.status}: ${json?.error?.message ?? 'unknown error'}`,
-    );
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    let res;
+    try {
+      res = await fetch(`${OPENAI_BASE}${path}`, {
+        ...init,
+        headers: { Authorization: `Bearer ${key}`, ...(init.headers ?? {}) },
+      });
+    } catch (err) {
+      // Network error: retry with backoff.
+      lastErr = err;
+      await sleep(2000 * 2 ** attempt);
+      continue;
+    }
+    const json = await res.json().catch(() => null);
+    if (res.ok) return json;
+    const msg = `OpenAI ${path} HTTP ${res.status}: ${json?.error?.message ?? 'unknown error'}`;
+    // Transient statuses (rate limit, upstream/Cloudflare 5xx) retry; real
+    // client errors fail fast.
+    if (res.status === 429 || res.status >= 500) {
+      lastErr = new Error(msg);
+      await sleep(2000 * 2 ** attempt);
+      continue;
+    }
+    throw new Error(msg);
   }
-  return json;
+  throw new Error(`OpenAI request failed after ${retries + 1} attempts: ${lastErr?.message}`);
 }
 
 function firstImageB64(json) {

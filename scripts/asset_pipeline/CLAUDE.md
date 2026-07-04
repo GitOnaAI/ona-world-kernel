@@ -12,8 +12,15 @@ origins, y=0 bases, in-place clips, WebP 512 textures, meshopt), so a generated 
 to the existing KayKit/Quaternius-style set without looking imported.
 
 Run: `node scripts/asset_pipeline/pipeline.mjs <command> [options]` (`--help` prints usage).
-Commands: `weapon`, `prop`, `creature`, `skin`, `skinset`, `library`, `validate`, `preview`,
-`preview-held`, `status`, `balance`, `inspect`, `inplace-check`.
+Commands: `weapon`, `prop`, `creature`, `skin`, `skinset`, `skinmodel`, `library`, `validate`,
+`preview`, `preview-held`, `status`, `balance`, `inspect`, `inplace-check`.
+
+Style coherence is grounded in the game's REAL art, not adjectives: when
+`OPENAI_API_KEY` is set, every concept ships with a style board (renders of
+shipped KayKit/Quaternius assets, `lib/style_ref.mjs`) as a gpt-image-2
+reference image, creature/skin prompts force chibi proportions, and generated
+player-grade bodies carry the EXACT KayKit clip vocabulary (`KAYKIT_CLIP_PLAN`)
+so animation style matches the shipped set by construction.
 
 ## Keys
 - `TRIPO_API_KEY` (required): repo-root `.env`, gitignored, same pattern as
@@ -47,7 +54,10 @@ node scripts/asset_pipeline/pipeline.mjs prop --name market_fountain --height 2.
   [--prompt "..."] [--image ...] [--rotate-y 90] [--apply] [--job id]
 ```
 Produces a normalized GLB (base at y=0, centered on origin, scaled to the world-unit
-`--height`, WebP 512, meshopt). `--apply` copies it to `public/models/props/` and appends the
+`--height`, WebP 512, meshopt), and the report + snippet carry a collision footprint
+MEASURED from the built model (circumscribed radius + w x d extents), emitted as a
+coordinated zone-record + collider snippet that keeps the sim's WYSIWYG-collision
+invariant; `--building` switches the snippet to the OBB building form. `--apply` copies it to `public/models/props/` and appends the
 CREDITS.md row. The `PROP_ASSET_DEFS` entry (`src/render/props.ts`) and the placement are
 printed as a snippet the agent places by hand: zone placement (`ZonePropsDef` in
 `src/sim/content/zone*.ts`) must keep the collider footprint matched to the visuals
@@ -113,6 +123,29 @@ hardcoded max of 7 class skins (`sim.ts` setPlayerSkin clamp): two sets bring mo
 6, still under it. gpt-image-2 (`OPENAI_API_KEY`) would enable true painted repaints; without
 it the gradient-map suits are the procedural path.
 
+### 6. skinmodel (League-style character skins from the base model)
+```
+node scripts/asset_pipeline/pipeline.mjs skinmodel --class hunter \
+  --theme "pool party, swim trunks, floatie ring" --name pool_party_hunter \
+  [--face-limit 8000] [--grip-rot deg] [--apply] [--job id]
+```
+A BRAND-NEW character body derived from the base class model, the way League of
+Legends does themed skins ("pool party hunter"). Requires `OPENAI_API_KEY`. The
+chain: (1) render the REAL base model from three angles; (2) gpt-image-2
+redesigns that exact character around the theme (same identity, same chibi
+proportions, same flat-shaded style) as a T-pose sheet; (3) Tripo builds it with
+the best model (`v3.1` + `smart_low_poly`, clean game topology); (4) auto-rig
+biped; (5) retarget the FULL KayKit clip vocabulary IN-PLACE (`KAYKIT_CLIP_PLAN`:
+Idle, Walking_A, Running_A, 1H/2H_Melee_Attack_Chop, 2H_Ranged_Shoot,
+Spellcasting, Spellcast_Shoot, Hit_A, Death_A, Jump_Idle, Sit_Floor_*, Lie_Idle,
+Cheer), so the shipped `kaykit()` ClipMap factory drives it unchanged;
+(6) inject `handslot.r`/`handslot.l` bones at the palms so the game's weapon
+attach works as-is (a held-sword preview render proves it); (7) validate +
+preview every clip. `--apply` copies to `public/models/chars/skins/` and prints
+the VisualDef snippet (instant NPC/MOB wiring; a PLAYER cosmetic body still
+requires the SkinCatalog union work, see the snippet). ~200 credits + a few
+cents of gpt-image-2.
+
 ## Asset library (viewer + inspector, static OR live 3D)
 ```
 node scripts/asset_pipeline/pipeline.mjs library [--full] [--category weapons,skins] [--open]
@@ -154,8 +187,10 @@ or `src/`). The server runs until Ctrl-C.
   and icon rendering drive headless system Chrome (`../browser_path.mjs`, swiftshader path).
 - `preview-held --file x.glb [--family sword] [--character glb] [--out dir]`: the weapon
   attached to the knight rig with the exact in-game grip math (handslot.r, family lift,
-  right-hand flip, maxHeight clamp). The weapon lane also renders `held_hero.png` and
-  `held_right.png` into the job preview dir automatically; review them before `--apply`.
+  right-hand flip, maxHeight clamp). The weapon lane renders `held_hero/right/attack.png`
+  AND a full cross-character set (`held_<model>_{hero,right,attack}.png` for all 7 class
+  bodies) into the job preview dir automatically: a weapon must hold correctly on EVERY
+  character, and the mid-attack frames prove it rides the hand through the swing.
 - `status [--job id]`: list jobs, or dump one job's ledger.
 - `balance`: Tripo credit balance (and frozen amount). Run this before generating.
 - `inspect --file x.glb`: structural report (tris, clips, textures, bounds, joints).

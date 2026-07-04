@@ -251,18 +251,51 @@ export function visualDefSnippet({ name, kind, height, clips, hasCast, hasJump }
   ].join('\n');
 }
 
-export function propSnippet({ name, height }) {
-  return [
-    '// 1. Add to PROP_ASSET_DEFS in src/render/props.ts:',
+/** Placement + collision snippet for a generated environment asset. The
+ *  footprint numbers are MEASURED from the built GLB's bounds, so the collider
+ *  matches the visuals exactly (the sim's WYSIWYG-collision invariant: render
+ *  and colliders read the same record; footprints must never drift apart).
+ *  `footprint` = { w, d, r } world units (width/depth extents + circumscribed
+ *  circle radius); `building` switches the snippet to the OBB building form. */
+export function propSnippet({ name, height, footprint, building = false }) {
+  const fp = footprint ?? { w: 1, d: 1, r: 0.7 };
+  const lines = [
+    '// 1. Add to PROP_ASSET_DEFS in src/render/props.ts (front faces +Z; pass a',
+    '//    yaw there if the model was authored facing another way):',
     `  ${camel(name)}: { url: '/models/props/${name}.glb', kit: 'qprops' },`,
     '',
-    '// 2. Place it: either from zone content (ZonePropsDef records in',
-    '//    src/sim/content/zone*.ts, rendered by buildProps and collided by',
-    '//    src/sim/colliders.ts; keep the visual footprint matched to the collider),',
-    '//    or as an interactable ground object (GROUND_OBJECTS lane, auto-normalized',
-    `//    to ~1.35yd, no collision). Authored height: ${height} world units.`,
-    '// 3. On the map-editor branch, re-run scripts/gen_asset_catalog.mjs instead.',
-  ].join('\n');
+  ];
+  if (building) {
+    lines.push(
+      '// 2. BUILDING placement (ZonePropsDef.buildings in src/sim/content/zone*.ts).',
+      `//    Measured footprint at authored height ${height}: w=${fp.w} d=${fp.d}.`,
+      '//    buildProps scales the model so the VISUAL footprint equals w x d, and',
+      '//    staticWorldColliders derives the matching OBB from the SAME record, so',
+      '//    using these measured numbers keeps collision exactly WYSIWYG:',
+      `  { kind: '${camel(name)}', x: <X>, z: <Z>, w: ${fp.w}, d: ${fp.d}, rot: 0 },`,
+      '',
+      '//    NOTE: buildings need a render arm in buildProps (src/render/props.ts)',
+      "//    for the new kind (copy the 'house' arm: place asset, scale to w x d)",
+      '//    AND the collider pass in src/sim/colliders.ts already handles every',
+      '//    ZonePropsDef.buildings record generically via its w/d/rot OBB.',
+    );
+  } else {
+    lines.push(
+      '// 2. PROP placement with collision. Zone record (pick a category array in',
+      '//    ZonePropsDef, e.g. a new entry or an existing shape like wells/tents):',
+      `//    Measured: radius ${fp.r} (circumscribed), extents ${fp.w} x ${fp.d}, height ${height}.`,
+      `  { x: <X>, z: <Z>, r: ${fp.r} },`,
+      '',
+      '//    Collider (src/sim/colliders.ts staticWorldColliders reads the SAME',
+      '//    record; a circle collider of the same radius keeps WYSIWYG collision):',
+      `  circle(p.x, p.z, ${fp.r}, { cameraTopY: ${Math.min(height, 3).toFixed(2)} }),`,
+      '',
+      '//    Or as an interactable ground object (GROUND_OBJECTS lane, auto-',
+      '//    normalized to ~1.35yd, NO collision) if players should click it.',
+    );
+  }
+  lines.push('// 3. On the map-editor branch, re-run scripts/gen_asset_catalog.mjs instead.');
+  return lines.join('\n');
 }
 
 export function itemDefSnippet({ itemId, name, family }) {
@@ -282,6 +315,46 @@ export function itemDefSnippet({ itemId, name, family }) {
     '// i18n: item names localize via the items catalog; English-only is fine at',
     '// PR tier (the maintainer fills locales at release). See src/ui/CLAUDE.md.',
   ].join('\n');
+}
+
+/** Integration snippet for a generated skin-model character body. The GLB
+ *  carries the EXACT KayKit clip vocabulary, so the shipped kaykit() ClipMap
+ *  factory drives it unchanged; handslot bones make the game's weapon attach
+ *  work as-is. */
+export function skinModelSnippet({ name, cls, theme, hasRightSlot, hasLeftSlot }) {
+  const lines = [
+    `// Skin model "${name}" ("${theme}" ${cls}): a full character body with the`,
+    '// KayKit clip vocabulary baked in. Three integration options:',
+    '//',
+    '// A) NPC or MOB (instant, data-only). Add to VISUALS in',
+    '//    src/render/characters/manifest.ts and wire NPC_KEYS/MOB_KEYS:',
+    `  ${name}: {`,
+    `    url: 'models/chars/skins/${name}.glb',`,
+    '    height: HUMANOID_H,',
+    "    clips: kaykit(['1H_Melee_Attack_Chop']),",
+  ];
+  if (hasRightSlot) {
+    lines.push("    attach: [{ url: `${WEAPONS}/sword_1handed.glb`, bone: 'handslot.r' }],");
+    lines.push('    weaponSlots: [0],');
+  } else {
+    lines.push('    // no handslot.r found on this rig: omit attach (no held weapon)');
+  }
+  lines.push(
+    '  },',
+    '//',
+    '// B) PLAYER COSMETIC BODY (the Combat Mech pattern): requires extending the',
+    "//    closed SkinCatalog union ('class' | 'mech') across src/sim/types.ts,",
+    '//    visualKeyFor (manifest.ts), the wire cat field (server/game.ts),',
+    '//    ClientWorld (src/net/online.ts), and the appearance picker. See the',
+    '//    player_mech VisualDef + preloadMechAssets for the lazyPreload recipe.',
+    '//',
+    '// C) Review it first: node scripts/asset_pipeline/pipeline.mjs library --serve',
+    `//    (search "${name}"; every KayKit clip + the held-weapon preview render).`,
+    `// Handslots: right=${hasRightSlot ? 'yes' : 'NO'} left=${hasLeftSlot ? 'yes' : 'NO'}.`,
+    '// The clip names match the kaykit() factory exactly (Walking_Backwards, Block,',
+    '// and the strafe emote clips are absent and fall back gracefully).',
+  );
+  return lines.join('\n');
 }
 
 function camel(s) {

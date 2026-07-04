@@ -444,6 +444,238 @@ function pickAnimation(anims, preset) {
   );
 }
 
+// --- quaternion / matrix helpers for the handslot calibration ---------------
+
+function mat4RotToQuat(m) {
+  // Orthonormalize the rotation columns (strips scale), then standard mat->quat.
+  const n = (v) => {
+    const l = Math.hypot(v[0], v[1], v[2]) || 1;
+    return [v[0] / l, v[1] / l, v[2] / l];
+  };
+  const c0 = n([m[0], m[1], m[2]]);
+  let c1 = [m[4], m[5], m[6]];
+  const d01 = c1[0] * c0[0] + c1[1] * c0[1] + c1[2] * c0[2];
+  c1 = n([c1[0] - d01 * c0[0], c1[1] - d01 * c0[1], c1[2] - d01 * c0[2]]);
+  const c2 = [
+    c0[1] * c1[2] - c0[2] * c1[1],
+    c0[2] * c1[0] - c0[0] * c1[2],
+    c0[0] * c1[1] - c0[1] * c1[0],
+  ];
+  const t = c0[0] + c1[1] + c2[2];
+  let q;
+  if (t > 0) {
+    const s = Math.sqrt(t + 1) * 2;
+    q = [(c1[2] - c2[1]) / s, (c2[0] - c0[2]) / s, (c0[1] - c1[0]) / s, s / 4];
+  } else if (c0[0] > c1[1] && c0[0] > c2[2]) {
+    const s = Math.sqrt(1 + c0[0] - c1[1] - c2[2]) * 2;
+    q = [s / 4, (c1[0] + c0[1]) / s, (c2[0] + c0[2]) / s, (c1[2] - c2[1]) / s];
+  } else if (c1[1] > c2[2]) {
+    const s = Math.sqrt(1 + c1[1] - c0[0] - c2[2]) * 2;
+    q = [(c1[0] + c0[1]) / s, s / 4, (c2[1] + c1[2]) / s, (c2[0] - c0[2]) / s];
+  } else {
+    const s = Math.sqrt(1 + c2[2] - c0[0] - c1[1]) * 2;
+    q = [(c2[0] + c0[2]) / s, (c2[1] + c1[2]) / s, s / 4, (c0[1] - c1[0]) / s];
+  }
+  const l = Math.hypot(...q) || 1;
+  return q.map((x) => x / l);
+}
+
+function quatMul(a, b) {
+  const [x1, y1, z1, w1] = a;
+  const [x2, y2, z2, w2] = b;
+  return [
+    w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+    w1 * y2 - x1 * z2 + y1 * w2 + z1 * x2,
+    w1 * z2 + x1 * y2 - y1 * x2 + z1 * w2,
+    w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2,
+  ];
+}
+
+const quatInv = (q) => [-q[0], -q[1], -q[2], q[3]];
+
+function quatRotate(q, v) {
+  const [x, y, z, w] = q;
+  const uvx = y * v[2] - z * v[1];
+  const uvy = z * v[0] - x * v[2];
+  const uvz = x * v[1] - y * v[0];
+  const uuvx = y * uvz - z * uvy;
+  const uuvy = z * uvx - x * uvz;
+  const uuvz = x * uvy - y * uvx;
+  return [v[0] + 2 * (w * uvx + uuvx), v[1] + 2 * (w * uvy + uuvy), v[2] + 2 * (w * uvz + uuvz)];
+}
+
+function worldPos(m) {
+  return [m[12], m[13], m[14]];
+}
+
+/** Bind-pose world pose (position + rotation quat) of the first node whose
+ *  sanitized name matches. */
+function nodeWorldPose(doc, matcher) {
+  for (const node of doc.getRoot().listNodes()) {
+    if (matcher(node.getName())) {
+      const m = node.getWorldMatrix();
+      return { pos: worldPos(m), quat: mat4RotToQuat(m), node };
+    }
+  }
+  return null;
+}
+
+/** Inject `handslot.r` / `handslot.l` attachment nodes under a rigged model's
+ *  hand joints, so the game's weapon-attach path (resolveBone on 'handslot.r',
+ *  see src/render/characters/assets.ts) works on generated bodies exactly like
+ *  on the KayKit rigs.
+ *
+ *  The slot pose is CALIBRATED against a reference KayKit rig (`referenceGlb`,
+ *  normally knight.glb): the reference handslot's world-space rotation and its
+ *  world offset from the hand bone (both rigs bind in an upright T-pose, so
+ *  world space is comparable) are transplanted onto the generated hand, with
+ *  the offset scaled by relative body height. The slot node also carries a
+ *  height-compensating scale so weapons authored for the ~2-unit KayKit bodies
+ *  come out proportional after the game's height normalization. Fallback
+ *  without a reference: palm-centroid position, +Y along the palm.
+ *  `offset`/`rotateY` remain reviewer tuning knobs. */
+export async function addHandslotBones(
+  glbPath,
+  outPath,
+  { offset = [0, 0, 0], rotateY = 0, referenceGlb = null } = {},
+) {
+  const doc = await openGlb(glbPath);
+  const root = doc.getRoot();
+  const nodes = root.listNodes();
+
+  // Weapon-scale compensation: variant weapons are authored for the KayKit
+  // bodies (~2 world units tall natively). The game attaches a weapon INSIDE
+  // the model group and then normalizes the whole group by height, so on a
+  // model with a different native height the weapon would scale with the
+  // normalization and come out wrong-sized. Scaling the slot node itself by
+  // nativeHeight / 2.0 cancels that exactly.
+  const KAYKIT_NATIVE_HEIGHT = 2.0;
+  const scene = root.listScenes()[0];
+  const bounds = scene ? getBounds(scene) : null;
+  const nativeH = bounds ? bounds.max[1] - bounds.min[1] : KAYKIT_NATIVE_HEIGHT;
+  const slotScale = nativeH / KAYKIT_NATIVE_HEIGHT;
+
+  // Reference calibration: the KayKit handslot's world rotation + hand-relative
+  // world offset, per side.
+  const ref = {};
+  if (referenceGlb) {
+    const refDoc = await openGlb(referenceGlb);
+    const refBounds = getBounds(refDoc.getRoot().listScenes()[0]);
+    const refH = refBounds.max[1] - refBounds.min[1] || KAYKIT_NATIVE_HEIGHT;
+    for (const side of ['r', 'l']) {
+      const slotPose = nodeWorldPose(
+        refDoc,
+        (n) => n.replace(/[[\].:/]/g, '') === `handslot${side}`,
+      );
+      const handPose = nodeWorldPose(refDoc, (n) => n.replace(/[[\].:/]/g, '') === `hand${side}`);
+      if (slotPose && handPose) {
+        ref[side] = {
+          quat: slotPose.quat,
+          handOffset: [
+            (slotPose.pos[0] - handPose.pos[0]) / refH,
+            (slotPose.pos[1] - handPose.pos[1]) / refH,
+            (slotPose.pos[2] - handPose.pos[2]) / refH,
+          ],
+        };
+      }
+    }
+  }
+  const findHand = (side) => {
+    // Tripo native (R_Hand), mixamo (RightHand / mixamorig:RightHand), and
+    // generic (hand_r, hand.r) conventions, case-insensitive.
+    const long = side === 'r' ? 'right' : 'left';
+    const pats = [
+      new RegExp(`^${side}_hand$`, 'i'),
+      new RegExp(`${long}hand$`, 'i'),
+      new RegExp(`hand[._]?${side}$`, 'i'),
+      new RegExp(`^hand\\.${side}$`, 'i'),
+    ];
+    for (const pat of pats) {
+      const hit = nodes.find((n) => pat.test(n.getName()));
+      if (hit) return hit;
+    }
+    return null;
+  };
+
+  const report = {};
+  for (const side of ['r', 'l']) {
+    const slotName = `handslot.${side}`;
+    if (nodes.some((n) => n.getName() === slotName)) {
+      report[side] = { hand: '(already present)', slot: slotName };
+      continue;
+    }
+    const hand = findHand(side);
+    if (!hand) {
+      report[side] = { hand: null, slot: null };
+      continue;
+    }
+    // Hand world pose on the TARGET rig (bind pose).
+    const handM = hand.getWorldMatrix();
+    const handQuat = mat4RotToQuat(handM);
+    const handP = worldPos(handM);
+    // Hand world scale (uniform-ish): length of the first matrix column. Local
+    // offsets under the hand are expressed in this scale.
+    const handS = Math.hypot(handM[0], handM[1], handM[2]) || 1;
+
+    let localT;
+    let quat;
+    if (ref[side]) {
+      // Transplant the reference slot pose: world rotation copied verbatim
+      // (both rigs bind upright), world offset from the hand scaled by body
+      // height, both converted into the target hand's local space.
+      const offWorld = ref[side].handOffset.map((v) => v * nativeH);
+      localT = quatRotate(quatInv(handQuat), offWorld).map((v) => v / handS);
+      quat = quatMul(quatInv(handQuat), ref[side].quat);
+    } else {
+      // Fallback: palm centroid position, +Y along the palm direction.
+      const kids = hand.listChildren();
+      const palm = [0, 0, 0];
+      if (kids.length) {
+        for (const k of kids) {
+          const t = k.getTranslation();
+          palm[0] += t[0] / kids.length;
+          palm[1] += t[1] / kids.length;
+          palm[2] += t[2] / kids.length;
+        }
+      }
+      localT = palm;
+      quat = [0, 0, 0, 1];
+      const len = Math.hypot(palm[0], palm[1], palm[2]);
+      if (len > 1e-6) {
+        const d = [palm[0] / len, palm[1] / len, palm[2] / len];
+        const dot = d[1];
+        if (dot < -0.999999) {
+          quat = [1, 0, 0, 0];
+        } else {
+          const cx = 1 * d[2] - 0 * d[1];
+          const cz = 0 * d[1] - 1 * d[0];
+          const w = 1 + dot;
+          const n = Math.hypot(cx, 0, cz, w);
+          quat = [cx / n, 0, cz / n, w / n];
+        }
+      }
+    }
+    if (rotateY) {
+      const half = (rotateY * Math.PI) / 360;
+      quat = quatMul(quat, [0, Math.sin(half), 0, Math.cos(half)]);
+    }
+    const slot = doc
+      .createNode(slotName)
+      .setTranslation([localT[0] + offset[0], localT[1] + offset[1], localT[2] + offset[2]])
+      .setRotation(quat)
+      .setScale([slotScale / handS, slotScale / handS, slotScale / handS]);
+    hand.addChild(slot);
+    report[side] = {
+      hand: hand.getName(),
+      slot: slotName,
+      scale: +(slotScale / handS).toFixed(3),
+      calibrated: !!ref[side],
+    };
+  }
+  await saveGlb(doc, outPath);
+  return report;
+}
+
 /** In-place check: per clip, the XZ translation range of root-level joints.
  *  A range above `limit` world units means baked root motion, which slides
  *  against sim-owned movement. Returns [{clip, range}] offenders. */

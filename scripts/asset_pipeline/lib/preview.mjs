@@ -127,13 +127,25 @@ export async function renderSkinThumb(charGlbPath, atlasPngPath, dest, { size = 
   return writeDataUrl(dataUrl, dest);
 }
 
+/** The seven class body models (every character a player can be). */
+export const CLASS_MODEL_PATHS = [
+  'knight',
+  'paladin',
+  'ranger',
+  'rogue',
+  'mage',
+  'barbarian',
+  'druid',
+].map((m) => `public/models/chars/players/${m}.glb`);
+
 /** Render the weapon attached to a character rig exactly as the game grips
  *  variant weapons (handslot.r + lift + right-hand flip + maxHeight clamp).
- *  Default character: the knight (player_warrior). */
+ *  Default character: the knight (player_warrior). opts.attack adds a mid-swing
+ *  frame; opts.prefix renames outputs held_<prefix>_*. */
 export async function renderHeldPreviews(
   weaponGlbPath,
   outDir,
-  { character, lift, maxHeight } = {},
+  { character, lift, maxHeight, attack = true, prefix } = {},
 ) {
   const charPath =
     character ?? resolve(__dirname, '../../../public/models/chars/players/knight.glb');
@@ -143,9 +155,37 @@ export async function renderHeldPreviews(
     page.evaluate((c, w, opts) => window.renderHeld(c, w, opts), charB64, weaponB64, {
       lift: lift ?? 0.04,
       maxHeight: maxHeight ?? 2.0,
+      attack,
     }),
   );
-  return shots.map((s) => writeDataUrl(s.dataUrl, join(outDir, `${s.name}.png`)));
+  return shots.map((s) => {
+    const name = prefix ? s.name.replace(/^held_/, `held_${prefix}_`) : s.name;
+    return writeDataUrl(s.dataUrl, join(outDir, `${name}.png`));
+  });
+}
+
+/** Render the weapon held + animated by EVERY class body model (idle grip, side
+ *  view, and a mid-attack frame each), proving integration across all
+ *  characters rather than just the knight. Returns every file path. */
+export async function renderHeldAcross(weaponGlbPath, outDir, { lift, maxHeight } = {}) {
+  const files = [];
+  for (const charPath of CLASS_MODEL_PATHS) {
+    const model = charPath
+      .split('/')
+      .pop()
+      .replace(/\.glb$/, '');
+    const abs = resolve(__dirname, '../../..', charPath);
+    files.push(
+      ...(await renderHeldPreviews(weaponGlbPath, outDir, {
+        character: abs,
+        lift,
+        maxHeight,
+        attack: true,
+        prefix: model,
+      })),
+    );
+  }
+  return files;
 }
 
 /** Render the 128px HUD bag icon for a weapon GLB. */

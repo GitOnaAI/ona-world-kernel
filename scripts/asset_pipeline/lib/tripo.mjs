@@ -205,29 +205,32 @@ export async function generateModel({
   faceLimit,
   texture = true,
   pbr = true,
+  smartLowPoly = false,
   onProgress,
+  onTaskCreated,
 }) {
+  // smart_low_poly (clean hand-crafted topology, +10 credits) is an H-series
+  // (>= v3.0) option; P1 is already a low-poly specialist and rejects it.
+  const extras = {
+    ...(faceLimit ? { face_limit: faceLimit } : {}),
+    ...(smartLowPoly && !model.startsWith('P1') ? { smart_low_poly: true } : {}),
+    texture,
+    pbr,
+  };
   let taskId;
   if (image) {
     const input = await resolveImageInput(image);
-    taskId = await createTask('/generation/image-to-model', {
-      input,
-      model,
-      ...(faceLimit ? { face_limit: faceLimit } : {}),
-      texture,
-      pbr,
-    });
+    taskId = await createTask('/generation/image-to-model', { input, model, ...extras });
   } else if (prompt) {
     taskId = await createTask('/generation/text-to-model', {
       prompt: prompt.slice(0, 1024),
       model,
-      ...(faceLimit ? { face_limit: faceLimit } : {}),
-      texture,
-      pbr,
+      ...extras,
     });
   } else {
     throw new Error('generateModel needs an image or a prompt');
   }
+  onTaskCreated?.(taskId);
   const task = await pollTask(taskId, { onProgress });
   return { taskId, task };
 }

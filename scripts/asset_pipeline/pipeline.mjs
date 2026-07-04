@@ -19,6 +19,8 @@
 //     --tripo --prompt "molten obsidian armor, glowing lava cracks" [--apply]  (real gen)
 //     (or --recolor hue=..[,sat=..][,light=..] fallback, or --prompt with OPENAI_API_KEY)
 //   node scripts/asset_pipeline/pipeline.mjs skinset --set prismatic|chrome [--tripo] [--apply]
+//   node scripts/asset_pipeline/pipeline.mjs skinmodel --class hunter --theme "pool party" \
+//     --name pool_party_hunter [--face-limit 8000] [--grip-rot deg] [--apply]  (League-style skin)
 //   node scripts/asset_pipeline/pipeline.mjs validate --file x.glb --kind weapon|prop|creature [--family sword]
 //   node scripts/asset_pipeline/pipeline.mjs preview --file x.glb [--out dir]
 //   node scripts/asset_pipeline/pipeline.mjs library [--serve [--port 5180]] [--category weapons,skins] [--open]
@@ -52,6 +54,7 @@ import { JOBS_ROOT, Job } from './lib/job.mjs';
 import { editImages, generateConceptImage } from './lib/openai_image.mjs';
 import {
   closePreview,
+  renderHeldAcross,
   renderHeldPreviews,
   renderPreviews,
   renderWeaponIcon,
@@ -101,10 +104,29 @@ function faceLimitOpt(dflt) {
  *  prefix-matched, so parameterized variants (normalize_flip, preview_r90) are
  *  covered by their base name. */
 const STEP_ORDER = {
-  weapon: ['concept', 'generate', 'normalize', 'icon', 'preview', 'preview_held'],
+  weapon: [
+    'concept',
+    'generate',
+    'normalize',
+    'icon',
+    'preview',
+    'preview_held',
+    'preview_held_all',
+  ],
   prop: ['concept', 'generate', 'normalize', 'preview'],
   creature: ['concept', 'generate', 'rig', 'retarget', 'assemble', 'preview'],
   skin: ['texture', 'composite', 'render', 'recolor', 'repaint'],
+  skinmodel: [
+    'base_views',
+    'concept',
+    'generate',
+    'rig',
+    'retarget',
+    'assemble',
+    'handslots',
+    'preview',
+    'preview_held',
+  ],
 };
 
 /** Apply --redo: drop the named ledger steps (comma-separated) AND everything
@@ -148,8 +170,28 @@ async function conceptStage(job, { kind, description, family, image }) {
   if (hasOpenAi()) {
     return job.step('concept', async () => {
       const dest = job.path('concept.png');
-      job.log(`gpt-image-2 concept: ${prompt.slice(0, 120)}...`);
-      await generateConceptImage({ prompt, dest });
+      // Ground the concept in the game's ACTUAL art: a style board of shipped
+      // assets rides along as a reference image, so results are KayKit-coherent
+      // by default rather than by adjective.
+      const { styleBoard, STYLE_REF_INSTRUCTION } = await import('./lib/style_ref.mjs');
+      let board = null;
+      try {
+        board = await styleBoard(kind);
+      } catch (err) {
+        job.log(`style board unavailable (${String(err.message).slice(0, 80)}); plain concept`);
+      }
+      if (board) {
+        job.log(`gpt-image-2 concept (style-referenced): ${prompt.slice(0, 100)}...`);
+        await editImages({
+          prompt: `${STYLE_REF_INSTRUCTION} Now create: ${prompt}`,
+          images: [board],
+          dest,
+          size: '1024x1024',
+        });
+      } else {
+        job.log(`gpt-image-2 concept: ${prompt.slice(0, 120)}...`);
+        await generateConceptImage({ prompt, dest });
+      }
       return { input: dest, conceptPath: dest, source: 'gpt-image-2' };
     });
   }
@@ -334,6 +376,15 @@ async function cmdWeapon() {
     });
     return { files };
   });
+  // Held + animated by EVERY class model (idle, side, mid-attack each): the
+  // weapon must integrate with all characters, not just the knight.
+  await job.step(`preview_held_all${variant}`, async () => {
+    const files = await renderHeldAcross(built, job.path('preview'), {
+      lift: family.lift,
+      maxHeight: family.maxHeight,
+    });
+    return { files };
+  });
 
   let actions = [];
   if (flag('apply')) {
@@ -414,8 +465,16 @@ async function cmdProp() {
       }),
     );
   }
-  console.log(`\n${propSnippet({ name, height })}`);
-  printReport(job, { ok: true, glb: built, actions });
+  // Collision footprint MEASURED from the built model, so the emitted zone
+  // record + collider keep the sim's WYSIWYG-collision invariant exactly.
+  const b = check.report.bounds;
+  const footprint = {
+    w: +(b.max[0] - b.min[0]).toFixed(2),
+    d: +(b.max[2] - b.min[2]).toFixed(2),
+    r: +(Math.max(b.max[0] - b.min[0], b.max[2] - b.min[2]) / 2).toFixed(2),
+  };
+  console.log(`\n${propSnippet({ name, height, footprint, building: flag('building') })}`);
+  printReport(job, { ok: true, glb: built, footprint, actions });
 }
 
 async function cmdCreature() {
@@ -559,21 +618,24 @@ async function cmdCreature() {
   printReport(job, { ok: true, glb: built, rigType: rig.rigType, actions });
 }
 
+// Player class -> the body model GLB that class wears (mage.glb serves the
+// caster trio). Shared by the skin, skinset, and skinmodel lanes.
+const CLASS_MODELS = {
+  warrior: 'knight',
+  paladin: 'paladin',
+  hunter: 'ranger',
+  rogue: 'rogue',
+  priest: 'mage',
+  mage: 'mage',
+  warlock: 'mage',
+  shaman: 'barbarian',
+  druid: 'druid',
+};
+
 async function cmdSkin() {
   const cls = opt('class');
   const suffix = opt('suffix');
   if (!cls || !suffix) throw new Error('skin needs --class <playerclass> and --suffix <letter>');
-  const CLASS_MODELS = {
-    warrior: 'knight',
-    paladin: 'paladin',
-    hunter: 'ranger',
-    rogue: 'rogue',
-    priest: 'mage',
-    mage: 'mage',
-    warlock: 'mage',
-    shaman: 'barbarian',
-    druid: 'druid',
-  };
   const model = CLASS_MODELS[cls];
   if (!model) throw new Error(`unknown class ${cls}`);
   const base = resolve(REPO_ROOT, `public/textures/skins/${model}/base.png`);
@@ -683,6 +745,215 @@ async function cmdSkin() {
     job.log('run: npx vitest run tests/skin_event.test.ts');
   }
   printReport(job, { ok: true, texture: out, actions });
+}
+
+/** League-style SKIN MODEL: a brand-new character body derived from a base
+ *  class model (gpt-image-2 redesigns the character around a theme using
+ *  renders of the real model, Tripo builds/rigs it, the FULL KayKit clip
+ *  vocabulary is retargeted on, and handslot bones are injected so it holds
+ *  weapons through the game's own attach path). Output integrates via
+ *  `clips: kaykit([...])` exactly like a shipped class model. */
+async function cmdSkinmodel() {
+  const cls = opt('class');
+  const theme = opt('theme');
+  const name = opt('name');
+  if (!cls || !theme || !name) {
+    throw new Error(
+      'skinmodel needs --class <playerclass> --theme "pool party" --name <snake_case>',
+    );
+  }
+  if (!/^[a-z0-9_]+$/.test(name)) throw new Error(`--name must be snake_case: ${name}`);
+  const model = CLASS_MODELS[cls];
+  if (!model) throw new Error(`unknown class ${cls}`);
+  if (!hasOpenAi()) throw new Error('skinmodel needs OPENAI_API_KEY (gpt-image-2 redesign stage)');
+  const baseGlb = resolve(REPO_ROOT, `public/models/chars/players/${model}.glb`);
+
+  const job = Job.open({ job: opt('job'), kind: 'skinmodel', name });
+  applyRedo(job, 'skinmodel');
+  job.set('kind', 'skinmodel');
+  job.set('name', name);
+  job.set('theme', theme);
+  job.set('class', cls);
+
+  // 1. Render the REAL base model from several angles: these are the identity
+  //    + style references the redesign is grounded in.
+  const views = await job.step('base_views', async () => {
+    const dir = job.path('base_views');
+    const files = await renderPreviews(baseGlb, dir, {
+      size: 512,
+      views: ['front', 'hero', 'back'],
+      clips: false,
+    });
+    return { files };
+  });
+
+  // 2. gpt-image-2 redesign: the League-style themed variant of THIS character,
+  //    as a T-pose sheet ready for 3D reconstruction.
+  const concept = await job.step('concept', async () => {
+    const { skinModelPrompt } = await import('./lib/prompts.mjs');
+    const dest = job.path('concept.png');
+    job.log(`gpt-image-2 skin redesign: "${theme}" ${cls}...`);
+    await editImages({
+      prompt: skinModelPrompt({ theme, className: cls }),
+      images: views.files,
+      dest,
+      size: '1024x1536',
+    });
+    return { dest };
+  });
+
+  // 3. Best-quality Tripo build: v3.1 + smart_low_poly (clean topology at a
+  //    game-appropriate budget).
+  const gen = await job.step('generate', async () => {
+    const prior = await reconnectTask(job, 'generate');
+    const raw = job.path('raw.glb');
+    if (prior?.output?.model_url) {
+      try {
+        await tripo.download(prior.output.model_url, raw);
+        return { taskId: job.state.tasks.generate, raw };
+      } catch {
+        job.log('  prior output expired; regenerating');
+      }
+    }
+    const { taskId, task } = await tripo.generateModel({
+      image: concept.dest,
+      model: tripo.MODEL_HIFI,
+      smartLowPoly: true,
+      faceLimit: faceLimitOpt(8000),
+      onProgress: (p, s) => job.log(`  tripo generation ${s} ${p}%`),
+      onTaskCreated: (id) => job.noteTask('generate', id),
+    });
+    await tripo.download(task.output.model_url, raw);
+    return { taskId, raw };
+  });
+
+  // 4. Rig (biped, the 90+ preset library).
+  const rig = await job.step('rig', async () => {
+    const prior = await reconnectTask(job, 'rig');
+    if (prior) {
+      return { rigTaskId: job.state.tasks.rig, rigType: 'biped', rigModelVersion: 'reconnected' };
+    }
+    const r = await tripo.rigModel({
+      modelTaskId: gen.taskId,
+      rigType: 'biped',
+      onProgress: (p, s) => job.log(`  rig ${s} ${p}%`),
+      onTaskCreated: (id) => job.noteTask('rig', id),
+    });
+    return { rigTaskId: r.rigTaskId, rigType: r.rigType, rigModelVersion: r.rigModelVersion };
+  });
+
+  // 5. Retarget the FULL KayKit clip vocabulary (in-place) so the game's
+  //    kaykit() ClipMap drives this body exactly like a shipped class.
+  const { KAYKIT_CLIP_PLAN, KAYKIT_REQUIRED_CLIPS } = await import('./lib/families.mjs');
+  const anims = await job.step('retarget', async () => {
+    const presets = KAYKIT_CLIP_PLAN.map((c) => c.presets[0]);
+    const results = await tripo.retargetAnimations({
+      rigTaskId: rig.rigTaskId,
+      presets,
+      inPlace: true,
+      onProgress: (p, s) => job.log(`  retarget ${s} ${p}%`),
+      onTaskCreated: (preset, id) => job.noteTask(`retarget_${preset}`, id),
+      destFor: (preset) => job.path(`anim_${preset.replace(/[^a-z0-9]+/gi, '_')}.glb`),
+    });
+    const downloaded = [];
+    for (const r of results) {
+      if (r.error) {
+        job.log(`WARN: preset ${r.preset} failed: ${r.error}`);
+        continue;
+      }
+      downloaded.push({ preset: r.preset, path: r.path });
+    }
+    if (!downloaded.length) throw new Error('every retarget failed');
+    return { downloaded };
+  });
+
+  // 6. Assemble with KayKit clip names (array entries copy one clip under
+  //    several names, e.g. sit -> Sit_Floor_Down + Sit_Floor_Idle).
+  const built = job.path(`${name}.glb`);
+  const assembled = await job.step('assemble', async () => {
+    const byPreset = new Map(anims.downloaded.map((d) => [d.preset, d.path]));
+    const clips = [];
+    for (const c of KAYKIT_CLIP_PLAN) {
+      const path = byPreset.get(c.presets[0]);
+      if (!path) continue;
+      for (const game of Array.isArray(c.game) ? c.game : [c.game]) {
+        clips.push({ path, preset: c.presets[0], game });
+      }
+    }
+    return assembleRiggedModel(clips[0].path, clips, built);
+  });
+  for (const a of assembled.added) {
+    job.log(`clip ${a.game}: ${a.ok ? `ok (${a.channels} ch)` : `FAILED ${a.reason ?? ''}`}`);
+  }
+
+  // 7. Inject handslot.r / handslot.l so the game's weapon attach works.
+  const slots = await job.step('handslots', async () => {
+    const { addHandslotBones } = await import('./lib/glb.mjs');
+    const report = await addHandslotBones(built, built, {
+      rotateY: Number(opt('grip-rot', 0)),
+      referenceGlb: resolve(REPO_ROOT, 'public/models/chars/players/knight.glb'),
+    });
+    return report;
+  });
+  job.log(`handslots: r=${slots.r?.hand ?? 'NOT FOUND'} l=${slots.l?.hand ?? 'NOT FOUND'}`);
+
+  // 8. Validate: KayKit-required clips present, rigged, in-place.
+  const { CATEGORY_SPECS: SPECS } = await import('./lib/families.mjs');
+  const check = await validateCreature(built, {
+    requiredClips: KAYKIT_REQUIRED_CLIPS,
+    spec: SPECS.skinmodel,
+  });
+  job.set('validation', check);
+  for (const w of check.warnings) job.log(`WARN: ${w}`);
+  if (!check.ok) {
+    for (const e of check.errors) job.log(`ERROR: ${e}`);
+    printReport(job, { ok: false, errors: check.errors });
+    throw new Error('skinmodel failed validation');
+  }
+
+  // 9. Previews: turntable + every clip, plus a held-weapon proof (a shipped
+  //    variant sword gripped by THIS body through the injected handslot).
+  await previewStage(job, built);
+  await job.step('preview_held', async () => {
+    if (!slots.r?.slot) return { skipped: 'no right handslot' };
+    const files = await renderHeldPreviews(
+      resolve(REPO_ROOT, 'public/models/weapons/sword_a.glb'),
+      job.path('preview'),
+      { character: built, lift: 0.04, maxHeight: 2.0 },
+    );
+    return { files };
+  });
+
+  const actions = [];
+  if (flag('apply')) {
+    const destRel = `models/chars/skins/${name}.glb`;
+    const dest = resolve(REPO_ROOT, `public/${destRel}`);
+    const { mkdirSync: mk } = await import('node:fs');
+    mk(resolve(REPO_ROOT, 'public/models/chars/skins'), { recursive: true });
+    copyFileSync(built, dest);
+    actions.push(`copied ${name}.glb -> public/${destRel}`);
+    actions.push(
+      ...appendCreditsRow({
+        assets: `Generated skin-model character (${name}, "${theme}" ${cls})`,
+        source:
+          'Project-generated via scripts/asset_pipeline (gpt-image-2 redesign + Tripo build/rig/retarget)',
+      }),
+    );
+  }
+
+  const { skinModelSnippet } = await import('./lib/integrate.mjs');
+  console.log(
+    `\n${skinModelSnippet({ name, cls, theme, hasRightSlot: !!slots.r?.slot, hasLeftSlot: !!slots.l?.slot })}`,
+  );
+  printReport(job, {
+    ok: true,
+    glb: built,
+    theme,
+    class: cls,
+    clips: assembled.added.filter((a) => a.ok).map((a) => a.game),
+    handslots: slots,
+    actions,
+  });
 }
 
 async function cmdSkinset() {
@@ -911,6 +1182,7 @@ const COMMANDS = {
   creature: cmdCreature,
   skin: cmdSkin,
   skinset: cmdSkinset,
+  skinmodel: cmdSkinmodel,
   validate: cmdValidate,
   preview: cmdPreview,
   'preview-held': cmdPreviewHeld,

@@ -107,6 +107,10 @@
       <div class="livebar" id="livebar" style="display:none">
         <label for="clipsel">anim</label>
         <select id="clipsel" aria-label="Animation clip"></select>
+        <span id="heldbywrap" style="display:flex;gap:6px;align-items:center">
+          <label for="heldby">held by</label>
+          <select id="heldby" aria-label="Held by character"></select>
+        </span>
         <label><input type="checkbox" id="ctxtoggle" /> vs player</label>
         <span class="status" id="livestatus"></span>
       </div>
@@ -132,6 +136,21 @@ const state = { search: '', cat: 'all', status: 'all', sort: 'name', open: -1, f
 // ../../../public/* relative to the emitted index.html when opened as a file.
 function pubUrl(publicRel) {
   return window.__LIVE__ ? '/repo/public/' + publicRel : '../../../public/' + publicRel;
+}
+
+// Character models a weapon can be "held by" in the live viewer: every player
+// class body plus any generated skin-model bodies (they carry handslot bones).
+function characterOptions() {
+  const opts = [];
+  for (const a of assets) {
+    if (a.kind === 'model' && a.category === 'chars/players' && a.repoGlb) {
+      opts.push({ label: a.name, repoGlb: a.repoGlb });
+    }
+    if (a.kind === 'job' && a.job?.lane === 'skinmodel' && a.repoGlb) {
+      opts.push({ label: a.name.replace(/^skinmodel: /, '') + ' (generated)', repoGlb: a.repoGlb });
+    }
+  }
+  return opts.sort((x, y) => x.label.localeCompare(y.label));
 }
 
 function statusOf(a) {
@@ -306,6 +325,8 @@ function openDetail(i) {
       clipSelect: document.getElementById('clipsel'),
       statusEl: document.getElementById('livestatus'),
       contextToggle: document.getElementById('ctxtoggle'),
+      heldBySelect: document.getElementById('heldby'),
+      charOptions: characterOptions(),
     });
   } else {
     if (window.LiveViewer) window.LiveViewer.close();

@@ -53,6 +53,26 @@ export function modelPrompt({ kind, description, family }) {
   return base.replace(`, ${LAYOUT_OBJECT}`, '').replace(`, ${LAYOUT_CHARACTER}`, '').slice(0, 1024);
 }
 
+/** League-of-Legends-style SKIN MODEL concept: the attached views show the base
+ *  class character; gpt-image-2 redesigns that exact character around a theme
+ *  (like "pool party hunter") while keeping the game's chibi KayKit style and
+ *  the character's silhouette, output as a T-pose sheet ready for Tripo. */
+export function skinModelPrompt({ theme, className }) {
+  return (
+    `The attached images show the ${className} character from a low-poly chibi fantasy game ` +
+    '(KayKit style: large rounded head about one third of total height, short stubby body, ' +
+    'flat-shaded hand-painted colors), seen from several angles. Create a REDESIGNED SKIN ' +
+    `VARIANT of this exact character with a "${theme}" theme, the way alternate character ` +
+    'skins work in League of Legends: a completely new outfit, colors, and accessories that ' +
+    'fit the theme, while KEEPING the same character identity, the same chibi proportions, ' +
+    'the same overall silhouette, and the same low-poly flat-shaded art style. ' +
+    'Render the redesigned character as: full body, standing T-pose with arms out ' +
+    'horizontally, facing the camera, centered, full figure in frame, plain white opaque ' +
+    'background, even diffuse studio lighting, crisp silhouette, no halos, no drop shadow, ' +
+    'no extra objects, no text, no watermark.'
+  );
+}
+
 /** Prompt for a gpt-image-2 atlas repaint (player-class skin lane). */
 export function atlasEditPrompt(description) {
   return (

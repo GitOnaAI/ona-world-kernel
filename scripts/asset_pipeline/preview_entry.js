@@ -221,13 +221,18 @@ window.renderHeld = async (charB64, weaponB64, opts = {}) => {
   payload.scale.setScalar(scale);
   bone.add(payload);
 
-  const idle = (charGltf.animations ?? []).find((c) => /idle/i.test(c.name));
-  if (idle) {
-    const mixer = new THREE.AnimationMixer(rig);
-    mixer.clipAction(idle).reset().play();
-    mixer.setTime(Math.max(0.001, idle.duration * 0.3));
-  }
-  rig.updateMatrixWorld(true);
+  const clips = charGltf.animations ?? [];
+  const mixer = clips.length ? new THREE.AnimationMixer(rig) : null;
+  const poseWith = (clip, at) => {
+    if (!mixer || !clip) return;
+    mixer.stopAllAction();
+    const action = mixer.clipAction(clip);
+    action.reset().play();
+    mixer.setTime(Math.max(0.001, clip.duration * at));
+    rig.updateMatrixWorld(true);
+  };
+  const idle = clips.find((c) => /idle/i.test(c.name));
+  poseWith(idle, 0.3);
 
   const shots = [];
   for (const [name, yaw] of [
@@ -235,6 +240,15 @@ window.renderHeld = async (charB64, weaponB64, opts = {}) => {
     ['held_right', Math.PI / 2],
   ]) {
     shots.push({ name, dataUrl: frame(scene, rig, yaw, size) });
+  }
+  // Mid-swing pose: proves the weapon rides the hand through the game's attack
+  // animation, not just the idle stance.
+  if (opts.attack ?? true) {
+    const attack = clips.find((c) => /attack|slash|chop/i.test(c.name));
+    if (attack) {
+      poseWith(attack, 0.45);
+      shots.push({ name: 'held_attack', dataUrl: frame(scene, rig, -Math.PI / 5, size) });
+    }
   }
   dispose(rig, scene);
   return shots;
