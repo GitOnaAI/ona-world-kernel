@@ -894,6 +894,13 @@ describe('S3: every sim.ts emit is recognized (drift guard)', () => {
     // the "<name> awakens!" summon log; the boss yells are variable-routed chat, not
     // scanned). Literals are byte-identical after the move so their matchers are unchanged.
     fs.readFileSync(path.resolve(process.cwd(), 'src/sim/encounters/nythraxis.ts'), 'utf8'),
+    // H1 (#1141): the interaction command bodies (corpse harvest + loot/pickup). The two
+    // corpse-harvest errors' ONLY emitter occurrences live here, so without this entry a
+    // rewording of either side would silently ship English while the guard stayed green.
+    fs.readFileSync(path.resolve(process.cwd(), 'src/sim/interaction.ts'), 'utf8'),
+    // H1: the gathering profession module: no emits today, scanned so future
+    // profession-harvest emits land under the drift guard automatically.
+    fs.readFileSync(path.resolve(process.cwd(), 'src/sim/professions/gathering.ts'), 'utf8'),
     socialSrc,
   ].join('\n');
   // Hardened S3: also scan the authoritative server's player-facing emits. The
