@@ -10,7 +10,7 @@
 //   node scripts/asset_pipeline/pipeline.mjs balance
 //   node scripts/asset_pipeline/pipeline.mjs weapon --name emberfang_sword \
 //     [--prompt "curved ember-glowing blade"] [--image path|url] [--family sword] \
-//     [--items item_id1,item_id2] [--flip] [--apply] [--job id]
+//     [--items item_id1,item_id2] [--model-file existing.glb] [--flip] [--roll deg] [--apply] [--job id]
 //   node scripts/asset_pipeline/pipeline.mjs prop --name market_fountain --height 2.4 \
 //     [--prompt "..."] [--image ...] [--rotate-y 90] [--apply] [--job id]
 //   node scripts/asset_pipeline/pipeline.mjs creature --name bog_lurker \
@@ -344,24 +344,40 @@ async function cmdWeapon() {
   applyRedo(job, 'weapon');
   job.set('kind', 'weapon');
   job.set('name', name);
+  job.set('family', family.name);
 
-  const concept = await conceptStage(job, {
-    kind: 'weapon',
-    description: opt('prompt'),
-    family,
-    image: opt('image'),
-  });
-  // Prefer the local concept file (a resumed job's cached task-id reference can
-  // have an expired output URL; a local file re-uploads fresh every time).
-  const input = concept.conceptPath ?? concept.input;
-  const gen = await generateStage(job, {
-    input,
-    prompt: opt('prompt')
-      ? conceptPrompt({ kind: 'weapon', description: opt('prompt'), family })
-      : null,
-    model: opt('model') === 'hifi' ? tripo.MODEL_HIFI : tripo.MODEL_LOWPOLY,
-    faceLimit: faceLimitOpt(CATEGORY_SPECS.weapon.faceLimit),
-  });
+  // --model-file imports an EXISTING 3D model (no concept, no Tripo spend):
+  // the file is copied in as the raw model and flows through the same
+  // normalize/icon/preview/integration chain as a generated one.
+  const modelFile = opt('model-file');
+  let gen;
+  if (modelFile) {
+    gen = await job.step('generate', async () => {
+      const src = resolve(modelFile);
+      if (!existsSync(src)) throw new Error(`--model-file not found: ${src}`);
+      const raw = job.path('raw.glb');
+      copyFileSync(src, raw);
+      return { raw, source: 'imported-file', from: src };
+    });
+  } else {
+    const concept = await conceptStage(job, {
+      kind: 'weapon',
+      description: opt('prompt'),
+      family,
+      image: opt('image'),
+    });
+    // Prefer the local concept file (a resumed job's cached task-id reference
+    // can have an expired output URL; a local file re-uploads fresh).
+    const input = concept.conceptPath ?? concept.input;
+    gen = await generateStage(job, {
+      input,
+      prompt: opt('prompt')
+        ? conceptPrompt({ kind: 'weapon', description: opt('prompt'), family })
+        : null,
+      model: opt('model') === 'hifi' ? tripo.MODEL_HIFI : tripo.MODEL_LOWPOLY,
+      faceLimit: faceLimitOpt(CATEGORY_SPECS.weapon.faceLimit),
+    });
+  }
 
   const flip = flag('flip');
   const roll = Number(opt('roll', 0)) || 0;

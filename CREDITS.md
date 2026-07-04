@@ -26,6 +26,16 @@ provided as a courtesy.
 | Generated weapon model + icon (emberfang_sword) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
 | Generated class skin-suit set "Prismatic Vanguard" (suit_prismatic, all classes) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (procedural gradient-map atlas) | Project asset |
 | Generated class skin-suit set "Liquid Chrome" (suit_chrome, all classes) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (procedural gradient-map atlas) | Project asset |
+| Generated weapon model + icon (redskull_sword) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (redskull_dagger) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (redskull_staff) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (redskull_wand) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (redskull_hammer) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (purple_sword) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (purple_dagger) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (purple_axe) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (purple_staff) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated weapon model + icon (purple_wand) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
 
 Assets were optimized for shipping (animation clip pruning, meshopt compression,
 texture resizing) via `scripts/assets/build_assets.mjs`; raw packs are not

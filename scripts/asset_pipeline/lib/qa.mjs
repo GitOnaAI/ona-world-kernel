@@ -50,7 +50,9 @@ export async function runJobQa(job) {
     const report = await inspectGlb(built);
 
     if (kind === 'weapon') {
-      const family = weaponFamilyFor(name);
+      // Explicit --family imports (bow, tome, crossbow) record their family on
+      // the job; fall back to name inference for older jobs.
+      const family = weaponFamilyFor(state.family ?? name);
       if (!family) checks.push(fail('family', `no weapon family in name "${name}"`));
       else foldValidation(checks, await validateWeapon(built, family), 'weapon convention');
       checks.push(

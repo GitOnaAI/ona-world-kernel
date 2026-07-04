@@ -57,6 +57,12 @@ CREDITS.md row. The ItemDef snippet is printed for the agent to place by hand (r
 vanilla-style stats are a gameplay judgment). After `--apply` run:
 `npx vitest run tests/held_weapon_models.test.ts`.
 
+Importing an EXISTING model instead of generating: `weapon --name <key> --model-file
+path/to/model.glb [--family x] [--flip] [--roll deg] [--apply]` skips the concept and
+Tripo stages entirely (zero credits) and runs the same normalize/icon/preview/register
+chain, so downloaded packs integrate identically to generated assets. Names without a
+family token need `--family`; the resolved family is recorded on the job for qa.
+
 ### 2. prop
 ```
 node scripts/asset_pipeline/pipeline.mjs prop --name market_fountain --height 2.4 \
