@@ -30,7 +30,11 @@ export function priceOpenAiUsage(usage) {
  *  own credits_consumed, plus any stored gpt-image-2 usage blocks. */
 export async function jobCost(jobState) {
   const items = [];
-  for (const [label, taskId] of Object.entries(jobState.tasks ?? {})) {
+  const rows = [
+    ...Object.entries(jobState.tasks ?? {}).map(([label, taskId]) => ({ label, taskId })),
+    ...(jobState.tasksSuperseded ?? []).map((t) => ({ ...t, superseded: true })),
+  ];
+  for (const { label, taskId, superseded } of rows) {
     let credits = null;
     let status = 'unknown';
     try {
@@ -42,7 +46,7 @@ export async function jobCost(jobState) {
     }
     items.push({
       kind: 'tripo',
-      label,
+      label: superseded ? `${label} (superseded)` : label,
       taskId,
       credits,
       usd: credits === null ? null : +(credits * TRIPO_CREDIT_USD).toFixed(3),

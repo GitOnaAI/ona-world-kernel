@@ -115,11 +115,24 @@ export class Job {
 
   /** Drop steps from the ledger so a resumed run re-executes them (the --redo
    *  flag). Paid steps re-pay: use for parameter or code changes, not retries
-   *  of transient failures (failed steps already re-run automatically). */
+   *  of transient failures (failed steps already re-run automatically).
+   *  The steps' recorded Tripo task ids are dropped too: reconnectTask exists
+   *  for crash recovery, and keeping a cleared step's task id would silently
+   *  resurrect the OLD output instead of re-running with the new parameters
+   *  (verified: a --redo generate re-downloaded the same model). */
   clearSteps(names) {
     for (const name of names) {
       for (const key of Object.keys(this.state.steps)) {
         if (key === name || key.startsWith(`${name}_`)) delete this.state.steps[key];
+      }
+      for (const key of Object.keys(this.state.tasks ?? {})) {
+        if (key === name || key.startsWith(`${name}_`)) {
+          // Archive rather than forget: the superseded task consumed real
+          // credits, and the QA cost report must still account for it.
+          this.state.tasksSuperseded ??= [];
+          this.state.tasksSuperseded.push({ label: key, taskId: this.state.tasks[key] });
+          delete this.state.tasks[key];
+        }
       }
     }
     this.save();

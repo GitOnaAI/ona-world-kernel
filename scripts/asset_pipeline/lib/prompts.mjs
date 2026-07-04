@@ -22,7 +22,15 @@ const LAYOUT_CHARACTER =
   'centered, full figure in frame, plain white opaque background, even diffuse studio lighting, ' +
   'crisp silhouette, no halos, no drop shadow, no extra objects, no text, no watermark';
 
-export function conceptPrompt({ kind, description, family }) {
+// Non-biped creatures must NOT get the T-pose language (it makes a boar stand
+// on its hind legs like a person, verified): natural stance, side profile.
+const LAYOUT_QUADRUPED =
+  'single creature, full body, standing naturally on all of its legs on the ground, side ' +
+  'profile view, centered, full figure in frame, plain white opaque background, even diffuse ' +
+  'studio lighting, crisp silhouette, no halos, no drop shadow, no extra objects, no text, ' +
+  'no watermark';
+
+export function conceptPrompt({ kind, description, family, rigType }) {
   if (kind === 'weapon') {
     const orient = family?.heavyEndUp
       ? 'held upright, head at the top, handle at the bottom'
@@ -36,11 +44,15 @@ export function conceptPrompt({ kind, description, family }) {
     // The game's humanoids are CHIBI (KayKit/Quaternius mini proportions): a big
     // rounded head on a short stubby body. Tripo defaults to realistic
     // proportions, which look wrong standing next to the player, so force chibi.
-    const chibi =
-      'chibi proportions, large rounded head about one third of total height, short stubby ' +
-      'body and limbs, small hands and feet, cute stylized mascot like KayKit and Quaternius ' +
-      'mini game characters, NOT realistic human proportions';
-    return `${description}, fantasy game creature, ${chibi}, ${STYLE_CORE}, ${LAYOUT_CHARACTER}`;
+    const biped = !rigType || rigType === 'biped';
+    const chibi = biped
+      ? 'chibi proportions, large rounded head about one third of total height, short stubby ' +
+        'body and limbs, small hands and feet, cute stylized mascot like KayKit and Quaternius ' +
+        'mini game characters, NOT realistic human proportions'
+      : 'chunky stylized proportions, oversized head, cute mascot like KayKit and Quaternius ' +
+        'mini game creatures, NOT realistic proportions';
+    const layout = biped ? LAYOUT_CHARACTER : LAYOUT_QUADRUPED;
+    return `${description}, fantasy game creature, ${chibi}, ${STYLE_CORE}, ${layout}`;
   }
   throw new Error(`unknown concept kind: ${kind}`);
 }

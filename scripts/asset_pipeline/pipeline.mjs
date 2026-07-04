@@ -154,7 +154,7 @@ function applyRedo(job, lane) {
  *  Priority: explicit --image; gpt-image-2 (OPENAI_API_KEY set); Tripo
  *  text-to-image (concept stays reviewable); the t2i task id feeds
  *  image-to-model directly so nothing re-uploads. */
-async function conceptStage(job, { kind, description, family, image }) {
+async function conceptStage(job, { kind, description, family, image, rigType }) {
   if (image) {
     return job.step('concept', async () => {
       if (/^https?:\/\//.test(image) || /^(task_|file_)/.test(image)) {
@@ -166,37 +166,50 @@ async function conceptStage(job, { kind, description, family, image }) {
     });
   }
   if (!description) throw new Error('need --image or --prompt');
-  const prompt = conceptPrompt({ kind, description, family });
+  const prompt = conceptPrompt({ kind, description, family, rigType });
   if (hasOpenAi()) {
-    return job.step('concept', async () => {
-      const dest = job.path('concept.png');
-      // Ground the concept in the game's ACTUAL art: a style board of shipped
-      // assets rides along as a reference image, so results are KayKit-coherent
-      // by default rather than by adjective.
-      const { styleBoard, STYLE_REF_INSTRUCTION } = await import('./lib/style_ref.mjs');
-      let board = null;
-      try {
-        board = await styleBoard(kind);
-      } catch (err) {
-        job.log(`style board unavailable (${String(err.message).slice(0, 80)}); plain concept`);
-      }
-      let usage = null;
-      if (board) {
-        job.log(`gpt-image-2 concept (style-referenced): ${prompt.slice(0, 100)}...`);
-        const r = await editImages({
-          prompt: `${STYLE_REF_INSTRUCTION} Now create: ${prompt}`,
-          images: [board],
-          dest,
-          size: '1024x1024',
-        });
-        usage = r.usage;
-      } else {
-        job.log(`gpt-image-2 concept: ${prompt.slice(0, 120)}...`);
-        const r = await generateConceptImage({ prompt, dest });
-        usage = r.usage;
-      }
-      return { input: dest, conceptPath: dest, source: 'gpt-image-2', usage };
-    });
+    try {
+      return await job.step('concept', async () => {
+        const dest = job.path('concept.png');
+        // Ground the concept in the game's ACTUAL art: a style board of shipped
+        // assets rides along as a reference image, so results are KayKit-coherent
+        // by default rather than by adjective.
+        const { styleBoard, STYLE_REF_INSTRUCTION } = await import('./lib/style_ref.mjs');
+        let board = null;
+        try {
+          board = await styleBoard(kind);
+        } catch (err) {
+          job.log(`style board unavailable (${String(err.message).slice(0, 80)}); plain concept`);
+        }
+        let usage = null;
+        if (board) {
+          job.log(`gpt-image-2 concept (style-referenced): ${prompt.slice(0, 100)}...`);
+          try {
+            const r = await editImages({
+              prompt: `${STYLE_REF_INSTRUCTION} Now create: ${prompt}`,
+              images: [board],
+              dest,
+              size: '1024x1024',
+            });
+            usage = r.usage;
+          } catch (err) {
+            // The multipart edits endpoint 520s in sustained bursts; the plain
+            // generations endpoint usually still works. Style words remain in
+            // the prompt, so degrade rather than die.
+            job.log(`style-referenced edit failed (${String(err.message).slice(0, 60)}); plain`);
+            board = null;
+          }
+        }
+        if (!board) {
+          job.log(`gpt-image-2 concept: ${prompt.slice(0, 120)}...`);
+          const r = await generateConceptImage({ prompt, dest });
+          usage = r.usage;
+        }
+        return { input: dest, conceptPath: dest, source: 'gpt-image-2', usage };
+      });
+    } catch (err) {
+      job.log(`gpt-image-2 unavailable (${String(err.message).slice(0, 80)}); tripo t2i fallback`);
+    }
   }
   return job.step('concept', async () => {
     job.log(`tripo text-to-image concept (no OPENAI_API_KEY): ${prompt.slice(0, 120)}...`);
@@ -492,6 +505,7 @@ async function cmdCreature() {
     kind: 'creature',
     description: opt('prompt'),
     image: opt('image'),
+    rigType: opt('rig-type'),
   });
   const input = concept.conceptPath ?? concept.input;
   const gen = await generateStage(job, {
