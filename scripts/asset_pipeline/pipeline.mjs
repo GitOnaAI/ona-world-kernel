@@ -364,15 +364,18 @@ async function cmdWeapon() {
   });
 
   const flip = flag('flip');
+  const roll = Number(opt('roll', 0)) || 0;
   // The variant suffix parameterizes every step DERIVED from the normalize
-  // output, so a --flip rerun re-renders the icon and previews too (a stale
-  // icon from the un-flipped model must never reach --apply).
-  const variant = flip ? '_flip' : '';
+  // output, so a --flip or --roll rerun re-renders the icon and previews too
+  // (a stale icon from the un-fixed model must never reach --apply).
+  const variant = `${flip ? '_flip' : ''}${roll ? `_roll${roll}` : ''}`;
   const built = job.path(`${name}.glb`);
   const norm = await job.step(`normalize${variant}`, () =>
-    normalizeWeapon(gen.raw, built, family, { flip }),
+    normalizeWeapon(gen.raw, built, family, { flip, roll }),
   );
-  job.log(`normalized: scale ${norm.scale}, flipped ${norm.flipped}`);
+  job.log(
+    `normalized: scale ${norm.scale}, flipped ${norm.flipped}, auto-roll ${norm.autoRollDeg ?? 0}deg${roll ? `, manual roll ${roll}deg` : ''}`,
+  );
 
   const check = await validateWeapon(built, family);
   job.set('validation', check);

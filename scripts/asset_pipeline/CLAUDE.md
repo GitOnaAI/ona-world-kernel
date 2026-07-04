@@ -249,7 +249,13 @@ without re-normalizing would silently ship the previous asset); cleared paid ste
 ALWAYS Read the preview PNGs before integrating: `<job>/preview/front|right|back|left|hero.png`
 plus one `clip_<Name>.png` per animation for rigged models (a T-pose clip frame means a broken
 retarget). Fixes:
-- Weapon pointing down or wrong end up: rerun with `--flip --job <id>`.
+- Weapon pointing down or wrong end up: rerun with `--flip --job <id>`. IMPORTANT: a
+  later `--redo normalize` rerun must REPEAT the original `--flip`/`--roll` flags or the
+  fix silently reverts (the flags parameterize the step, they are not remembered).
+- Blade/head plane rolled sideways (axe held flat): normalize auto-aligns the head
+  region's wide axis to local X (the measured shipped convention; staves/wands skip,
+  their roll is irrelevant). If the heuristic picks wrong, `--roll 90 --job <id>` adds a
+  manual yaw about the shaft on top.
 - Prop facing the wrong way: rerun with `--rotate-y <deg> --job <id>` (front faces +Z).
 - Not riggable / bad silhouette: regenerate with a clearer prompt or a T-pose concept image.
 Validation gates run automatically per lane (`lib/validate.mjs`): budget caps, grip fraction,

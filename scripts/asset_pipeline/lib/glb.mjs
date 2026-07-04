@@ -275,7 +275,12 @@ function endMoments(doc, frac = 0.3) {
  *  correct end up (per family), family height, origin at the grip, centered XZ.
  *  `flip` forcibly inverts the up-end decision (agent escape hatch after
  *  reviewing the preview). Returns the applied numbers for the report. */
-export async function normalizeWeapon(inPath, outPath, family, { flip = false, maxTex } = {}) {
+export async function normalizeWeapon(
+  inPath,
+  outPath,
+  family,
+  { flip = false, roll = 0, maxTex } = {},
+) {
   const doc = await openGlb(inPath);
   bakeNodeTransforms(doc);
 
@@ -294,6 +299,77 @@ export async function normalizeWeapon(inPath, outPath, family, { flip = false, m
   if (bigEndUp !== family.heavyEndUp) flipped = true;
   if (flip) flipped = !flipped;
   if (flipped) applyToAllMeshes(doc, mat4RotZ(Math.PI));
+
+  // 2b. Roll about the shaft: every shipped anisotropic head/blade spans local
+  //     X (measured: axes/swords/daggers wide axis 0deg, thin in Z), while
+  //     generated meshes land at ~90deg (concepts show the blade face-on, so
+  //     the wide face ends up in Z). Align the head region's principal wide
+  //     axis to X; near-symmetric heads (maces, staff orbs, wands) are left
+  //     alone. Single-sided heads then match the shipped sign convention
+  //     (head toward -X, e.g. axe_c). `roll` adds a manual override on top.
+  let autoRollDeg = 0;
+  // Staves and wands are radially symmetric shafts with ornaments; their weak
+  // head anisotropy makes the estimate noisy and the roll is aesthetically
+  // irrelevant, so only --roll applies to them.
+  if (family.grip !== 'VAR_STAFF' && family.grip !== 'VAR_WAND') {
+    ({ min, max } = measureBounds(doc));
+    const h = max[1] - min[1];
+    const yCut = min[1] + 0.55 * h;
+    let n = 0;
+    let cx = 0;
+    let cz = 0;
+    forEachPosition(doc, (p) => {
+      if (p[1] > yCut) {
+        cx += p[0];
+        cz += p[2];
+        n++;
+      }
+    });
+    if (n > 8) {
+      cx /= n;
+      cz /= n;
+      let sxx = 0;
+      let szz = 0;
+      let sxz = 0;
+      forEachPosition(doc, (p) => {
+        if (p[1] > yCut) {
+          const dx = p[0] - cx;
+          const dz = p[2] - cz;
+          sxx += dx * dx;
+          szz += dz * dz;
+          sxz += dx * dz;
+        }
+      });
+      const half = Math.sqrt(((sxx - szz) / 2) ** 2 + sxz ** 2);
+      const l1 = (sxx + szz) / 2 + half;
+      const l2 = Math.max((sxx + szz) / 2 - half, 1e-9);
+      const anisotropy = Math.sqrt(l1 / l2);
+      if (anisotropy >= 1.3) {
+        // Yaw the wide axis onto X (shortest rotation, in (-90, 90]).
+        let theta = 0.5 * Math.atan2(2 * sxz, sxx - szz);
+        if (theta > Math.PI / 2) theta -= Math.PI;
+        if (theta <= -Math.PI / 2) theta += Math.PI;
+        if (Math.abs(theta) > (3 * Math.PI) / 180) {
+          applyToAllMeshes(doc, mat4RotY(-theta));
+          autoRollDeg = +((-theta * 180) / Math.PI).toFixed(1);
+        }
+        // Sign: a clearly one-sided head points toward -X like the shipped set.
+        let n2 = 0;
+        let cx2 = 0;
+        forEachPosition(doc, (p) => {
+          if (p[1] > yCut) {
+            cx2 += p[0];
+            n2++;
+          }
+        });
+        if (n2 && cx2 / n2 > 0.03 * h) {
+          applyToAllMeshes(doc, mat4RotY(Math.PI));
+          autoRollDeg += 180;
+        }
+      }
+    }
+  }
+  if (roll) applyToAllMeshes(doc, mat4RotY((roll * Math.PI) / 180));
 
   // 3. Scale to family height, origin at the grip, centered XZ.
   ({ min, max } = measureBounds(doc));
@@ -314,7 +390,14 @@ export async function normalizeWeapon(inPath, outPath, family, { flip = false, m
     meshopt({ encoder: MeshoptEncoder, level: 'high' }),
   );
   await saveGlb(doc, outPath);
-  return { scale: +s.toFixed(4), flipped, height: family.height, gripFrac: family.gripFrac };
+  return {
+    scale: +s.toFixed(4),
+    flipped,
+    autoRollDeg,
+    manualRollDeg: roll,
+    height: family.height,
+    gripFrac: family.gripFrac,
+  };
 }
 
 /** Normalize a generated prop GLB: base at y=0, centered XZ, world-unit height,
