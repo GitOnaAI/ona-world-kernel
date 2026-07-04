@@ -38,6 +38,7 @@ import {
   MELEE_RANGE,
   NYTHRAXIS_ADD_ID,
   NYTHRAXIS_BOSS_ID,
+  TOLLING_BELL_TEMPLATE_ID,
   type Vec3,
 } from '../types';
 import { groundHeight, waterLevel } from '../world';
@@ -86,6 +87,18 @@ export function updateMob(ctx: SimContext, mob: Entity): void {
   mob.combatTimer += DT;
 
   if (mob.templateId.startsWith('vision_')) {
+    mob.hostile = false;
+    mob.aiState = 'idle';
+    mob.inCombat = false;
+    mob.aggroTargetId = null;
+    clearThreat(mob);
+    return;
+  }
+
+  // Tolling Bell projectiles (The Drowned Litany finale) are moved exclusively
+  // by the boss driver: no aggro, no wander, no evade-home, and the hostility
+  // safety net below must not re-hostile them.
+  if (mob.templateId === TOLLING_BELL_TEMPLATE_ID) {
     mob.hostile = false;
     mob.aiState = 'idle';
     mob.inCombat = false;
@@ -385,6 +398,7 @@ export function updateMob(ctx: SimContext, mob: Entity): void {
             mob.castingAbility = null;
             mob.castTotal = 0;
             mob.castRemaining = 0;
+            mob.castTargetId = null;
             const school = (bigCast.school ?? 'nature') as Aura['school'];
             ctx.emit({ type: 'spellfx', sourceId: mob.id, targetId: mob.id, school, fx: 'nova' });
             ctx.emit({
@@ -408,6 +422,7 @@ export function updateMob(ctx: SimContext, mob: Entity): void {
             mob.castingAbility = bigCast.castId;
             mob.castTotal = bigCast.castTime;
             mob.castRemaining = bigCast.castTime;
+            mob.castTargetId = null;
             mob.channeling = false;
             if (bigCast.yell) emitMobYell(ctx, mob, bigCast.yell);
           }
@@ -585,6 +600,7 @@ export function resetEvadingMob(ctx: SimContext, mob: Entity): void {
     mob.castingAbility = null;
     mob.castTotal = 0;
     mob.castRemaining = 0;
+    mob.castTargetId = null;
   }
   mob.yelledEngage = false;
   mob.wanderTimer = ctx.rng.range(2, 8);
