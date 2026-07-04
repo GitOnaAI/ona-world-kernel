@@ -148,9 +148,12 @@ biped; (5) retarget the FULL KayKit clip vocabulary IN-PLACE (`KAYKIT_CLIP_PLAN`
 Idle, Walking_A, Running_A, 1H/2H_Melee_Attack_Chop, 2H_Ranged_Shoot,
 Spellcasting, Spellcast_Shoot, Hit_A, Death_A, Jump_Idle, Sit_Floor_*, Lie_Idle,
 Cheer), so the shipped `kaykit()` ClipMap factory drives it unchanged;
-(6) inject `handslot.r`/`handslot.l` bones at the palms so the game's weapon
-attach works as-is (a held-sword preview render proves it); (7) validate +
-preview every clip. `--apply` copies to `public/models/chars/skins/` and prints
+(6) inject `handslot.r`/`handslot.l` bones at the palms and POSE-MATCH their
+rotation to the knight's slots at the same Idle frame (bind-pose transplants
+alone leave the runtime grip ~90-110 degrees off, because each rig's idle
+rotates the hand differently from its own bind; the handslot_align step
+measures and corrects this, and the held-sword preview renders prove it);
+(7) validate + preview every clip. `--apply` copies to `public/models/chars/skins/` and prints
 the VisualDef snippet (instant NPC/MOB wiring; a PLAYER cosmetic body still
 requires the SkinCatalog union work, see the snippet). ~200 credits + a few
 cents of gpt-image-2.

@@ -126,6 +126,7 @@ const STEP_ORDER = {
     'retarget',
     'assemble',
     'handslots',
+    'handslot_align',
     'preview',
     'preview_held',
   ],
@@ -916,6 +917,31 @@ async function cmdSkinmodel() {
     return report;
   });
   job.log(`handslots: r=${slots.r?.hand ?? 'NOT FOUND'} l=${slots.l?.hand ?? 'NOT FOUND'}`);
+
+  // Pose-matched grip alignment: the injected slots start from a bind-pose
+  // transplant, but the two rigs' idles rotate the hand differently from their
+  // binds, so the runtime grip can sit ~90 degrees off. Pose BOTH rigs at the
+  // same Idle frame and rewrite the slot rotations so the world grip matches
+  // the knight exactly (the game plays clips, never the bind pose).
+  const align = await job.step('handslot_align', async () => {
+    const { computeSlotCalibration } = await import('./lib/preview.mjs');
+    const { setHandslotRotations } = await import('./lib/glb.mjs');
+    const cal = await computeSlotCalibration(
+      resolve(REPO_ROOT, 'public/models/chars/players/knight.glb'),
+      built,
+    );
+    if (!cal.r && !cal.l) return { skipped: 'no slots to align' };
+    const applied = await setHandslotRotations(built, built, cal);
+    return {
+      applied,
+      errorBeforeDeg: { r: cal.r?.errorBeforeDeg ?? null, l: cal.l?.errorBeforeDeg ?? null },
+    };
+  });
+  if (align.errorBeforeDeg) {
+    job.log(
+      `handslot_align: corrected grip error r=${align.errorBeforeDeg.r}deg l=${align.errorBeforeDeg.l}deg (idle-pose matched to knight)`,
+    );
+  }
 
   // 8. Validate: KayKit-required clips present, rigged, in-place.
   const { CATEGORY_SPECS: SPECS } = await import('./lib/families.mjs');

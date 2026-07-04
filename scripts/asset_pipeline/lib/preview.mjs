@@ -164,6 +164,17 @@ export async function renderHeldPreviews(
   });
 }
 
+/** Pose-matched handslot calibration between a reference rig and a generated
+ *  rig (both posed at the same Idle frame in the browser; see preview_entry).
+ *  Returns { r: {quat, errorBeforeDeg}, l: {...} }. */
+export async function computeSlotCalibration(refGlbPath, genGlbPath) {
+  const refB64 = readFileSync(refGlbPath).toString('base64');
+  const genB64 = readFileSync(genGlbPath).toString('base64');
+  return withPage((page) =>
+    page.evaluate((r, g) => window.computeSlotCalibration(r, g), refB64, genB64),
+  );
+}
+
 /** Render the weapon held + animated by EVERY class body model (idle grip, side
  *  view, and a mid-attack frame each), proving integration across all
  *  characters rather than just the knight. Returns every file path. */

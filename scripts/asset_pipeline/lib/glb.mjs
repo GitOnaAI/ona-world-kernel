@@ -676,6 +676,24 @@ export async function addHandslotBones(
   return report;
 }
 
+/** Overwrite the local rotation of existing handslot nodes with the
+ *  pose-matched calibration output (computeSlotCalibration). Translation and
+ *  scale are left as injected. */
+export async function setHandslotRotations(glbPath, outPath, sides) {
+  const doc = await openGlb(glbPath);
+  const applied = {};
+  for (const node of doc.getRoot().listNodes()) {
+    const name = node.getName();
+    const side = name === 'handslot.r' ? 'r' : name === 'handslot.l' ? 'l' : null;
+    if (side && sides[side]?.quat) {
+      node.setRotation(sides[side].quat);
+      applied[side] = true;
+    }
+  }
+  await saveGlb(doc, outPath);
+  return applied;
+}
+
 /** In-place check: per clip, the XZ translation range of root-level joints.
  *  A range above `limit` world units means baked root motion, which slides
  *  against sim-owned movement. Returns [{clip, range}] offenders. */

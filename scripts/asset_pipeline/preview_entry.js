@@ -190,6 +190,56 @@ window.renderIcon = async (b64) => {
   return url;
 };
 
+// Pose-matched handslot calibration: pose the REFERENCE rig and the GENERATED
+// rig at the same Idle frame, then solve the local rotation the generated slot
+// needs so its WORLD orientation equals the reference slot's. Matching at the
+// bind pose is NOT enough (verified: each rig's idle rotates the hand
+// differently from its own bind, leaving a ~90-degree pitch error at runtime;
+// the game plays clips, never the bind pose).
+window.computeSlotCalibration = async (refB64, genB64, opts = {}) => {
+  const at = opts.at ?? 0.3;
+  const clipName = opts.clip ?? 'Idle';
+  const load = async (b64) => {
+    const gltf = await parseGlb(b64);
+    const rig = gltf.scene;
+    const clips = gltf.animations ?? [];
+    const clip = clips.find((c) => c.name === clipName) ?? clips[0];
+    if (clip) {
+      const mixer = new THREE.AnimationMixer(rig);
+      mixer.clipAction(clip).reset().play();
+      mixer.setTime(Math.max(0.001, clip.duration * at));
+    }
+    rig.updateMatrixWorld(true);
+    return rig;
+  };
+  const ref = await load(refB64);
+  const gen = await load(genB64);
+  const slotOf = (rig, side) => {
+    let slot = null;
+    rig.traverse((o) => {
+      if (o.name.replace(/[[\].:/]/g, '') === `handslot${side}`) slot = o;
+    });
+    return slot;
+  };
+  const out = {};
+  for (const side of ['r', 'l']) {
+    const refSlot = slotOf(ref, side);
+    const genSlot = slotOf(gen, side);
+    if (!refSlot || !genSlot?.parent) continue;
+    const refWorld = refSlot.getWorldQuaternion(new THREE.Quaternion());
+    const handWorld = genSlot.parent.getWorldQuaternion(new THREE.Quaternion());
+    const before = genSlot.getWorldQuaternion(new THREE.Quaternion()).angleTo(refWorld);
+    const local = handWorld.clone().invert().multiply(refWorld);
+    out[side] = {
+      quat: [local.x, local.y, local.z, local.w],
+      errorBeforeDeg: Math.round((before * 180) / Math.PI),
+    };
+  }
+  dispose(ref, new THREE.Scene());
+  dispose(gen, new THREE.Scene());
+  return out;
+};
+
 // In-hand composite: attach a variant weapon to a character rig exactly the way
 // the game does (src/render/characters/assets.ts applyVariantGrip: attach at the
 // handslot.r bone origin, lift along the bone, 180-degree flip for the right
