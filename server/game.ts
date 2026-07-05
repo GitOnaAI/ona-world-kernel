@@ -2478,6 +2478,9 @@ export class GameServer {
       case 'harvest_node':
         if (typeof msg.node === 'string') sim.harvestNode(msg.node, pid);
         break;
+      case 'craft_item':
+        if (typeof msg.recipe === 'string') sim.craftItem(msg.recipe, pid);
+        break;
       case 'sell_all_junk':
         sim.sellAllJunk(pid);
         break;
