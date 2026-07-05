@@ -2135,8 +2135,13 @@
     body.mobile-touch #castbar {
       left: calc(max(20px, env(safe-area-inset-left)) + 112px);
       bottom: calc(15px + env(safe-area-inset-bottom));
-      width: min(160px, calc(50vw - 166px));
-      min-width: 100px;
+      /* Capped so the right edge stays clear of the bottom-center
+         #player-frame (50vw minus its 90px half-width at scale(0.6), minus a
+         16px gap): 50vw - 238px. The old cap (50vw - 166px) did not account
+         for the frame's own half-width, so it overlapped the frame on
+         narrower landscape phones (down to 800px wide). */
+      width: min(160px, calc(50vw - 238px));
+      min-width: 40px;
       height: 5px;
     }
     body.mobile-touch #petbar {
