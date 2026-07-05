@@ -3519,6 +3519,8 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.mobile.jump': 'Прыжок',
   'hudChrome.mobile.leaderboard': 'Рейтинг',
   'hudChrome.mobile.nameplates': 'Имена',
+  'hudChrome.mobile.targetClosest': 'Ближайшая цель',
+  'hudChrome.mobile.targetClosestShort': 'Ближайший',
   'hudChrome.mobile.toggleHaptics': 'Вкл/выкл вибрацию',
   'hudChrome.rest.resting': 'Отдых',
   'hudChrome.swing.ready': 'Замах',

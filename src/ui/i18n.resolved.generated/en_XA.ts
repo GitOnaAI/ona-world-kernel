@@ -314,7 +314,9 @@ export const en_XA: EnTranslations = {
       "toggleHaptics": "[Ţóĝĝļé ĥáþţíçš]",
       "actionRing": "[Çóɱƀáţ áçţíóñš]",
       "actionPageToggle": "[Šŵíţçĥ áçţíóñ þáĝé]",
-      "actionPageIndicator": "[Þáĝé {page} óƒ {count}]",
+      "actionPageIndicator": "[({page})]",
+      "targetClosest": "[Ţáŕĝéţ çļóšéšţ]",
+      "targetClosestShort": "[Çļóšéšţ]",
       "spellbookPageLabel": "[Þáĝé {page}]"
     },
     "tutorial": {

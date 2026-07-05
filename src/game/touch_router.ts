@@ -82,9 +82,11 @@ export interface TouchRouterEvent {
  *  one of these must never be reinterpreted as a camera drag or movement
  *  input. Sourced from the real class/id names in `mobile_controls.ts` and
  *  `hud.mobile.css` (`.mobile-btn`, `.action-btn`) plus the paged action ring
- *  container being added alongside this module (`#mobile-action-ring`,
- *  `.mobile-action-slot`) and the generic window/panel chrome
- *  (`.window`, `.panel`). */
+ *  container (`#mobile-action-ring`, `.mobile-action-slot`), the generic
+ *  window/panel chrome (`.window`, `.panel`), and the minimap/daily-chest/
+ *  chat-log widgets (Phase 5 of the mobile combat HUD rework: none of these
+ *  are `.window`/`.panel`/`.mobile-btn`, so a swipe starting on them was
+ *  falling through to `isCameraDragAllowedAt` and could nudge the camera). */
 const INTERACTIVE_HUD_SELECTORS = [
   '.mobile-btn',
   '.action-btn',
@@ -92,6 +94,9 @@ const INTERACTIVE_HUD_SELECTORS = [
   '#mobile-action-ring',
   '.window',
   '.panel',
+  '#minimap-wrap',
+  '#side-buttons',
+  '#chatlog-wrap',
 ] as const;
 
 /**

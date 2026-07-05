@@ -383,4 +383,10 @@ describe('Hud.buildMobileActionRing wiring (source scan)', () => {
       'if (this.isMobileLayout() && this.mobileActionRingView && this.mobileActionRingPainter) {',
     );
   });
+
+  it('leaves the primary attack slot with no painted background (Phase 5: the crisp data-icon SVG shows through instead)', () => {
+    expect(hud).toContain(
+      "(iconKey) => (iconKey === ATTACK_ICON_KEY ? '' : this.actionBarIconBg(iconKey)),",
+    );
+  });
 });

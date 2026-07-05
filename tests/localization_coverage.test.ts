@@ -1547,7 +1547,11 @@ describe('i18n Localization Key Coverage', () => {
     expect(html).toContain('data-i18n-aria="hud.core.mobileControls"');
     expect(html).toContain('data-i18n="hud.core.mobileMove"');
     expect(html).toContain('data-i18n="hud.core.mobileCamera"');
-    expect(html).toContain('data-i18n="hud.core.mobileAttack"');
+    // #mobile-attack-nearest was renamed Target Closest (Phase 5 of the mobile
+    // combat HUD rework): the ring's own #mobile-action-attack is now the
+    // primary attack toggle, so this utility button's copy moved to
+    // hudChrome.mobile.targetClosestShort.
+    expect(html).toContain('data-i18n="hudChrome.mobile.targetClosestShort"');
     expect(html).toContain('data-i18n="hud.core.mobileTarget"');
     expect(html).toContain('data-i18n="hud.core.mobileChat"');
     expect(html).toContain('data-i18n="hud.core.mobileMore"');

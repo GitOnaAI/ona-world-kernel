@@ -314,7 +314,9 @@ export const ru_RU: EnTranslations = {
       "toggleHaptics": "Вкл/выкл вибрацию",
       "actionRing": "Боевые действия",
       "actionPageToggle": "Переключить страницу действий",
-      "actionPageIndicator": "Page {page} of {count}",
+      "actionPageIndicator": "({page})",
+      "targetClosest": "Ближайшая цель",
+      "targetClosestShort": "Ближайший",
       "spellbookPageLabel": "Page {page}"
     },
     "tutorial": {

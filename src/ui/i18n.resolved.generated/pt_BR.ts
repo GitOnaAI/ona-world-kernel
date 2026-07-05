@@ -314,7 +314,9 @@ export const pt_BR: EnTranslations = {
       "toggleHaptics": "Alternar vibração",
       "actionRing": "Combat actions",
       "actionPageToggle": "Switch action page",
-      "actionPageIndicator": "Page {page} of {count}",
+      "actionPageIndicator": "({page})",
+      "targetClosest": "Target closest",
+      "targetClosestShort": "Closest",
       "spellbookPageLabel": "Page {page}"
     },
     "tutorial": {

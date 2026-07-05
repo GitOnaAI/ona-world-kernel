@@ -502,6 +502,18 @@
     background-size: cover;
     background-position: center;
   }
+  /* The primary attack toggle paints no background-image on its .icon-label
+     (hud.ts's ring icon resolver special-cases ATTACK_ICON_KEY to an empty
+     string), so the plain data-icon="attack" SVG hydrateIcons() already
+     inserted as the button's first child shows through instead, matching the
+     Target Closest button's glyph. The button's own flex centering positions
+     it; only sizing is needed here, as a percentage of the sizing var so it
+     stays proportional across the standard/tablet ring scales. */
+  body.mobile-touch #mobile-action-attack .ui-icon {
+    width: 44%;
+    height: 44%;
+    color: #ffdf9c;
+  }
   body.mobile-touch #mobile-action-ring button .cd-overlay {
     position: absolute;
     left: 0;
@@ -760,12 +772,24 @@
     z-index: 28;
     pointer-events: auto;
   }
+  /* Daily chest (Phase 5 of the mobile combat HUD rework): anchored to the
+     MINIMAP's own top-left corner instead of a fixed row offset, so it tracks
+     the minimap across breakpoints instead of drifting into the ring cluster
+     or another HUD element on a different resolution. right = the minimap's
+     own right anchor (#minimap-wrap below) + the minimap's CURRENT rendered
+     width (its 170px base width times whatever scale is active) + a small
+     gap; kept in sync by hand next to each #minimap-wrap variant, the same
+     minimap-relative-math idiom the buff/debuff bars already use. This
+     portrait/base value matches the portrait #minimap-wrap scale (0.72,
+     170*0.72=~122px); the real in-game landscape values are overridden
+     immediately below and in the hud-mobile-compact tier section. */
   body.mobile-touch #side-buttons {
     display: block;
-    right: max(8px, env(safe-area-inset-right));
-    top: calc(max(8px, env(safe-area-inset-top)) + 210px);
+    position: absolute;
+    right: calc(max(8px, env(safe-area-inset-right)) + 130px);
+    top: max(8px, env(safe-area-inset-top));
     bottom: auto;
-    width: 70px;
+    width: 48px;
     z-index: 81;
     pointer-events: none;
   }
@@ -780,9 +804,15 @@
     position: absolute;
     right: 0;
     top: 0;
-    width: 54px;
-    height: 50px;
+    width: 48px;
+    height: 44px;
     pointer-events: auto;
+  }
+  /* Shrink the icon's decorative overflow (64px on desktop) to match the
+     smaller mobile button so it doesn't visually lap onto the minimap. */
+  body.mobile-touch .daily-rewards-icon {
+    width: 48px;
+    height: 48px;
   }
   body.native-app.mobile-touch #daily-rewards-button,
   body.native-app.mobile-touch #daily-rewards-window {
@@ -2297,6 +2327,13 @@
       top: max(6px, env(safe-area-inset-top));
       transform: scale(0.46);
     }
+    /* The real in-game minimap anchor/scale (landscape is enforced during
+       play): 170px * 0.46 scale + an 8px gap, matching the minimap's own
+       right/top above. */
+    body.mobile-touch #side-buttons {
+      right: calc(max(6px, env(safe-area-inset-right)) + 86px);
+      top: max(6px, env(safe-area-inset-top));
+    }
     body.mobile-touch #quest-tracker {
       display: none;
     }
@@ -2385,6 +2422,21 @@
   }
   body.mobile-touch.hud-mobile-compact #minimap-wrap {
     transform: scale(0.58);
+  }
+  /* Matches the compact-tier minimap scale above: 170px * 0.58 + an 8px gap.
+     Shrink the chest itself a little further too (still >=40px, the mobile
+     touch-target floor) so it tucks beside the smaller minimap comfortably. */
+  body.mobile-touch.hud-mobile-compact #side-buttons {
+    right: calc(max(6px, env(safe-area-inset-right)) + 107px);
+    width: 40px;
+  }
+  body.mobile-touch.hud-mobile-compact #daily-rewards-button {
+    width: 40px;
+    height: 40px;
+  }
+  body.mobile-touch.hud-mobile-compact .daily-rewards-icon {
+    width: 40px;
+    height: 40px;
   }
   /* A short landscape phone (the compact tier's primary trigger) has too little
      vertical room for a full chat log AND the action ring at once; drop the log

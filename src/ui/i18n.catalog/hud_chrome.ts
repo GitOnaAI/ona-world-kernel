@@ -231,12 +231,26 @@ export const hudChromeStrings = {
     toggleHaptics: 'Toggle haptics',
     // Paged mobile action ring (Phase 1 of the mobile combat HUD rework): the
     // ring container's accessible name, the page-cycle toggle's accessible name,
-    // and the page indicator text ("1/2") painted on the toggle. The per-button
+    // and the page indicator text painted on the toggle. The per-button
     // aria labels reuse abilityUi.actionBar.slotAria/emptySlotAria/attackName via
     // the shared action_bar_view core, so no per-slot key lives here.
     actionRing: 'Combat actions',
     actionPageToggle: 'Switch action page',
-    actionPageIndicator: 'Page {page} of {count}',
+    // A compact "(1)"/"(2)" pip rather than "Page 1 of 2": the toggle button
+    // already carries the full "Switch action page" accessible name via
+    // actionPageToggle above, so the indicator span only needs to be legible at
+    // a glance, not restate the count in words. "({page})" has no run of 4+
+    // lowercase letters once the token is stripped, so it is exempt from the
+    // M16 non-Latin-fill requirement.
+    actionPageIndicator: '({page})',
+    // Target Closest (the renamed #mobile-attack-nearest utility button, Phase
+    // 5 of the mobile combat HUD rework): a crosshair-icon secondary button that
+    // calls the existing Attack Nearest path, kept visually distinct from the
+    // ring's primary attack toggle. targetClosest is the accessible name/title;
+    // targetClosestShort is the tiny on-button caption (space is tight at the
+    // button's 44-60px width, so it stays one word).
+    targetClosest: 'Target closest',
+    targetClosestShort: 'Closest',
     // Phase 4: a small touch-only label on each bar-assigned spellbook row,
     // naming which mobile action-ring page (Phase 1) the ability's bar slot
     // falls on. "Page {page}" is not wordy (one word plus a token), so it is

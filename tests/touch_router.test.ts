@@ -30,6 +30,9 @@ const ringSlot = new FakeTarget(['.mobile-action-slot', '#mobile-action-ring']);
 const ringContainer = new FakeTarget(['#mobile-action-ring']);
 const windowChrome = new FakeTarget(['.window']);
 const panelChrome = new FakeTarget(['.panel']);
+const minimapChrome = new FakeTarget(['#minimap-wrap']);
+const dailyChestChrome = new FakeTarget(['#side-buttons']);
+const chatlogChrome = new FakeTarget(['#chatlog-wrap']);
 const plainCanvasChild = new FakeTarget();
 
 function baseCtx(overrides: Partial<TouchRouterContext> = {}): TouchRouterContext {
@@ -50,6 +53,12 @@ describe('isInteractiveHudElement', () => {
     expect(isInteractiveHudElement(ringContainer)).toBe(true);
     expect(isInteractiveHudElement(windowChrome)).toBe(true);
     expect(isInteractiveHudElement(panelChrome)).toBe(true);
+  });
+
+  it('matches the minimap, daily-chest, and chat-log widgets (Phase 5: none of these are .window/.panel/.mobile-btn, so a swipe starting on them must not fall through to a camera drag)', () => {
+    expect(isInteractiveHudElement(minimapChrome)).toBe(true);
+    expect(isInteractiveHudElement(dailyChestChrome)).toBe(true);
+    expect(isInteractiveHudElement(chatlogChrome)).toBe(true);
   });
 
   it('returns false for a plain non-interactive target', () => {

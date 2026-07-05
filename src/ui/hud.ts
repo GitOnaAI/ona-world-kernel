@@ -4847,7 +4847,14 @@ export class Hud {
         pageToggle: pageToggle as HTMLElement,
         pageIndicator,
       },
-      (iconKey) => this.actionBarIconBg(iconKey),
+      // The ring's primary attack slot shows the same crisp data-icon="attack"
+      // glyph as the (now-secondary) Target Closest button instead of the
+      // painted ability-icon background desktop's attack toggle uses: an empty
+      // background here leaves the inline SVG hydrateIcons() already inserted
+      // into #mobile-action-attack's markup visible underneath. Every other
+      // slot (abilities/items/empty) still resolves through actionBarIconBg
+      // exactly like desktop, so desktop's own attack toggle is untouched.
+      (iconKey) => (iconKey === ATTACK_ICON_KEY ? '' : this.actionBarIconBg(iconKey)),
       t,
     );
   }
