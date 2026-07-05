@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { combatProfileForMob, scaledDefaultMobMeleeRange } from '../src/sim/mob_combat';
 import { Sim } from '../src/sim/sim';
 import type { Entity, SimEvent } from '../src/sim/types';
 import {
   isWorldBossLootEligible,
   markWorldBossLooted,
+  nextUtcMidnightMs,
   refreshWorldBossDaily,
   WORLD_BOSS_INTERVAL_SECONDS,
   WORLD_BOSSES,
+  worldBossLockoutId,
 } from '../src/sim/world_boss';
 
 const BOSS_ID = 'thunzharr_waking_peak';
@@ -352,6 +355,62 @@ describe('world boss personal loot', () => {
     expect(ownedBySecond).toContain(p1); // still eligible: the kill alone burned nothing
   });
 
+  it('caps gear at one Tier-2 piece per contributor (never a glove AND a belt in one kill)', () => {
+    let anyGearDropped = false;
+    // Sweep many seeds/contributors: the invariant (<= 1 gear each) must hold on every
+    // roll, and across the sweep gear must actually drop (so the cap is not vacuous).
+    for (let seed = 1; seed <= 40; seed++) {
+      const sim = makeSim(seed);
+      sim.utcDay = DAY;
+      const pids = [
+        sim.addPlayer('warrior', 'Ada'),
+        sim.addPlayer('mage', 'Bru'),
+        sim.addPlayer('rogue', 'Cyd'),
+      ];
+      const { boss } = spawnBossNow(sim);
+      killWith(sim, boss, pids);
+      const items = boss.loot?.items ?? [];
+      for (const pid of pids) {
+        // The guaranteed Inert Storm Shard is a trophy, not a gear drop; every other
+        // personal slot is a Tier-2 set piece from a roll group.
+        const gear = items.filter(
+          (s) => (s.personalFor ?? []).includes(pid) && s.itemId !== 'inert_storm_shard',
+        );
+        expect(gear.length).toBeLessThanOrEqual(1);
+        if (gear.length === 1) anyGearDropped = true;
+      }
+    }
+    expect(anyGearDropped).toBe(true);
+  });
+
+  it('records a once-per-day raid lockout (surfaced in the raid-lockout timer) when looted', () => {
+    const sim = makeSim();
+    sim.utcDay = DAY;
+    const p1 = sim.addPlayer('warrior', 'Ada');
+    const { boss } = spawnBossNow(sim);
+    killWith(sim, boss, [p1]);
+    const meta = (sim as any).players.get(p1);
+    const lockoutId = worldBossLockoutId(BOSS_ID);
+    // The KILL grants no lockout: only actually looting a personal slot does.
+    expect(meta.raidLockouts.has(lockoutId)).toBe(false);
+    const e1 = (sim as any).entities.get(p1) as Entity;
+    e1.pos = { ...boss.pos };
+    sim.lootCorpse(boss.id, p1);
+    // Now the daily gate is both consumed AND visible as a future-dated raid lockout.
+    expect(meta.worldBossDaily.looted.has(BOSS_ID)).toBe(true);
+    // The lockout must expire at the SAME instant the daily gate frees (next UTC
+    // midnight), not the raids' 3 AM reset, so the displayed timer never lies.
+    expect(meta.raidLockouts.get(lockoutId)).toBe(nextUtcMidnightMs((sim as any).lockoutNowMs()));
+  });
+
+  it('nextUtcMidnightMs lands on the next UTC midnight strictly after now', () => {
+    const midDay = Date.UTC(2026, 5, 28, 13, 37, 5); // 2026-06-28 13:37:05 UTC
+    expect(nextUtcMidnightMs(midDay)).toBe(Date.UTC(2026, 5, 29, 0, 0, 0));
+    const exactMidnight = Date.UTC(2026, 5, 28, 0, 0, 0);
+    // At an exact boundary the gate has just rolled, so the next one is a full day out.
+    expect(nextUtcMidnightMs(exactMidnight)).toBe(Date.UTC(2026, 5, 29, 0, 0, 0));
+  });
+
   it('produces identical personal loot for the same seed (determinism)', () => {
     const run = () => {
       const sim = makeSim(99);
@@ -490,10 +549,16 @@ describe('world boss participant HP scaling', () => {
 });
 
 describe('world boss is oversized and loud', () => {
-  it('is a towering, oversized world boss', () => {
+  it('is a towering, oversized world boss with combat reach decoupled from visual scale', () => {
     const sim = makeSim();
     const { boss } = spawnBossNow(sim);
-    expect(boss.scale).toBe(5);
+    // Rendered mountain-sized so he reads as a world boss on the skyline.
+    expect(boss.scale).toBe(50);
+    // But his melee reach is PINNED to a ~17yd body, not the ~150yd a scale-50 body
+    // would give: the Howling Gale snare, not a giant swing, is what makes him unkitable.
+    const reach = combatProfileForMob(boss.templateId, boss.scale).meleeRange;
+    expect(reach).toBe(scaledDefaultMobMeleeRange(5));
+    expect(reach).toBeLessThan(scaledDefaultMobMeleeRange(boss.scale));
   });
 
   it('bellows its engage yell far past the default yell range', () => {

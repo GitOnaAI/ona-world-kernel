@@ -904,9 +904,11 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
     },
     enrage: { belowHpPct: 0.2, dmgMult: 1.5, hasteMult: 1.25 },
     // Personal loot table: rolled INDEPENDENTLY for every contributor (see
-    // rollWorldBossLoot). A guaranteed storm trophy, plus one epic Tier-2 set glove
-    // (~32%) and one epic Tier-2 set belt (~32%), each from its own mutually-exclusive
-    // roll group.
+    // rollWorldBossLoot). A guaranteed storm trophy, plus AT MOST ONE epic Tier-2 set
+    // piece. The glove group rolls first at ~32%; the belt group also rolls at ~32% but
+    // the one-gear cap keeps it only when the glove roll missed, so its EFFECTIVE drop
+    // rate is ~22% (0.68 x 0.32) and a single kill never hands out both a glove and a belt.
+    // Keep the glove entries first if this ordering skew is ever retuned.
     loot: [
       { itemId: 'inert_storm_shard', chance: 1 },
       { itemId: 'crownforged_gauntlets', chance: 0.08, rollGroup: 'thunzharr_t2' },
@@ -918,7 +920,7 @@ export const ZONE3_MOBS: Record<string, MobTemplate> = {
       { itemId: 'soulflame_cord', chance: 0.08, rollGroup: 'thunzharr_t2_belt' },
       { itemId: 'stormcallers_waistguard', chance: 0.08, rollGroup: 'thunzharr_t2_belt' },
     ],
-    scale: 5, // a towering world boss (Nythraxis-class); also widens his melee reach to ~17yd, swung single-target, so a kiter cannot open distance
+    scale: 50, // rendered mountain-sized so he reads as a world boss on the skyline. Visual scale is DECOUPLED from combat reach: his melee is pinned to a ~17yd body in combatProfileForMob (mob_combat.ts), so the Howling Gale snare, not a giant swing, is what keeps him unkitable.
     color: 0x7d8a99,
   },
   // Stormlings: lesser storm elementals Thunzharr tears loose from itself at the

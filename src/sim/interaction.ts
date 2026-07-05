@@ -40,7 +40,7 @@ import {
 import { harvestItemFor, isHarvestableCorpse, resolveCorpseHarvest } from './professions/gathering';
 import type { SimContext } from './sim_context';
 import { dist2d, type Entity, INTERACT_RANGE, OBJECT_RESPAWN } from './types';
-import { markWorldBossLooted } from './world_boss';
+import { markWorldBossLooted, nextUtcMidnightMs } from './world_boss';
 
 // Shared corpse loot-rights snapshot for both the manual `lootCorpse` and the passive
 // walk-by `autoLootForParty`. The caller passes `ffaUnlocked` so the two paths can
@@ -137,7 +137,12 @@ export function lootCorpse(
   // checks eligibility when the next boss dies). A contributor who never reaches
   // the corpse keeps their daily and can try again at the next spawn.
   if (tookPersonal && MOBS[mob.templateId]?.worldBoss) {
-    markWorldBossLooted(meta, mob.templateId, ctx.utcDay);
+    // Also stamp a raid-lockout entry so the once-per-day gate is visible in the raid-
+    // lockout timer. It expires at the next UTC midnight, the SAME instant the daily gate
+    // (keyed on ctx.utcDay) frees up, so the displayed countdown never disagrees with
+    // actual eligibility (the raids' 3 AM realm reset is a different boundary, so we do
+    // NOT use ctx.raidResetMs here).
+    markWorldBossLooted(meta, mob.templateId, ctx.utcDay, nextUtcMidnightMs(ctx.lockoutNowMs()));
   }
   pruneCorpseLoot(ctx, mob);
   if (p.targetId === mobId) p.targetId = null;

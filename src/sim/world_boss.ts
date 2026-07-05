@@ -85,13 +85,50 @@ export function isWorldBossLootEligible(meta: PlayerMeta, bossId: string, utcDay
   return !meta.worldBossDaily.looted.has(bossId);
 }
 
+// The raid-lockout id under which a looted world boss shows in the raid-lockout timer
+// UI. Prefixed so it never collides with a real dungeon id (the dungeon enter-gate keys
+// on bare dungeon ids and never matches this) and so the HUD name resolver can spot it
+// and localize it as a mob name. See raidLockoutPanelView in hud.ts.
+export const WORLD_BOSS_LOCKOUT_PREFIX = 'worldboss:';
+export function worldBossLockoutId(bossId: string): string {
+  return WORLD_BOSS_LOCKOUT_PREFIX + bossId;
+}
+// The boss mob id inside a world-boss lockout id, or null for any other (dungeon)
+// lockout id. The HUD calls this so the prefix convention lives in ONE place.
+export function worldBossIdFromLockout(lockoutId: string): string | null {
+  return lockoutId.startsWith(WORLD_BOSS_LOCKOUT_PREFIX)
+    ? lockoutId.slice(WORLD_BOSS_LOCKOUT_PREFIX.length)
+    : null;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+// The next UTC-midnight instant at or after `nowMs`. The world-boss daily gate resets
+// when the host's `utcDay` string (a UTC calendar day) rolls over, i.e. exactly at UTC
+// midnight, so the lockout DISPLAY must expire at this same instant to stay truthful:
+// using the raids' 3 AM realm-local reset instead would show "locked" for hours after
+// the gate had already freed (or the reverse). Epoch ms are UTC-based, so flooring to
+// the day and adding one day lands on the next UTC midnight.
+export function nextUtcMidnightMs(nowMs: number): number {
+  return (Math.floor(nowMs / DAY_MS) + 1) * DAY_MS;
+}
+
 // Record that this player looted this boss today (so they cannot loot it again
 // until the daily reset). Called from lootCorpse when a personal world-boss slot
 // is actually taken, NOT at kill/roll time. A no-op when the calendar day is unknown.
-export function markWorldBossLooted(meta: PlayerMeta, bossId: string, utcDay: string): void {
+// `lockoutUntilMs` (the host's next daily-reset instant) also writes a raid-lockout
+// entry so the once-per-day gate shows as a countdown in the raid-lockout timer UI;
+// omit it (headless/tests of the pure gate) to skip the display entry.
+export function markWorldBossLooted(
+  meta: PlayerMeta,
+  bossId: string,
+  utcDay: string,
+  lockoutUntilMs?: number,
+): void {
   if (!utcDay) return;
   refreshWorldBossDaily(meta, utcDay);
   meta.worldBossDaily.looted.add(bossId);
+  if (lockoutUntilMs !== undefined && lockoutUntilMs > 0)
+    meta.raidLockouts.set(worldBossLockoutId(bossId), lockoutUntilMs);
 }
 
 // The players who contributed to (damaged or healed against) this boss, derived
@@ -170,6 +207,11 @@ export function rollWorldBossLoot(ctx: SimContext, mob: Entity, contributors: Pl
   for (const meta of contributors) {
     if (!isWorldBossLootEligible(meta, mob.templateId, ctx.utcDay)) continue;
     const rolledGroups = new Set<string>();
+    // At most ONE roll-group (gear) item per contributor: no double gear drop (a glove
+    // AND a belt) from a single kill. Every group is still ROLLED so the rng draw order
+    // is unchanged (the parity gate depends on it); we just discard a second gear win.
+    // Ungrouped entries (the guaranteed storm trophy) are unaffected and always drop.
+    let gearWon = false;
     for (const entry of template.loot) {
       if (entry.rollGroup) {
         if (rolledGroups.has(entry.rollGroup)) continue;
@@ -180,7 +222,10 @@ export function rollWorldBossLoot(ctx: SimContext, mob: Entity, contributors: Pl
         for (const g of group) {
           cumulative += g.chance;
           if (roll < cumulative) {
-            if (g.itemId) items.push({ itemId: g.itemId, count: 1, personalFor: [meta.entityId] });
+            if (g.itemId && !gearWon) {
+              items.push({ itemId: g.itemId, count: 1, personalFor: [meta.entityId] });
+              gearWon = true;
+            }
             break;
           }
         }
