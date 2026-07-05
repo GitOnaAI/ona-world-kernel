@@ -2969,6 +2969,44 @@
     body:not(.mobile-touch) #charselect-panel.cs-wow .cs-list-actions {
       margin-top: auto;
       flex-shrink: 0;
+      /* Enter World is a full-width hero row; Back + New Character wrap below. */
+      flex-wrap: wrap;
+    }
+    /* The docked roster carries a single Enter World button acting on the
+       selected character, so the per-row Enter World / Take Over buttons drop
+       out here (Delete stays per-row: it targets one specific character). */
+    body:not(.mobile-touch) #charselect-panel.cs-wow #char-list .enter-world-btn,
+    body:not(.mobile-touch) #charselect-panel.cs-wow #char-list .take-over-btn {
+      display: none;
+    }
+    body:not(.mobile-touch) #charselect-panel.cs-wow #btn-charselect-enter {
+      display: block;
+      flex: 1 1 100%;
+      min-height: 44px;
+      font-family: var(--title-font);
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      /* Filled-gold CTA, matching the Donate button (.donate-cta): this is the
+         hero action of the screen, so it reads as a primary call to action
+         rather than the darker .btn-primary gradient. */
+      background: #f0c34d;
+      color: #2a1c05;
+      border: 1px solid var(--gold-dim);
+      outline: none;
+      text-shadow: none;
+      box-shadow:
+        0 2px 10px rgba(255, 209, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    body:not(.mobile-touch) #charselect-panel.cs-wow #btn-charselect-enter:hover:not(:disabled),
+    body:not(.mobile-touch) #charselect-panel.cs-wow #btn-charselect-enter:focus-visible {
+      filter: brightness(1.08);
+      background: #ffd86b;
+      box-shadow:
+        0 0 14px rgba(255, 209, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
     }
     body:not(.mobile-touch) #charselect-panel.cs-wow .class-details-panel {
       position: absolute;
@@ -4088,6 +4126,13 @@
     overflow-y: auto;
     list-style: none;
     padding: 0;
+  }
+
+  /* The shared Enter World CTA belongs only to the desktop docked roster; every
+     other layout (mobile, narrow non-touch) drives entry from the per-row
+     buttons, so hide it by default and let the docked layout reveal it. */
+  #btn-charselect-enter {
+    display: none;
   }
 
   .fatal-overlay {
