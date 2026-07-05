@@ -301,8 +301,6 @@ export function gatheringSkillsView(proficiency: GatheringProficiency): PlayerPr
 // the concentrate-vs-spread tier tradeoff for that choice (see
 // resolveCorpseFocusHarvest below). Draws rng, unlike the rest of this file.
 
-import type { Rng } from '../rng';
-
 // Component tag -> the existing item this harvest yields. Only tags with a concrete
 // profession-material item wired up so far are listed here; a mob whose
 // `componentTags` don't map to any of these still becomes single-use claimed, it
