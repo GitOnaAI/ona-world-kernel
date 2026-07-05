@@ -109,8 +109,17 @@ function runChildVitest(root: string, testPaths: string[]): { status: number; ou
     config,
     `export default { test: { include: ${JSON.stringify(testPaths)}, exclude: [] } };\n`,
   );
-  const result = spawnSync(VITEST, ['run', '--config', config], { cwd: REPO, encoding: 'utf8' });
-  return { status: result.status ?? 1, out: `${result.stdout ?? ''}\n${result.stderr ?? ''}` };
+  const result = spawnSync(VITEST, ['run', '--config', config], {
+    cwd: REPO,
+    encoding: 'utf8',
+    // CI runners color the piped child output (ANSI then sits between "Tests" and the
+    // count in the summary line, defeating the plain-text assertions below), so ask the
+    // child for no color and strip whatever arrives anyway.
+    env: { ...process.env, NO_COLOR: '1' },
+  });
+  const ansi = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
+  const out = `${result.stdout ?? ''}\n${result.stderr ?? ''}`.replace(ansi, '');
+  return { status: result.status ?? 1, out };
 }
 
 /**
