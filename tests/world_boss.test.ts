@@ -469,11 +469,11 @@ describe('world boss participant HP scaling', () => {
     sim.tick();
     expect(boss.maxHp).toBe(200_000);
 
-    // A big raid tops out at the 2M cap (reached around 50 participants) so it cannot
+    // A big raid tops out at the 1M cap (reached around 25 participants) so it cannot
     // be melted in a minute.
     for (let i = 5; i < 60; i++) engage(sim, boss, sim.addPlayer('warrior', `Q${i}`));
     sim.tick();
-    expect(boss.maxHp).toBe(2_000_000);
+    expect(boss.maxHp).toBe(1_000_000);
   });
 
   it('never shrinks the grown pool when participants leave', () => {

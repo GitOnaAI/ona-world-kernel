@@ -51,9 +51,9 @@ export const WORLD_BOSSES: readonly WorldBossDef[] = [
     templateId: 'thunzharr_waking_peak',
     pos: { x: 110, z: 760 },
     intervalSeconds: WORLD_BOSS_INTERVAL_SECONDS,
-    // 40k solo, +40k per extra participant, up to 2M (~50 players), so a crowd cannot
+    // 40k solo, +40k per extra participant, up to 1M (~25 players), so a crowd cannot
     // melt him in a minute; the pool scales hard with raid size.
-    hpScale: { base: 40_000, perPlayer: 40_000, max: 2_000_000 },
+    hpScale: { base: 40_000, perPlayer: 40_000, max: 1_000_000 },
   },
 ];
 
