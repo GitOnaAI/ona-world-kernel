@@ -9,7 +9,9 @@ import fs from 'node:fs';
 import puppeteer from 'puppeteer-core';
 import { BROWSER_PATH } from './browser_path.mjs';
 
-const URL = process.env.GAME_URL ?? 'http://localhost:5173';
+// ?gfx=ultra forces the top graphics tier regardless of the swiftshader
+// software-GL auto-detect, so screenshots show the real max-quality look.
+const URL = (process.env.GAME_URL ?? 'http://localhost:5173') + '?gfx=ultra';
 const LABEL = process.env.LABEL ?? 'after';
 fs.mkdirSync('tmp', { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -42,8 +44,12 @@ await sleep(200);
 await page.type('#char-name', 'Aldwyn');
 await page.click('#offline-select .mini-class[data-class="warrior"]');
 await page.click('#btn-start-offline');
-await page.waitForFunction(() => Boolean(window.__game?.sim), { timeout: 20000 });
-await sleep(1000);
+await page.waitForFunction(() => Boolean(window.__game?.sim), { timeout: 40000 });
+
+// let the first-spawn intro cinematic (src/game/spawn_cinematic.ts) run its
+// full course (9s) rather than screenshotting mid-pan; it also holds movement
+// until it lands, so teleporting sooner would just get overridden by it.
+await sleep(9500);
 
 // god mode so the settle-fall from teleporting never kills the camera
 await page.evaluate(() => {
@@ -52,12 +58,20 @@ await page.evaluate(() => {
   p.hp = 99999;
 });
 
+// dismiss the new-adventurer tutorial toast (button.tut-skip -> finish()) so
+// it never appears in a shot; clicking it (rather than just hiding it with
+// CSS) actually advances the tutorial state instead of leaving it pinned.
+await page.evaluate(() => {
+  document.querySelector('.tut-skip')?.click();
+});
+await sleep(300);
+
 // hide every HUD chrome element so the screenshot is pure world/terrain
 await page.evaluate(() => {
   const style = document.createElement('style');
   style.textContent = `
     #hud, #minimap, #chat, #bags, #action-bars, #nameplates, #cast-bar,
-    #player-frame, #target-frame, #party-frame { display: none !important; }
+    #player-frame, #target-frame, #party-frame, .tut-card { display: none !important; }
   `;
   document.head.appendChild(style);
 });

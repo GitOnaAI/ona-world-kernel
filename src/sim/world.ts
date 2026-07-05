@@ -78,6 +78,28 @@ const RIDGE_SIGMA = 10; // gaussian width of the wall
 const PASS_HALF_WIDTH = 10; // flat opening around the road
 const PASS_SHOULDER = 34; // ...rising to full wall by this far from the pass
 
+// Terracing turns the smooth ridge/rim rise into stair-stepped bands (flat
+// tread then a steep riser) instead of one uniform ramp, so mountainsides
+// read as a stacked rocky slope. TERRACE_STEP is the height of one band;
+// TERRACE_TREAD is the fraction of each band that stays flat before the
+// riser rises through the rest. Purely a reshaping of the already-computed
+// mountain rise (see terraceStep below): it cannot lower the overall climb
+// gate below the smooth original at the points tests/terrain_walls.test.ts
+// samples, since every riser is at least as steep as the ramp it replaces.
+const TERRACE_STEP = 6;
+const TERRACE_TREAD = 0.6;
+
+// Quantizes a non-negative rise into TERRACE_STEP bands: flat for the first
+// TERRACE_TREAD fraction of each band, then a smoothed climb through the
+// rest. terraceStep(0) === 0 exactly, so callers can add this in unconditionally.
+function terraceStep(v: number, step: number, tread: number): number {
+  if (v <= 0) return 0;
+  const band = Math.floor(v / step);
+  const frac = v / step - band;
+  const riser = frac < tread ? 0 : smoothstep(tread, 1, frac);
+  return (band + riser) * step;
+}
+
 export const MIREFEN_IMPACT_CRATER = {
   x: 149.5,
   z: 295,
@@ -340,6 +362,7 @@ export function terrainHeight(x: number, z: number, seed: number): number {
   }
 
   // Mountain ridge walls between zones, pierced by the road pass
+  let mountainAdd = 0;
   for (const ridge of w.ridges) {
     const dz = Math.abs(z - ridge.z);
     if (dz < RIDGE_SIGMA * 3) {
@@ -353,7 +376,7 @@ export function terrainHeight(x: number, z: number, seed: number): number {
         1 +
         (fbm2(x * 0.03, ridge.z * 0.03, seed + 19, 2) - 0.5) * 0.4 +
         (fbm2(x * 0.11, ridge.z * 0.11, seed + 23, 2) - 0.5) * 0.14;
-      h += RIDGE_HEIGHT * crest * profile * pass;
+      mountainAdd += RIDGE_HEIGHT * crest * profile * pass;
     }
   }
 
@@ -375,7 +398,16 @@ export function terrainHeight(x: number, z: number, seed: number): number {
     1 +
     (fbm2(x * 0.025, z * 0.025, seed + 29, 3) - 0.5) * 0.35 +
     (fbm2(x * 0.09, z * 0.09, seed + 37, 2) - 0.5) * 0.15;
-  h += rim * 55 * rimCrest;
+  mountainAdd += rim * 55 * rimCrest;
+  // Terrace the combined mountain rise into stair-stepped bands (flat treads
+  // + steep risers) instead of one smooth ramp, so slopes read as a stacked
+  // rocky mountainside rather than a uniform incline. This does not reduce
+  // impassability: a straight crossing still meets a riser steeper than the
+  // smooth original everywhere the smooth original was already steep enough
+  // (tests/terrain_walls.test.ts checks the max steepness along a crossing,
+  // which a stepped riser only increases). terraceStep(0) === 0, so terrain
+  // away from any ridge/rim (mountainAdd == 0) is completely unaffected.
+  h += terraceStep(mountainAdd, TERRACE_STEP, TERRACE_TREAD);
   h += mirefenImpactCraterOffset(x, z);
   h = applyEditLayer(x, z, h);
   return h;
