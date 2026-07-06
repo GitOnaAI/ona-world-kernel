@@ -21,6 +21,7 @@ const FILES = {
   accessory: 'src/render/characters/assets.ts',
   variants: 'src/ui/weapon_variants.ts',
   manifest: 'src/render/characters/manifest.ts',
+  grip: 'src/render/characters/weapon_grip.ts',
   skins: 'src/sim/content/skins.ts',
   credits: 'CREDITS.md',
 };
@@ -138,6 +139,75 @@ export function registerWeapon({ key, gripFamily, glbPath, iconPath, itemIds = [
   }
   if (itemIds.length) write(FILES.variants, variants);
   return actions;
+}
+
+// ---------------------------------------------------------------------------
+// Per-weapon grip overrides (inspector "Save grip"; gated by asset_pipeline.test.ts)
+// ---------------------------------------------------------------------------
+
+const GRIP_ANCHOR = 'export const WEAPON_GRIP_OVERRIDES: Record<string, WeaponGripOverride> = {';
+
+/** Serialize a numeric grip override to a single-line object literal, dropping
+ *  identity fields (move 0, rot 0, scale 1). An all-identity override serializes
+ *  to '' so the caller removes the key. Numbers round to 4 decimals to keep the
+ *  source tidy and stable (an unchanged tune re-serializes byte-identically). */
+export function formatGripOverride(override) {
+  const r = (n) => Number(Number(n).toFixed(4));
+  const pos = (override?.pos ?? [0, 0, 0]).map(r);
+  const rot = (override?.rot ?? [0, 0, 0]).map(r);
+  const scale = r(override?.scale ?? 1);
+  const parts = [];
+  if (pos.some((n) => n !== 0)) parts.push(`pos: [${pos.join(', ')}]`);
+  if (rot.some((n) => n !== 0)) parts.push(`rot: [${rot.join(', ')}]`);
+  if (scale !== 1) parts.push(`scale: ${scale}`);
+  return parts.length ? `{ ${parts.join(', ')} }` : '';
+}
+
+/** Pure string edit: upsert (or, for an identity override, remove) one weapon's
+ *  grip entry in a WEAPON_GRIP_OVERRIDES source. Returns the new source plus a
+ *  human action line. Idempotent: an unchanged value returns the source verbatim.
+ *  The value is serialized from finite NUMBERS only (never interpolated free
+ *  text), so there is no code-injection surface. Gated by asset_pipeline.test.ts. */
+export function upsertGripOverride(src, key, override) {
+  if (!/^[a-z0-9_]+$/.test(key)) throw new Error(`weapon key must be snake_case: ${key}`);
+  const nums = [...(override?.pos ?? []), ...(override?.rot ?? []), override?.scale ?? 1];
+  for (const n of nums) {
+    if (typeof n !== 'number' || !Number.isFinite(n)) {
+      throw new Error('grip override values must be finite numbers');
+    }
+  }
+  if (!src.includes(GRIP_ANCHOR)) throw new Error('WEAPON_GRIP_OVERRIDES anchor not found');
+  const body = formatGripOverride(override);
+  // The whole existing line for this key (indentation + entry + optional comma + newline).
+  const lineRe = new RegExp(`^[^\\S\\n]*${key}:\\s*\\{[^}]*\\},?[^\\S\\n]*\\n?`, 'm');
+  const existing = lineRe.test(src);
+  if (!body) {
+    return existing
+      ? { src: src.replace(lineRe, ''), action: `removed ${key} (reset to family default)` }
+      : { src, action: `WEAPON_GRIP_OVERRIDES has no ${key} (nothing to reset)` };
+  }
+  const line = `  ${key}: ${body},`;
+  if (existing) {
+    const next = src.replace(lineRe, `${line}\n`);
+    return {
+      src: next,
+      action: next === src ? `${key} already ${body} (skipped)` : `updated ${key} -> ${body}`,
+    };
+  }
+  return {
+    src: insertIntoBlock(src, GRIP_ANCHOR, `${line}\n`),
+    action: `registered ${key}: ${body}`,
+  };
+}
+
+/** Persist an inspector-tuned grip override to WEAPON_GRIP_OVERRIDES
+ *  (src/render/characters/weapon_grip.ts), keyed by the weapon model basename.
+ *  Writes only when the source actually changes. */
+export function saveGripOverride({ key, override }) {
+  const current = read(FILES.grip);
+  const { src, action } = upsertGripOverride(current, key, override);
+  if (src !== current) write(FILES.grip, src);
+  return [action];
 }
 
 // ---------------------------------------------------------------------------

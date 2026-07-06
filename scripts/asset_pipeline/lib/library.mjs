@@ -57,6 +57,27 @@ export function parseAccessoryMap(src) {
   return map;
 }
 
+/** weapon_grip.ts source -> Map weaponKey -> { pos?, rot?, scale? } grip override.
+ *  Comments are stripped first so an example line inside the registry block can
+ *  never be mis-parsed as a real entry. */
+export function parseGripOverrides(src) {
+  const map = new Map();
+  const block = src.match(/WEAPON_GRIP_OVERRIDES[^{]*\{([\s\S]*?)\};/);
+  if (!block) return map;
+  const body = block[1].replace(/\/\/[^\n]*/g, '');
+  for (const m of body.matchAll(/([a-z0-9_]+):\s*\{([^}]*)\}/gi)) {
+    const o = {};
+    const pos = m[2].match(/pos:\s*\[([^\]]*)\]/);
+    const rot = m[2].match(/rot:\s*\[([^\]]*)\]/);
+    const scale = m[2].match(/scale:\s*(-?[\d.]+)/);
+    if (pos) o.pos = pos[1].split(',').map((n) => Number(n.trim()));
+    if (rot) o.rot = rot[1].split(',').map((n) => Number(n.trim()));
+    if (scale) o.scale = Number(scale[1]);
+    map.set(m[1], o);
+  }
+  return map;
+}
+
 /** characters/manifest.ts source -> Map modelRelPath -> [visualKeys]. Resolves
  *  the PLAYERS/ENEMIES/CREATURES/WEAPONS template constants and collects both
  *  body urls and attach urls. */
@@ -159,6 +180,9 @@ export function collectInventory() {
     accessory: parseAccessoryMap(
       readFileSync(join(REPO_ROOT, 'src/render/characters/assets.ts'), 'utf8'),
     ),
+    grip: parseGripOverrides(
+      readFileSync(join(REPO_ROOT, 'src/render/characters/weapon_grip.ts'), 'utf8'),
+    ),
     visuals: parseVisualUrls(
       readFileSync(join(REPO_ROOT, 'src/render/characters/manifest.ts'), 'utf8'),
     ),
@@ -195,6 +219,7 @@ export function collectInventory() {
         itemIds: items,
         icon: existsSync(join(REPO_ROOT, 'public', iconRel)) ? iconRel : null,
         visualKeys: registries.visuals.get(rel) ?? [],
+        gripOverride: registries.grip.get(name) ?? null,
         referenced: !!grip || items.length > 0 || (registries.visuals.get(rel) ?? []).length > 0,
       };
       entry.family = weaponFamilyFor(name)?.name ?? null;
@@ -542,6 +567,10 @@ export async function serveLibrary({ port = 5180 } = {}) {
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'method not allowed' });
     const body = await readBody(req);
     try {
+      if (url === '/api/grip/save') {
+        const integrate = await import('./integrate.mjs');
+        return sendJson(res, 200, { actions: integrate.saveGripOverride(body) });
+      }
       if (url === '/api/wizard/model') return sendJson(res, 200, wiz.startModel(body));
       if (url === '/api/wizard/texture') return sendJson(res, 200, wiz.textureAsset(body));
       if (url === '/api/wizard/finish') return sendJson(res, 200, wiz.finishAsset(body));

@@ -113,19 +113,59 @@ function findHandslot(rig) {
   return bone;
 }
 
-// Attach a weapon scene to a rig's handslot.r with the game's variant grip.
-function attachWeapon(rig, weaponScene, family) {
+const DEG2RAD = Math.PI / 180;
+const IDENTITY_GRIP = { mx: 0, my: 0, mz: 0, rx: 0, ry: 0, rz: 0, scale: 1 };
+
+// Mirror of variantGripTransform in src/render/characters/weapon_grip.ts: the
+// family grip (Y lift + shrink-only clamp + right-hand 180-degree flip) with an
+// optional per-weapon fine-tune layered on top (move, rot in DEGREES, scale
+// multiplier). `clampScale` is measured ONCE from the native model so live slider
+// changes never feed back into the bounding box. This runs on handslot.r only.
+function applyGrip(weaponScene, grip, clampScale, s) {
+  weaponScene.position.set(s.mx, grip.lift + s.my, s.mz);
+  weaponScene.quaternion.set(0, 1, 0, 0);
+  weaponScene.quaternion.multiply(
+    new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(s.rx * DEG2RAD, s.ry * DEG2RAD, s.rz * DEG2RAD),
+    ),
+  );
+  weaponScene.scale.setScalar(clampScale * s.scale);
+}
+
+// Attach a weapon scene to a rig's handslot.r with the game's variant grip plus
+// the given fine-tune state. Returns { grip, clampScale } for later re-application
+// (live tuning), or null when the rig has no handslot.r bone.
+function attachWeapon(rig, weaponScene, family, state) {
   const slot = findHandslot(rig);
-  if (!slot) return false;
+  if (!slot) return null;
   const grip = FAMILY_GRIPS[family] ?? FAMILY_GRIPS.sword;
   const box = new THREE.Box3().setFromObject(weaponScene);
   const h = box.max.y - box.min.y;
-  const s = h > 1e-3 ? Math.min(1, grip.maxHeight / h) : 1;
-  weaponScene.position.set(0, grip.lift, 0);
-  weaponScene.quaternion.set(0, 1, 0, 0);
-  weaponScene.scale.setScalar(s);
+  const clampScale = h > 1e-3 ? Math.min(1, grip.maxHeight / h) : 1;
+  applyGrip(weaponScene, grip, clampScale, state);
   slot.add(weaponScene);
-  return true;
+  return { grip, clampScale };
+}
+
+// Slider state <-> the WEAPON_GRIP_OVERRIDE shape the engine registry stores.
+function overrideToState(o) {
+  return {
+    mx: o?.pos?.[0] ?? 0,
+    my: o?.pos?.[1] ?? 0,
+    mz: o?.pos?.[2] ?? 0,
+    rx: o?.rot?.[0] ?? 0,
+    ry: o?.rot?.[1] ?? 0,
+    rz: o?.rot?.[2] ?? 0,
+    scale: o?.scale ?? 1,
+  };
+}
+function stateToOverride(s) {
+  const r = (n) => Number(Number(n).toFixed(4));
+  const o = {};
+  if (s.mx || s.my || s.mz) o.pos = [r(s.mx), r(s.my), r(s.mz)];
+  if (s.rx || s.ry || s.rz) o.rot = [r(s.rx), r(s.ry), r(s.rz)];
+  if (Number(s.scale) !== 1) o.scale = r(s.scale);
+  return o;
 }
 
 let session = null;
@@ -148,7 +188,19 @@ window.LiveViewer = {
 
   async open(asset, ui) {
     teardown();
-    const { canvas, clipSelect, statusEl, contextToggle, heldBySelect, charOptions } = ui;
+    const {
+      canvas,
+      clipSelect,
+      statusEl,
+      contextToggle,
+      heldBySelect,
+      charOptions,
+      gripBar,
+      gripInputs,
+      gripSaveBtn,
+      gripResetBtn,
+      gripStatusEl,
+    } = ui;
     const setStatus = (t) => {
       if (statusEl) statusEl.textContent = t;
     };
@@ -306,6 +358,80 @@ window.LiveViewer = {
       // "Held by": weapons attach to any character model through the game's
       // variant-grip math, animated with that character's clips.
       let holder = null; // { root, mixer }
+      // Live grip fine-tune state, seeded from the weapon's saved override. Only
+      // an APPLIED VARIANT weapon has a stable registry key the engine honors:
+      // WEAPON_GRIP_OVERRIDES is consulted solely on the applyVariantGrip path
+      // (VAR_* families). A generic KayKit weapon (1H_Sword/2H_Staff/...) attaches
+      // via applyHandGrip and would ignore a saved override, so Save is disabled
+      // for it; job/preview weapons tune live but have no key to save under.
+      const gripState = overrideToState(asset.registration?.gripOverride);
+      const isVariantWeapon = String(asset.registration?.gripFamily ?? '').startsWith('VAR_');
+      const gripKey = asset.category === 'weapons' && isVariantWeapon ? asset.name : null;
+      let heldWeapon = null; // { scene, grip, clampScale }
+      const syncGripInputs = () => {
+        if (!gripInputs) return;
+        for (const k of ['mx', 'my', 'mz', 'rx', 'ry', 'rz', 'scale']) {
+          if (gripInputs[k]) gripInputs[k].value = gripState[k];
+        }
+      };
+      const reapplyGrip = () => {
+        if (heldWeapon)
+          applyGrip(heldWeapon.scene, heldWeapon.grip, heldWeapon.clampScale, gripState);
+      };
+      if (gripInputs) {
+        for (const [k, dflt] of [
+          ['mx', 0],
+          ['my', 0],
+          ['mz', 0],
+          ['rx', 0],
+          ['ry', 0],
+          ['rz', 0],
+          ['scale', 1],
+        ]) {
+          const el = gripInputs[k];
+          if (!el) continue;
+          el.oninput = () => {
+            const v = Number(el.value);
+            gripState[k] = el.value === '' || !Number.isFinite(v) ? dflt : v;
+            reapplyGrip();
+          };
+        }
+      }
+      if (gripResetBtn) {
+        gripResetBtn.onclick = () => {
+          Object.assign(gripState, IDENTITY_GRIP);
+          syncGripInputs();
+          reapplyGrip();
+          if (gripStatusEl) gripStatusEl.textContent = 'reset (not saved)';
+        };
+      }
+      if (gripSaveBtn) {
+        gripSaveBtn.disabled = !gripKey;
+        gripSaveBtn.title = gripKey
+          ? 'write this grip to WEAPON_GRIP_OVERRIDES'
+          : 'grip overrides apply to APPLIED variant weapons only (generate + --apply first)';
+        gripSaveBtn.onclick = async () => {
+          if (!gripKey) return;
+          if (gripStatusEl) gripStatusEl.textContent = 'saving...';
+          try {
+            const resp = await fetch('/api/grip/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key: gripKey, override: stateToOverride(gripState) }),
+            });
+            const data = await resp.json();
+            if (gripStatusEl) {
+              gripStatusEl.textContent = resp.ok
+                ? (data.actions?.[0] ?? 'saved')
+                : `save failed: ${data.error ?? resp.status}`;
+            }
+          } catch (err) {
+            if (gripStatusEl) {
+              gripStatusEl.textContent = `save failed: ${String(err.message ?? err).slice(0, 80)}`;
+            }
+          }
+        };
+      }
       const clearHolder = () => {
         if (!holder) return;
         scene.remove(holder.root);
@@ -316,6 +442,8 @@ window.LiveViewer = {
       };
       const setHeldBy = async (repoGlb) => {
         clearHolder();
+        heldWeapon = null;
+        if (gripBar) gripBar.classList.remove('on');
         if (!repoGlb) {
           obj.visible = true;
           active = session.mixers.length
@@ -331,7 +459,8 @@ window.LiveViewer = {
         const root = cg.scene;
         normalize(root, 2.6);
         const wg = await loadGlb(`/repo/${asset.repoGlb}`);
-        const attached = attachWeapon(root, wg.scene, asset.family);
+        const attached = attachWeapon(root, wg.scene, asset.family, gripState);
+        if (attached) heldWeapon = { scene: wg.scene, ...attached };
         obj.visible = false;
         scene.add(root);
         session.roots.push(root);
@@ -341,6 +470,10 @@ window.LiveViewer = {
         active = { mixer, clips: cg.animations ?? [] };
         setClipOptions(active.clips, /attack|chop|slash/i);
         frameOn([root]);
+        if (attached && gripBar) {
+          syncGripInputs();
+          gripBar.classList.add('on');
+        }
         setStatus(
           attached
             ? `held via handslot.r - ${active.clips.length} animations`

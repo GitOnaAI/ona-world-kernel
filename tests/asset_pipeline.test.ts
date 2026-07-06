@@ -209,6 +209,91 @@ describe('anchored registry edits', () => {
 });
 
 // ---------------------------------------------------------------------------
+// 2b. Per-weapon grip overrides (formatGripOverride / upsertGripOverride)
+// ---------------------------------------------------------------------------
+
+const GRIP_ANCHOR = 'export const WEAPON_GRIP_OVERRIDES: Record<string, WeaponGripOverride> = {';
+const GRIP_FIXTURE = [
+  GRIP_ANCHOR,
+  '  // Populated by hand or by the inspector Save button.',
+  '  worn_axe: { rot: [0, 0, 12] },',
+  '};',
+  '',
+].join('\n');
+
+describe('per-weapon grip overrides', () => {
+  it('formatGripOverride drops identity fields and rounds to 4 decimals', () => {
+    expect(integrate.formatGripOverride({})).toBe('');
+    expect(integrate.formatGripOverride({ pos: [0, 0, 0], rot: [0, 0, 0], scale: 1 })).toBe('');
+    expect(integrate.formatGripOverride({ scale: 1.05 })).toBe('{ scale: 1.05 }');
+    expect(integrate.formatGripOverride({ pos: [0.123456, 0, -0.05] })).toBe(
+      '{ pos: [0.1235, 0, -0.05] }',
+    );
+    expect(integrate.formatGripOverride({ pos: [0, 0.02, 0], rot: [0, 0, 8], scale: 1.1 })).toBe(
+      '{ pos: [0, 0.02, 0], rot: [0, 0, 8], scale: 1.1 }',
+    );
+  });
+
+  it('upsertGripOverride inserts a new keyed entry before the closing brace', () => {
+    const { src, action } = integrate.upsertGripOverride(GRIP_FIXTURE, 'emberfang_sword', {
+      scale: 1.1,
+    });
+    expect(src).toContain('  emberfang_sword: { scale: 1.1 },');
+    expect(action).toContain('registered emberfang_sword');
+    // The pre-existing entry and the closing brace are intact.
+    expect(src).toContain('  worn_axe: { rot: [0, 0, 12] },');
+    const balance = (s: string) => s.split('{').length - s.split('}').length;
+    expect(balance(src)).toBe(balance(GRIP_FIXTURE));
+  });
+
+  it('upsertGripOverride replaces an existing entry in place (no duplication)', () => {
+    const { src, action } = integrate.upsertGripOverride(GRIP_FIXTURE, 'worn_axe', {
+      rot: [0, 0, 20],
+    });
+    expect(src).toContain('  worn_axe: { rot: [0, 0, 20] },');
+    expect(src).not.toContain('rot: [0, 0, 12]');
+    expect(src.match(/worn_axe:/g)).toHaveLength(1);
+    expect(action).toContain('updated worn_axe');
+  });
+
+  it('upsertGripOverride removes the key when the override is identity (reset)', () => {
+    const { src, action } = integrate.upsertGripOverride(GRIP_FIXTURE, 'worn_axe', {});
+    expect(src).not.toContain('worn_axe');
+    expect(src).toContain(GRIP_ANCHOR); // registry itself survives
+    expect(action).toContain('removed worn_axe');
+  });
+
+  it('upsertGripOverride is idempotent on an unchanged value', () => {
+    const { src, action } = integrate.upsertGripOverride(GRIP_FIXTURE, 'worn_axe', {
+      rot: [0, 0, 12],
+    });
+    expect(src).toBe(GRIP_FIXTURE);
+    expect(action).toContain('skipped');
+  });
+
+  it('upsertGripOverride rejects a bad key or non-finite values', () => {
+    expect(() => integrate.upsertGripOverride(GRIP_FIXTURE, 'Bad-Key', { scale: 1.1 })).toThrow(
+      'snake_case',
+    );
+    expect(() =>
+      integrate.upsertGripOverride(GRIP_FIXTURE, 'ok', { scale: Number.POSITIVE_INFINITY }),
+    ).toThrow('finite');
+    expect(() =>
+      integrate.upsertGripOverride(GRIP_FIXTURE, 'ok', { pos: [Number.NaN, 0, 0] }),
+    ).toThrow('finite');
+  });
+
+  it('the real weapon_grip.ts carries the WEAPON_GRIP_OVERRIDES anchor', () => {
+    const src = readFileSync(join(ROOT, 'src/render/characters/weapon_grip.ts'), 'utf8');
+    expect(src).toContain(GRIP_ANCHOR);
+    // A round-trip insert keeps whole-file brace balance.
+    const { src: out } = integrate.upsertGripOverride(src, '__grip_test__', { scale: 1.2 });
+    const balance = (s: string) => s.split('{').length - s.split('}').length;
+    expect(balance(out)).toBe(balance(src));
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 3. Prompt builders
 // ---------------------------------------------------------------------------
 
@@ -448,6 +533,26 @@ describe('asset library registry parsers', () => {
     expect(map.get('sword_1handed')).toBe('1H_Sword');
     expect(map.get('emberfang_sword')).toBe('VAR_SWORD');
     expect(map.size).toBeGreaterThan(30);
+  });
+
+  it('parses WEAPON_GRIP_OVERRIDES into weaponKey -> {pos,rot,scale}, ignoring comments', async () => {
+    const library = await libraryImport;
+    // Comment lines that LOOK like entries must not be parsed as real overrides.
+    const src = [
+      'export const WEAPON_GRIP_OVERRIDES: Record<string, WeaponGripOverride> = {',
+      '  // ghost_sword: { scale: 9 } is only an example, never a real entry',
+      '  emberfang_sword: { pos: [0, 0.02, 0], rot: [0, 0, 8], scale: 1.1 },',
+      '  worn_dagger: { scale: 0.9 },',
+      '};',
+    ].join('\n');
+    const map = library.parseGripOverrides(src);
+    expect(map.size).toBe(2);
+    expect(map.has('ghost_sword')).toBe(false);
+    expect(map.get('emberfang_sword')).toEqual({ pos: [0, 0.02, 0], rot: [0, 0, 8], scale: 1.1 });
+    expect(map.get('worn_dagger')).toEqual({ scale: 0.9 });
+    // The real (empty by default) registry parses without throwing.
+    const realSrc = readFileSync(join(ROOT, 'src/render/characters/weapon_grip.ts'), 'utf8');
+    expect(() => library.parseGripOverrides(realSrc)).not.toThrow();
   });
 
   it('parses VISUALS urls into modelPath -> visualKeys (template dirs resolved)', async () => {

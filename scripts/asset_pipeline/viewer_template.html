@@ -48,6 +48,15 @@
   .livebar select { background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 5px; padding: 3px 6px; font-size: 12px; max-width: 200px; }
   .livebar label { display: flex; gap: 4px; align-items: center; cursor: pointer; color: var(--text); }
   .livebar .status { margin-left: auto; color: var(--dim); }
+  .gripbar { display: none; gap: 8px 6px; align-items: center; padding: 6px 10px; background: var(--panel2); border-top: 1px solid var(--line); font-size: 11px; color: var(--dim); flex-wrap: wrap; }
+  .gripbar.on { display: flex; }
+  .gripbar .glabel { color: var(--gold); text-transform: uppercase; letter-spacing: 0.6px; font-size: 10px; }
+  .gripbar label { display: flex; gap: 3px; align-items: center; color: var(--text); }
+  .gripbar input { width: 52px; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 4px; padding: 2px 4px; font-size: 11px; }
+  .gripbar button { background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 5px; padding: 3px 9px; font-size: 11px; cursor: pointer; }
+  .gripbar button:hover { border-color: var(--gold); color: var(--gold); }
+  .gripbar button:disabled { opacity: 0.4; cursor: default; }
+  .gripbar .gstatus { color: var(--dim); margin-left: auto; }
   .strip { display: flex; gap: 6px; padding: 8px; overflow-x: auto; background: var(--panel2); border-top: 1px solid var(--line); }
   .strip img { width: 56px; height: 56px; object-fit: contain; background: #10131a; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; flex-shrink: 0; }
   .strip img.on { border-color: var(--gold); }
@@ -113,6 +122,19 @@
         </span>
         <label><input type="checkbox" id="ctxtoggle" /> vs player</label>
         <span class="status" id="livestatus"></span>
+      </div>
+      <div class="gripbar" id="gripbar">
+        <span class="glabel">grip fit</span>
+        <label>mv x<input type="number" id="gmx" step="0.01" aria-label="grip move x" /></label>
+        <label>y<input type="number" id="gmy" step="0.01" aria-label="grip move y" /></label>
+        <label>z<input type="number" id="gmz" step="0.01" aria-label="grip move z" /></label>
+        <label>rot x<input type="number" id="grx" step="5" aria-label="grip rotate x degrees" /></label>
+        <label>y<input type="number" id="gry" step="5" aria-label="grip rotate y degrees" /></label>
+        <label>z<input type="number" id="grz" step="5" aria-label="grip rotate z degrees" /></label>
+        <label>scale<input type="number" id="gscale" step="0.05" aria-label="grip scale" /></label>
+        <button type="button" id="gripsave">Save</button>
+        <button type="button" id="gripreset">Reset</button>
+        <span class="gstatus" id="gripstatus"></span>
       </div>
       <div class="strip" id="strip"></div>
     </div>
@@ -328,17 +350,28 @@ function openDetail(i) {
       contextToggle: document.getElementById('ctxtoggle'),
       heldBySelect: document.getElementById('heldby'),
       charOptions: characterOptions(),
+      gripBar: document.getElementById('gripbar'),
+      gripInputs: {
+        mx: document.getElementById('gmx'), my: document.getElementById('gmy'), mz: document.getElementById('gmz'),
+        rx: document.getElementById('grx'), ry: document.getElementById('gry'), rz: document.getElementById('grz'),
+        scale: document.getElementById('gscale'),
+      },
+      gripSaveBtn: document.getElementById('gripsave'),
+      gripResetBtn: document.getElementById('gripreset'),
+      gripStatusEl: document.getElementById('gripstatus'),
     });
   } else {
     if (window.LiveViewer) window.LiveViewer.close();
     canvas.style.display = 'none';
     livebar.style.display = 'none';
+    document.getElementById('gripbar').classList.remove('on');
     big.style.display = '';
   }
 }
 function closeDetail() {
   state.open = -1;
   document.getElementById('overlay').classList.remove('open');
+  document.getElementById('gripbar').classList.remove('on');
   if (window.LiveViewer) window.LiveViewer.close();
 }
 

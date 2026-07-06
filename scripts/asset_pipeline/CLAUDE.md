@@ -215,7 +215,18 @@ rotate, scroll to zoom), a per-animation clip dropdown that plays each clip, and
 toggle that drops the knight in beside the asset at true in-game heights for scale. Skin assets
 load their class model with the atlas applied live (all 22 KayKit clips). Static open of the
 file (`open tmp/asset_pipeline/library/index.html`) still works via the rendered clip-frame
-strip; `--serve` upgrades it to live rendering. Mechanics: `three_bundle_entry.js` is
+strip; `--serve` upgrades it to live rendering.
+
+When a weapon is held by a character, a "grip fit" bar exposes per-weapon move (x/y/z), rotate
+(x/y/z degrees), and scale sliders that update the in-hand transform live. These layer ON TOP
+of the family variant grip (lift + shrink clamp + hand flip) via `WEAPON_GRIP_OVERRIDES` in
+`src/render/characters/weapon_grip.ts` (the pure `variantGripTransform` the engine's
+`applyVariantGrip` uses; the viewer mirrors the same math). "Save" POSTs to `/api/grip/save`
+(`integrate.saveGripOverride`, an anchored numeric upsert keyed by weapon model basename, so no
+free text reaches the source); "Reset" restores the family default (an identity override removes
+the key). Save is enabled only for APPLIED weapons (`public/models/weapons`, which have a stable
+registry key); generate + `--apply` a weapon first, then tune. After saving, restart/HMR the
+game client to pick up the new grip. Mechanics: `three_bundle_entry.js` is
 esbuild-bundled to `/three.bundle.js`, `viewer_live.js` is the browser module, and a guarded
 `/repo/*` route serves GLBs/atlases from `public/` and `tmp/asset_pipeline/` only (never `.env`
 or `src/`). The server runs until Ctrl-C.
