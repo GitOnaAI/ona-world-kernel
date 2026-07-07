@@ -2445,6 +2445,7 @@ async function startGame(
   }
   const controller = {
     move(moveInput: unknown, facing?: unknown) {
+      // biome-ignore lint/complexity/noArguments: distinguishes an explicitly passed undefined facing from an omitted one
       if (arguments.length > 1) input.setControllerMoveInput(moveInput, facing);
       else input.setControllerMoveInput(moveInput);
     },
@@ -5584,7 +5585,7 @@ async function refreshGithubLinkStatus(): Promise<void> {
   } catch (err) {
     console.error('[github] could not load status', err);
   }
-  if (!status || status.enabled !== true) {
+  if (status?.enabled !== true) {
     group.hidden = true;
     return;
   }

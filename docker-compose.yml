@@ -93,31 +93,6 @@ services:
     volumes:
       - ${EASTBROOK_MEDIA_DIR:-./media-cache}:/app/dist/media
 
-  discord-bot:
-    image: eastbrook-game:${EASTBROOK_IMAGE_TAG:-local}
-    container_name: eastbrook-discord-bot
-    profiles:
-      - discord
-    restart: unless-stopped
-    depends_on:
-      game:
-        condition: service_started
-    environment:
-      GAME_SERVER_URL: http://game:8787
-      PUBLIC_GAME_URL: ${PUBLIC_GAME_URL:-http://localhost:8787}
-      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
-      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
-      DISCORD_BOT_SECRET: ${DISCORD_BOT_SECRET:-}
-      DISCORD_VOICE_CHANNEL_ID: ${DISCORD_VOICE_CHANNEL_ID:-}
-      DISCORD_WELCOME_CHANNEL_ID: ${DISCORD_WELCOME_CHANNEL_ID:-}
-      DISCORD_TEST_CHANNEL_ID: ${DISCORD_TEST_CHANNEL_ID:-}
-      DISCORD_RELAY_CHANNEL_ID: ${DISCORD_RELAY_CHANNEL_ID:-}
-      DISCORD_ACTIVITY_CHANNEL_ID: ${DISCORD_ACTIVITY_CHANNEL_ID:-}
-      DISCORD_DAILY_REWARDS_CHANNEL_ID: ${DISCORD_DAILY_REWARDS_CHANNEL_ID:-}
-      DISCORD_SYNC_NICKNAMES: ${DISCORD_SYNC_NICKNAMES:-1}
-    command: ["node", "dist-bot/bot.cjs"]
-
   mediawiki-db:
     image: mariadb:11
     container_name: eastbrook-wiki-db
