@@ -1,3 +1,13 @@
+> **Ona World Kernel** — this repository is the playable game template for
+> [Ona](https://onaai.cloud) **AI Game Board** projects. It is a fork of
+> [World of ClaudeCraft](https://github.com/levy-street/world-of-claudecraft)
+> (MIT) with full git history preserved and `upstream` configured for
+> selective cherry-picks. All game content (zones, quests, creatures, lore)
+> is **sample content** from the original project, kept with attribution —
+> see `LICENSE` and `CREDITS.md`. Platform-specific layers (web3, mobile,
+> desktop, wiki) are being trimmed; the deterministic sim, renderer, HUD,
+> server and test suite are the kernel.
+
 <div align="center">
 
 # World of ClaudeCraft
