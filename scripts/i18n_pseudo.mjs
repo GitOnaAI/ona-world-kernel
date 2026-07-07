@@ -91,7 +91,7 @@ export function pseudoString(s) {
   const transformed = parts
     .map((part) => (part.startsWith('{') && part.endsWith('}') ? part : accentPush(part)))
     .join('');
-  return '[' + transformed + ']';
+  return `[${transformed}]`;
 }
 
 // Deep transform: recurse objects/arrays, pseudo-localize string leaves, pass

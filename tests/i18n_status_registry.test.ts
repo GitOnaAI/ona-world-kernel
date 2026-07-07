@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import * as fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import * as fs from 'fs';
-import path from 'path';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error - shared zero-dep JS hash helper (no .d.ts). The scanner uses the
 // SAME module, so re-deriving hashes here is an independent check of the registry

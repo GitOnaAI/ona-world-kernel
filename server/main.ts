@@ -266,8 +266,6 @@ const STATIC_PAGE_ALIASES = new Map([
   ['/support/', '/support.html'],
   ['/wiki', '/guide.html'],
   ['/wiki/', '/guide.html'],
-  ['/editor', '/editor.html'],
-  ['/editor/', '/editor.html'],
 ]);
 // Chat-log and perf-report retention days (0 = forever) plus the Turnstile secret
 // and the hard per-IP WS cap now live on the boot Config (see activeConfig above):
@@ -934,7 +932,7 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       await saveToken(token, account.id);
       // Tell the client whether this (possibly pre-email) account still needs a
       // recovery address, so it can force the mandatory-email prompt on sign-in.
-      const emailMissing = !(account.email && account.email.trim());
+      const emailMissing = !account.email?.trim();
       return json(res, 200, { token, username: account.username, emailMissing });
     }
     if (req.method === 'POST' && url === '/api/desktop-login/create') {

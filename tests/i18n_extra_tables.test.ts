@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { type SupportedLanguage, supportedLanguages } from '../src/ui/i18n';
+import { supportedLanguages } from '../src/ui/i18n';
 import { RESTART_MESSAGES } from '../src/ui/server_i18n';
 import { ARENA_EXTRA, ITEM_EXTRA, QUEST_EXTRA } from '../src/ui/sim_i18n';
 

@@ -43,7 +43,7 @@ Most directories above have their own `CLAUDE.md` with local conventions; read i
   automatically on a `release/**` branch). Exit-code-safe; use it instead of an ad-hoc `&&` chain
   before calling a change done (piping `npm test` through `tail` masks its exit code, and an
   unbounded run flakes heavy suites under core contention).
-- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Four entries (game, play, guide, editor).
+- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Three entries (game, play, guide).
 - `npm run env` / `npm run bench`: build + run the headless RL env server.
 - `npm run db:up` / `npm run db:down`: Postgres 16 in Docker (dev DB on :5433).
 - `npm run realms`: run multiple realm processes locally.

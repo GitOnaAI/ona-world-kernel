@@ -4,8 +4,9 @@
 //   2. the language dropdown OPEN (gold listbox replacing the native <select> menu)
 //   3. the report dialog — themed textarea resize grip + custom reason dropdown
 // Saves to docs/pr-assets/mmo-controls/.
-import puppeteer from 'puppeteer-core';
+
 import fs from 'node:fs';
+import puppeteer from 'puppeteer-core';
 import { BROWSER_PATH as EDGE } from './browser_path.mjs';
 
 const URL = process.env.GAME_URL ?? 'http://localhost:5173';
@@ -21,21 +22,30 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.log('PAGEERROR:', e.message));
-page.on('console', (m) => { if (m.type() === 'error') console.log('CONSOLE.error:', m.text()); });
+page.on('console', (m) => {
+  if (m.type() === 'error') console.log('CONSOLE.error:', m.text());
+});
 
 await page.goto(URL, { waitUntil: 'networkidle0', timeout: 30000 });
 // #btn-offline is a hidden (aria-hidden, off-screen) compat trigger — drive it via evaluate.
 await page.evaluate(() => document.querySelector('#btn-offline')?.click());
 await sleep(400);
 await page.type('#char-name', 'Tinkerer');
-await page.evaluate(() => document.querySelector('#offline-select .mini-class[data-class="warrior"]')?.click());
+await page.evaluate(() =>
+  document.querySelector('#offline-select .mini-class[data-class="warrior"]')?.click(),
+);
 await sleep(200);
 await page.evaluate(() => document.querySelector('#btn-start-offline')?.click());
 await page.waitForFunction(() => window.__game?.hud, { timeout: 30000 });
 await sleep(800);
 
 // 1. Interface panel — sliders (HUD opacity, UI scale, FOV, volumes) + language picker.
-await page.evaluate(() => { const h = window.__game.hud; h.toggleOptionsMenu(); h.optionsView = 'interface'; h.renderOptions(); });
+await page.evaluate(() => {
+  const h = window.__game.hud;
+  h.toggleOptionsMenu();
+  h.optionsView = 'interface';
+  h.renderOptions();
+});
 await sleep(400);
 await (await page.$('#options-menu')).screenshot({ path: `${OUT}/01-interface-sliders.png` });
 

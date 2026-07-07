@@ -1,12 +1,12 @@
-// Game-side reader for an editor play-test handoff. The map editor (its own
-// entry at /editor) serializes a custom world into sessionStorage and navigates
-// to the game page; this reads it back so the OFFLINE boot can run that world.
+// Game-side reader for an editor play-test handoff. The retired map editor
+// (formerly its own entry at /editor) serialized a custom world into
+// sessionStorage and navigated to the game page; this reads it back so the
+// OFFLINE boot can run that world.
 // Playtest never touches the server or the authoritative world: it only shapes
 // the local offline Sim, so it ships enabled (same-origin sessionStorage is the
 // player's own data, and offline progress is per-session anyway).
 //
-// Deliberately depends ONLY on sim types (WorldContent), never on src/editor, so
-// the editor's code never enters the shipped game bundle. Defensive: any
+// Deliberately depends ONLY on sim types (WorldContent). Defensive: any
 // malformed blob yields null and the normal start screen runs instead.
 
 import type { PlayerClass, WorldContent } from '../sim/types';
