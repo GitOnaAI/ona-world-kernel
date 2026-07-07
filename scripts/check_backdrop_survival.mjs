@@ -9,7 +9,7 @@
 //
 // Run by `npm run build` after `vite build`, over EVERY emitted dist CSS file
 // (today the index and play chunks built from src/styles plus the guide chunk from
-// src/guide/styles.css; admin ships an inline <style> and emits no separate CSS, so
+// src/guide/styles.css, so
 // it has nothing to scan). Pure logic lives in scanBackdropSurvival() so
 // tests/backdrop_filter_survival.test.ts can prove the teeth without a full build.
 

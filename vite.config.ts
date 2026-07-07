@@ -2,8 +2,6 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { svelteTesting } from '@testing-library/svelte/vite';
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
 import { loadBrowserslistFloors } from './scripts/browserslist_targets.mjs';
@@ -295,15 +293,7 @@ function musicEditorSavePlugin() {
 
 export default defineConfig({
   base: '/',
-  // The Svelte plugin only transforms the standalone admin entry. The testing
-  // plugin is scoped to Vitest so it cannot affect production client builds.
-  plugins: [
-    svelte(),
-    ...(process.env.VITEST ? [svelteTesting()] : []),
-    staticPageAliasPlugin(),
-    i18nModulepreloadPlugin(),
-    musicEditorSavePlugin(),
-  ],
+  plugins: [staticPageAliasPlugin(), i18nModulepreloadPlugin(), musicEditorSavePlugin()],
   resolve: { alias: { '#bot-detector': botDetectorImpl } },
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
@@ -321,7 +311,6 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': { target: apiProxyTarget, changeOrigin: true },
-      '/admin/api': { target: apiProxyTarget, changeOrigin: true },
       '/ws': { target: wsProxyTarget, ws: true },
       // MediaWiki community wiki runs as its own container on :8080. Proxy /wiki*
       // to it so the in-app "Browse the Wiki" link resolves in dev too — mirrors
@@ -341,7 +330,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('index.html', import.meta.url)),
-        admin: fileURLToPath(new URL('admin.html', import.meta.url)),
         play: fileURLToPath(new URL('play.html', import.meta.url)),
         guide: fileURLToPath(new URL('guide.html', import.meta.url)),
         editor: fileURLToPath(new URL('editor.html', import.meta.url)),

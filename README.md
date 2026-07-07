@@ -279,7 +279,6 @@ The sim is a fixed 20 Hz tick (`DT = 1/20`), all randomness flows through one se
 | `src/game/` | Local input, camera, keybinds, mobile controls, procedural WebAudio. |
 | `src/ui/` | Classic HUD (frames, windows, tooltips, map, floating combat text), procedural icons, i18n. |
 | `src/net/` | Online client: REST auth plus a WebSocket world mirror (`ClientWorld`). |
-| `src/admin/` | Admin dashboard SPA (separate `admin.html` entry). |
 | `server/` | Authoritative server: HTTP and WS, world loop, Postgres, auth, social, moderation. |
 | `headless/` + `python/` | RL env server (`env_server.ts`) and Python Gym bindings. |
 | `tests/` | Vitest suite. |

@@ -5,7 +5,7 @@
 // coarse-pointer (touch) devices. A headless browser cannot reproduce the iOS zoom
 // animation itself, so this asserts the exact property that drives it: the COMPUTED
 // font-size of every form control is >= 16px on touch, while desktop keeps its small
-// classic-MMO fonts. Runs across several phone screen sizes and also covers admin.html.
+// classic-MMO fonts. Runs across several phone screen sizes.
 //
 //   npm run dev    # (separate terminal, serves :5173)
 //   node scripts/mobile_input_zoom_check.mjs
@@ -45,13 +45,6 @@ const GAME_INJECT = `
   <div class="mkt-price-row"><input class="coininput" type="number" value="1"></div>
   <label class="trade-money"><input type="number" value="0"></label>
   <textarea id="report-details"></textarea>
-`;
-const ADMIN_INJECT = `
-  <form id="login"><input id="login-username"><input id="login-password" type="password"></form>
-  <input id="account-search">
-  <input class="account-custom-expiry" type="datetime-local">
-  <input id="cf-warnings" type="number">
-  <form class="word-add"><input maxlength="64"></form>
 `;
 
 // Runs in the page: inject the representatives, then measure every form control.
@@ -129,23 +122,6 @@ for (const v of PHONES) {
   await ctx.close();
 }
 
-console.log(`\n=== ADMIN (${BASE}/admin.html) across ${PHONES.length} phone sizes ===`);
-for (const v of PHONES) {
-  const { ctx, page } = await loadTouch(`${BASE}/admin.html`, v);
-  const r = await page.evaluate(measure, ADMIN_INJECT);
-  check(`[admin ${v.name}] pointer:coarse matches`, r.coarse);
-  const textControls = r.controls.filter(isTextEntry);
-  const bad = textControls.filter((c) => !(c.px >= 16));
-  check(`[admin ${v.name}] all ${textControls.length} text controls >= 16px`, bad.length === 0,
-    bad.map((c) => `${label(c)}=${c.px}px`).join(', '));
-  if (v.name === 'iphone-13') {
-    console.log(`  measured (${textControls.length} text controls): ` +
-      textControls.map((c) => `${label(c)}=${c.px}`).join(' | '));
-    await page.screenshot({ path: `tmp/zoom_admin_${v.name}.png` }).catch(() => {});
-  }
-  await ctx.close();
-}
-
 // Desktop regression: a fine/none pointer context must NOT trigger the floor, so the
 // small classic fonts must be retained (proves the fix is mobile-only).
 console.log(`\n=== DESKTOP regression (small fonts retained) ===`);
@@ -162,14 +138,6 @@ console.log(`\n=== DESKTOP regression (small fonts retained) ===`);
   check('desktop .prompt-number stays 12px', pn && Math.abs(pn.px - 12) < 0.6, pn ? `${pn.px}px` : 'not found');
   await ctx.close();
 
-  const actx = await browser.createBrowserContext();
-  const apage = await actx.newPage();
-  await apage.setViewport({ width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1 });
-  await apage.goto(`${BASE}/admin.html`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  const ar = await apage.evaluate(measure, ADMIN_INJECT);
-  const lu = ar.controls.find((c) => c.id === 'login-username');
-  check('desktop admin #login-username stays 14px', lu && Math.abs(lu.px - 14) < 0.6, lu ? `${lu.px}px` : 'not found');
-  await actx.close();
 }
 
 await browser.close();

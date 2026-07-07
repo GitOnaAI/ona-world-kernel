@@ -10,8 +10,7 @@ A classic-style micro-MMO **and** a headless reinforcement-learning
 environment, both driven by one deterministic TypeScript simulation core.
 Stack: TypeScript (ESM, `strict`) · Three.js renderer · `ws` WebSockets ·
 Postgres (`pg`) · Vite + esbuild · Vitest. No UI framework in the game client; tiny
-dependency set. The one sanctioned exception is the standalone admin dashboard
-(`src/admin/`), which is built with Svelte 5 (it never touches the game client bundle).
+dependency set.
 
 ## Repo map
 | Path | What it is |
@@ -23,7 +22,6 @@ dependency set. The one sanctioned exception is the standalone admin dashboard
 | `src/ui/` | Classic HUD (frames, windows, tooltips, map, FCT), procedural icons, i18n. |
 | `src/styles/` | Extracted HUD CSS (`tokens`/`base`/`layout`/`components`/`hud`/`hud.mobile` plus per-entry `.extra`) under one `@layer` order, imported once from the game entries via `src/main.ts`. See `src/styles/CLAUDE.md`. |
 | `src/net/` | Online client: REST auth + WebSocket world mirror (`ClientWorld`). |
-| `src/admin/` | Admin dashboard SPA (separate `admin.html` entry). |
 | `src/guide/` | Public guide/wiki SPA (separate `guide.html` entry, served at `/wiki`); spoiler-safe content generated from `src/sim/`. |
 | `src/world_api.ts` | `IWorld`, the seam render/ui depend on (see Architecture). |
 | `src/main.ts` | Client entry; fixes the world seed. |
@@ -37,7 +35,7 @@ dependency set. The one sanctioned exception is the standalone admin dashboard
 Most directories above have their own `CLAUDE.md` with local conventions; read it when you work there.
 
 ## Commands
-- `npm run dev`: Vite client on :5173 (proxies `/api`, `/admin/api`, `/ws` to :8787).
+- `npm run dev`: Vite client on :5173 (proxies `/api`, `/ws` to :8787).
 - `npm run server`: esbuild-bundle + run the authoritative server on :8787.
 - `npm test`: Vitest. **Prefer a single file while iterating:** `npx vitest run tests/sim.test.ts`.
 - `npm run gate`: the full CI-equivalent pre-merge gate (i18n gen + freshness, malware scan,
@@ -45,7 +43,7 @@ Most directories above have their own `CLAUDE.md` with local conventions; read i
   automatically on a `release/**` branch). Exit-code-safe; use it instead of an ad-hoc `&&` chain
   before calling a change done (piping `npm test` through `tail` masks its exit code, and an
   unbounded run flakes heavy suites under core contention).
-- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Five entries (game, admin, play, guide, editor).
+- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Four entries (game, play, guide, editor).
 - `npm run env` / `npm run bench`: build + run the headless RL env server.
 - `npm run db:up` / `npm run db:down`: Postgres 16 in Docker (dev DB on :5433).
 - `npm run realms`: run multiple realm processes locally.
@@ -91,7 +89,7 @@ See `README.md` for the full host/develop/play guide and the classic-fidelity ch
 - **i18n: every player-visible string is a `t()` key**, classified by render sink,
   not statement type. In scope: labels, tooltips, placeholders, aria/alt, toasts,
   dialogs, validation and "connection lost" errors, static HTML, `document.title`,
-  server-sent player text, and the whole admin dashboard (operators are users). The
+  and server-sent player text. The
   final rendered text always comes from `t()`, never concat, `?? 'English'`
   fallbacks, default params, or `setAttribute('aria-label'|'title'|...)`. Out of
   scope (English only): dev-channel text (`console.*`, assertions, a `throw` no catch
@@ -116,9 +114,8 @@ See `README.md` for the full host/develop/play guide and the classic-fidelity ch
 
 ## Conventions
 - **ESM + TypeScript `strict`** everywhere. 2-space indent; match the surrounding file.
-- **Keep the dependency set tiny.** Don't add packages without a clear need. (Svelte
-  and `@sveltejs/vite-plugin-svelte` are the one sanctioned exception, scoped to the
-  `src/admin/` dashboard bundle; the game/guide/play entries stay framework-free.)
+- **Keep the dependency set tiny.** Don't add packages without a clear need. All
+  entries stay framework-free.
 - **No em dashes, en dashes, or emojis** anywhere: code, comments, docs, commits, PR
   text, or player-facing copy. Use commas, colons, parentheses, or "to" for ranges.
   (An emoji that stands in for a real label still needs its real `t()` text.)

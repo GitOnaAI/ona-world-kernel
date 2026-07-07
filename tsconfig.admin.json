@@ -1,4 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["src/admin/**/*.ts", "src/admin/**/*.svelte"]
-}

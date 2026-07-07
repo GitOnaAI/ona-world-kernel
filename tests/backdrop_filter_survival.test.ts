@@ -78,7 +78,7 @@ describe('scanBackdropSurvival', () => {
 
   // Integration: when a production build is present, every emitted dist CSS file
   // (the index/play chunks from src/styles and the guide chunk from src/guide/styles.css;
-  // admin ships inline styles, no separate CSS) must keep its twins. Skipped when dist/
+  // must keep its twins. Skipped when dist/
   // is absent (e.g. a plain `npm test` with no build);
   // the build itself runs scripts/check_backdrop_survival.mjs as a blocking gate.
   it('finds no twin loss in the built dist CSS (when dist exists)', () => {

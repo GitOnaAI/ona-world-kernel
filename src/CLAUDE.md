@@ -7,7 +7,7 @@
 
 Everything the browser client needs plus the shared game core. Subdirectories
 each have their own CLAUDE.md: `sim/` (+ `sim/content/`), `render/`
-(+ `render/characters/`), `game/`, `ui/`, `net/`, `admin/`.
+(+ `render/characters/`), `game/`, `ui/`, `net/`.
 
 ## Dependency direction: do not violate
 Read "->" as *"is allowed to import from."* Keeping these one-directional is what
@@ -29,7 +29,6 @@ lets the same `sim/` run offline, on the server, and headless.
 - `net/` -> `sim/` types + `world_api.ts` (`ClientWorld implements IWorld`).
 - `main.ts` -> wires it all together; the only module that knows *both* a concrete
   world (`Sim` or `ClientWorld`) *and* the renderer/HUD.
-- `admin/` -> standalone (its own `admin.html` entry); independent of the game client.
 
 ## When a presentation module needs new data or an action
 Add it to **`IWorld` (`world_api.ts`) first**, then implement it in *both* the

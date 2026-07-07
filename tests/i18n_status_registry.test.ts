@@ -8,7 +8,6 @@ import { describe, expect, it } from 'vitest';
 // SAME module, so re-deriving hashes here is an independent check of the registry
 // rather than a copy of the scanner's own arithmetic.
 import { contentHash, placeholdersOf } from '../scripts/i18n_hash.mjs';
-import { DICT as adminDICT } from '../src/admin/i18n';
 import { en, supportedLanguages } from '../src/ui/i18n';
 import { DICT as serverDICT } from '../src/ui/server_i18n';
 import { DICT as simDICT } from '../src/ui/sim_i18n';
@@ -66,14 +65,13 @@ function expectedUniverse(): Map<string, string> {
   for (const [k, v] of Object.entries(flatten(en as any))) m.set(`main:${k}`, v);
   for (const [k, v] of Object.entries(simDICT.en)) m.set(`sim:${k}`, v as string);
   for (const [k, v] of Object.entries(serverDICT.en)) m.set(`server:${k}`, v as string);
-  for (const [k, v] of Object.entries(adminDICT.en)) m.set(`admin:${k}`, v as string);
   return m;
 }
 
 const keyEntries = (): [string, any][] => Object.entries(registry.keys);
 
 describe('i18n status registry: universe coverage', () => {
-  it('has exactly one row per source key (en leaves + sim/server/admin DICT keys)', () => {
+  it('has exactly one row per source key (en leaves + sim/server DICT keys)', () => {
     const expected = expectedUniverse();
     const regKeys = new Set(Object.keys(registry.keys));
     const missing = [...expected.keys()].filter((k) => !regKeys.has(k));
@@ -192,14 +190,14 @@ describe('i18n status registry: states', () => {
 });
 
 describe('i18n status registry: blocked rows are load-bearing (no over-allow)', () => {
-  const dicts: Record<string, any> = { server: serverDICT, admin: adminDICT };
+  const dicts: Record<string, any> = { server: serverDICT };
 
-  it('every blocked server/admin row genuinely copies English (value === en) and has a reason', () => {
+  it('every blocked server row genuinely copies English (value === en) and has a reason', () => {
     for (const [ck, entry] of keyEntries()) {
       const ci = ck.indexOf(':');
       const scope = ck.slice(0, ci);
       const key = ck.slice(ci + 1);
-      if (scope !== 'server' && scope !== 'admin') continue;
+      if (scope !== 'server') continue;
       for (const [loc, row] of Object.entries<any>(entry.locales)) {
         if (row.state !== 'blocked') continue;
         expect(
@@ -217,12 +215,12 @@ describe('i18n status registry: blocked rows are load-bearing (no over-allow)', 
     }
   });
 
-  it('only server/admin scopes carry blocked rows (main/sim carry none)', () => {
+  it('only the server scope carries blocked rows (main/sim carry none)', () => {
     // Same accumulate-then-assert-once shape as the freshness walk above.
     const violations: string[] = [];
     for (const [ck, entry] of keyEntries()) {
       const scope = ck.slice(0, ck.indexOf(':'));
-      if (scope === 'server' || scope === 'admin') continue;
+      if (scope === 'server') continue;
       for (const row of Object.values<any>(entry.locales))
         if (row.state === 'blocked')
           violations.push(`${ck} unexpected blocked row in scope ${scope}`);

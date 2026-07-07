@@ -62,22 +62,5 @@ await page.waitForSelector('#confirm-dialog textarea.cd-input', { visible: true,
 await sleep(300);
 await (await page.$('#confirm-dialog')).screenshot({ path: `${OUT}/03-textarea-grip.png` });
 
-// 4. Admin dashboard date picker + number input. Admin needs auth/data to reach
-// the moderation row, so inject the same control markup onto the styled admin
-// page to show the theming (gold calendar indicator, dark field, no spinners).
-const admin = await browser.newPage();
-await admin.goto(`${URL}/admin.html`, { waitUntil: 'networkidle0', timeout: 30000 }).catch(() => {});
-await admin.evaluate(() => {
-  const box = document.createElement('div');
-  box.className = 'mod-account-actions';
-  box.style.cssText = 'position:fixed;left:24px;top:24px;z-index:9999;display:flex;gap:10px;align-items:center;padding:16px;background:var(--panel-bg);border:1px solid var(--border);border-radius:6px;';
-  box.innerHTML = '<label style="color:var(--text);font-size:13px">Mute until <input class="account-custom-expiry" type="datetime-local" value="2026-07-01T18:30"></label>'
-    + '<label style="color:var(--text);font-size:13px">Warnings <input type="number" min="0" max="50" value="3" style="width:70px;padding:6px 8px;background:#11111a;border:1px solid var(--border);border-radius:4px;color:var(--text)"></label>';
-  document.body.appendChild(box);
-});
-await sleep(300);
-const box = await admin.$('.mod-account-actions');
-if (box) await box.screenshot({ path: `${OUT}/04-admin-datepicker.png` });
-
 await browser.close();
 console.log('saved screenshots to', OUT);

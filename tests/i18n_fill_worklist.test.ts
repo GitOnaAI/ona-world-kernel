@@ -65,10 +65,9 @@ describe("worklist classification (blocked-by-default; the stopping rule)", () =
     }
   });
 
-  it("treats sim/server/admin DICT scopes as chrome", () => {
+  it("treats sim/server DICT scopes as chrome", () => {
     expect(classify("sim", "anything.goes").fillable).toBe(true);
     expect(classify("server", "who.statusCombat").fillable).toBe(true);
-    expect(classify("admin", "app.title").fillable).toBe(true);
   });
 
   it("defaults an unrecognised main-scope namespace to human-required", () => {
@@ -185,7 +184,6 @@ describe("worklist assembly (deterministic + blocked-prose segregation, end to e
   const dictEn = {
     sim: { "combat.miss": "Miss" },
     server: { "who.online": "Online" },
-    admin: { "app.title": "Admin" },
   };
   // de_DE has translated the glossary term classes.warrior (own overlay) but not mage.
   const overlays: Record<string, Record<string, string>> = { de_DE: { "classes.warrior": "Krieger" }, es: {} };

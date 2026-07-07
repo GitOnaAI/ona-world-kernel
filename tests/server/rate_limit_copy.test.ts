@@ -1,15 +1,14 @@
 // Em-dash copy guard for the rate-limit strings.
 //
 // The account-portal migration swapped the U+2014 em dash for a comma in the login/register
-// throttle 429 strings (server/main.ts legacy arms + server/auth_routes.ts migrated arms) and
-// the admin operator copy (src/admin/i18n.locales/en_CA.ts), and retired the
-// authRateLimitDashToComma known deviation. The swap MUST stay matcher-safe: the
+// throttle 429 strings (server/main.ts legacy arms + server/auth_routes.ts migrated arms),
+// and retired the authRateLimitDashToComma known deviation. The swap MUST stay matcher-safe: the
 // client prose-matcher (userFacingApiError, extracted to src/ui/api_error_i18n.ts)
 // keys on the "too many attempts" / "too many failed attempts" PREFIX,
 // which sits BEFORE the punctuation, so the localized message is unchanged. This gate
 // reads the SOURCE files (server/main.ts builds a pg pool, so it is never imported;
 // the matcher's runtime behavior is covered by tests/main_api_error.test.ts) and pins:
-//  - the four target files carry no U+2014 (the acceptance grep, locked as a test);
+//  - the target files carry no U+2014 (the acceptance grep, locked as a test);
 //  - the two 429 strings are the comma form and START WITH their matcher prefix;
 //  - the userFacingApiError matcher still keys on those prefixes via startsWith.
 
@@ -32,15 +31,10 @@ const FAILED_PREFIX = 'too many failed attempts';
 const ATTEMPTS_COMMA = 'too many attempts, wait a minute and try again';
 const FAILED_COMMA = 'too many failed attempts, wait a few minutes and try again';
 
-const TARGET_FILES = [
-  'server/main.ts',
-  'src/main.ts',
-  'src/admin/i18n.locales/en_CA.ts',
-  'src/admin/i18n.resolved.generated/en_CA.ts',
-];
+const TARGET_FILES = ['server/main.ts', 'src/main.ts'];
 
 describe('rate-limit copy: no em dash', () => {
-  it('none of the four touched files contains a U+2014 em dash', () => {
+  it('none of the touched files contains a U+2014 em dash', () => {
     for (const rel of TARGET_FILES) {
       expect(read(rel).includes(EM_DASH), `${rel} still contains an em dash`).toBe(false);
     }
@@ -55,12 +49,6 @@ describe('rate-limit copy: no em dash', () => {
     expect(main).toContain(FAILED_COMMA);
     expect(auth).toContain(ATTEMPTS_COMMA);
     expect(auth).toContain(FAILED_COMMA);
-  });
-
-  it('the admin en_CA tooManyAttempts copy is the comma form', () => {
-    expect(read('src/admin/i18n.locales/en_CA.ts')).toContain(
-      `'error.tooManyAttempts': '${ATTEMPTS_COMMA}'`,
-    );
   });
 });
 

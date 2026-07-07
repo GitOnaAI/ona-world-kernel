@@ -12,7 +12,7 @@
    CSS change re-litigates the cascade. The only intentionally-empty barrel layer is
    the reserved `hud` slot (hud.css and components.css both target @layer components,
    see below); index-extra and play-extra are filled per entry by the .extra files,
-   not by this barrel. admin.html and guide.html keep their own inline CSS and do not
+   not by this barrel. guide.html keeps its own inline CSS and does not
    load this barrel.
 
    Both hud.css and components.css put their rules in @layer components (the declared

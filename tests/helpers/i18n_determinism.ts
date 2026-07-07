@@ -2,7 +2,7 @@
 //
 // `assertDeterministic` runs an i18n generator script TWICE, each time into its
 // own throwaway temp directory via the script's `I18N_OUT_DIR` override (honored
-// by scripts/i18n_build.mjs, scripts/i18n_admin_build.mjs, and scripts/i18n_scan.mjs),
+// by scripts/i18n_build.mjs and scripts/i18n_scan.mjs),
 // and asserts the emitted files are byte-identical across the two runs.
 //
 // It replaces the committed-bytes `git diff` freshness check for the now-gitignored
@@ -38,7 +38,7 @@ export interface DeterminismCheck {
   /**
    * File names (relative to I18N_OUT_DIR) to compare byte-for-byte. Omit to compare
    * EVERY file the script emits into I18N_OUT_DIR (recursively) - used for the
-   * directory generators (i18n_build / i18n_admin_build).
+   * directory generator (i18n_build).
    */
   outFiles?: string[];
   /** Extra environment shared by both runs (the perturbed vars are layered on top). */

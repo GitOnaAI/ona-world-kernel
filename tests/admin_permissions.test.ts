@@ -11,8 +11,6 @@ import {
   SUPERADMIN_ROLE,
   sanitizeRoles,
 } from '../server/admin_permissions';
-import { en } from '../src/admin/i18n.en';
-import { ADMIN_PERMISSIONS as CLIENT_ADMIN_PERMISSIONS } from '../src/admin/permissions';
 
 describe('admin permission vocabulary', () => {
   it('grants every permission to superadmin', () => {
@@ -99,16 +97,11 @@ describe('admin permission vocabulary', () => {
     expect(isAdminRole('moderator')).toBe(true);
     expect(isAdminRole('root')).toBe(false);
   });
-
-  it('keeps the client permission mirror byte-identical to the server vocabulary', () => {
-    expect([...CLIENT_ADMIN_PERMISSIONS]).toEqual([...ADMIN_PERMISSIONS]);
-  });
 });
 
-// The role vocabulary is hand-mirrored in two places that cannot import the
-// server module (the plain-Node grant script and the Staff page's i18n label
-// set); pin both, plus the per-role label keys, so adding a role cannot
-// silently miss one.
+// The role vocabulary is hand-mirrored in the plain-Node grant script (which
+// cannot import the server module); pin it so adding a role cannot silently
+// miss it.
 describe('role vocabulary mirrors', () => {
   it('keeps scripts/grant_admin.mjs KNOWN_ROLES in sync', () => {
     const source = readFileSync('scripts/grant_admin.mjs', 'utf8');
@@ -116,37 +109,5 @@ describe('role vocabulary mirrors', () => {
     expect(match).not.toBeNull();
     const known = [...(match?.[1] ?? '').matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
     expect(known).toEqual([...ADMIN_ROLES]);
-  });
-
-  it('keeps the Staff page role-label set and i18n keys in sync', () => {
-    const source = readFileSync('src/admin/pages/Staff.svelte', 'utf8');
-    const match = /KNOWN_ROLE_KEYS = new Set\(\[([^\]]+)\]\)/.exec(source);
-    expect(match).not.toBeNull();
-    const known = [...(match?.[1] ?? '').matchAll(/'([a-z]+)'/g)].map((m) => m[1]);
-    expect(known).toEqual([...ADMIN_ROLES]);
-    for (const role of ADMIN_ROLES) {
-      expect(en[`staff.role.${role}` as keyof typeof en], `staff.role.${role}`).toBeTruthy();
-    }
-  });
-});
-
-// The admin client reverse-maps server error bodies to i18n keys by their
-// exact English text; pin the new server literals to their catalog values so
-// neither side can drift silently.
-describe('new admin error strings reverse-map', () => {
-  const literals: Record<string, string> = {
-    'error.missingPermission': 'you do not have permission to do this',
-    'error.staffUnknownRole': 'unknown role',
-    'error.staffSuperadmin': 'superadmin roles are managed via the grant script',
-    'error.staffSelfEdit': 'you cannot change your own roles',
-    'error.methodNotAllowed': 'method not allowed',
-  };
-
-  it('matches the en catalog and the server emit sites byte for byte', () => {
-    const adminSource = readFileSync('server/admin.ts', 'utf8');
-    for (const [key, literal] of Object.entries(literals)) {
-      expect(en[key as keyof typeof en], key).toBe(literal);
-      expect(adminSource.includes(`'${literal}'`), `server/admin.ts emits "${literal}"`).toBe(true);
-    }
   });
 });

@@ -170,10 +170,10 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 describe('locale-aware formatting is centralized', () => {
-  const UI_DIRS = ['src/ui', 'src/render', 'src/game', 'src/admin'].map((d) => path.join(ROOT, d));
+  const UI_DIRS = ['src/ui', 'src/render', 'src/game'].map((d) => path.join(ROOT, d));
   const files = UI_DIRS.flatMap((d) => walk(d));
   // Only these modules may construct Intl directly (the formatting helpers themselves).
-  const INTL_ALLOW = ['src/ui/i18n.ts', 'src/ui/talent_i18n.ts', 'src/admin/format.ts'];
+  const INTL_ALLOW = ['src/ui/i18n.ts', 'src/ui/talent_i18n.ts'];
 
   it('constructs no ad-hoc Intl.NumberFormat/DateTimeFormat outside the helper modules', () => {
     const offenders: string[] = [];

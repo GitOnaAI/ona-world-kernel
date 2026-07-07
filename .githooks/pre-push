@@ -54,7 +54,6 @@ if [ -n "$base" ] && command -v perl >/dev/null 2>&1; then
     . \
     ':(exclude)src/ui/i18n.locales' \
     ':(exclude)src/ui/i18n.resolved.generated' \
-    ':(exclude)src/admin/i18n.resolved.generated' \
     ':(exclude)*.lock' ':(exclude)package-lock.json' 2>/dev/null \
     | perl -CSD -ne '
         if (m{^\+\+\+\s+b/(.+)$}) { our $f = $1; $f =~ s/\s+$//; next; }

@@ -635,25 +635,16 @@ const MIME: Record<string, string> = {
   '.webp': 'image/webp',
 };
 
-// The admin dashboard is reached via the admin.* subdomain (Caddy proxies it
-// to this same port) or /admin for local dev. The hostname only picks which
-// HTML shell is served, the admin API itself is gated by admin tokens.
-function isAdminRequest(req: http.IncomingMessage): boolean {
-  const host = String(req.headers.host ?? '').toLowerCase();
-  const urlPath = (req.url ?? '/').split('?')[0];
-  return host.startsWith('admin.') || urlPath === '/admin' || urlPath === '/admin/';
-}
-
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
   let urlPath = (req.url ?? '/').split('?')[0];
   // The curated Guide is the site wiki: a client-routed SPA served at /wiki with its
   // own shell, so deep paths (/wiki/classes/...) fall back to guide.html rather than the
   // game's index.html. (It previously 302'd to a standalone MediaWiki; that is retired.)
   const isGuide = urlPath === '/wiki' || urlPath.startsWith('/wiki/');
-  const shell = isGuide ? 'guide.html' : isAdminRequest(req) ? 'admin.html' : 'index.html';
+  const shell = isGuide ? 'guide.html' : 'index.html';
   // Pretty-URL aliases for standalone static pages.
   urlPath = STATIC_PAGE_ALIASES.get(urlPath) ?? urlPath;
-  if (urlPath === '/' || urlPath === '/admin' || urlPath === '/admin/') urlPath = `/${shell}`;
+  if (urlPath === '/') urlPath = `/${shell}`;
   // normalize once and reuse for BOTH file resolution and cache policy,
   // otherwise /assets/../x would serve a mutable file with immutable caching
   urlPath = path.posix.normalize(urlPath).replace(/^([.][.][/\\])+/, '');

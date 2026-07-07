@@ -12,9 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { en, en_XA } from "../src/ui/i18n.resolved.generated";
-import { en as adminEn, en_XA as adminXA } from "../src/admin/i18n.resolved.generated";
 import { supportedLanguages, isSupportedLanguage } from "../src/ui/i18n";
-import { DICT as ADMIN_DICT } from "../src/admin/i18n";
 
 const PLACEHOLDER = /\{[^}]*\}/g;
 const ASCII_LETTER = /[A-Za-z]/;
@@ -98,21 +96,6 @@ describe("en_XA generator output (game)", () => {
   });
 });
 
-describe("en_XA generator output (admin)", () => {
-  const leaves: Array<[string, string, unknown]> = [];
-  collectLeaves(adminEn, adminXA, "", leaves);
-
-  it("transforms the admin catalog with brackets + preserved placeholders", () => {
-    expect(leaves.length).toBeGreaterThan(100);
-    for (const [path, enLeaf, xaLeaf] of leaves) {
-      const s = xaLeaf as string;
-      expect(typeof s, `admin en_XA missing leaf at ${path}`).toBe("string");
-      expect(s.startsWith("[") && s.endsWith("]"), `admin en_XA leaf not bracketed at ${path}`).toBe(true);
-      expect((s.match(PLACEHOLDER) ?? []), `admin placeholders changed at ${path}`).toEqual(enLeaf.match(PLACEHOLDER) ?? []);
-    }
-  });
-});
-
 describe("en_XA is excluded from every user-facing locale enumeration", () => {
   it("is NOT a member of supportedLanguages (so never in the language picker)", () => {
     expect(supportedLanguages).not.toContain("en_XA");
@@ -120,10 +103,6 @@ describe("en_XA is excluded from every user-facing locale enumeration", () => {
 
   it("is NOT a SupportedLanguage", () => {
     expect(isSupportedLanguage("en_XA")).toBe(false);
-  });
-
-  it("is NOT a key of the admin DICT (so never in the operator language list)", () => {
-    expect(Object.keys(ADMIN_DICT)).not.toContain("en_XA");
   });
 
   it("is NOT referenced anywhere in index.html (no hreflang / picker SEO leak)", () => {

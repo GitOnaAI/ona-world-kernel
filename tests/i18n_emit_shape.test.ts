@@ -11,19 +11,10 @@ import { describe, expect, it } from 'vitest';
 // flip and is imported by NOTHING in the runtime yet, so neither tsc nor any other
 // test would catch it being emitted empty, with the wrong keys (e.g. an accidental
 // `en`/`en_XA`), or with SUPPORTED_LANGUAGES out of sync with the barrel. This file
-// pins that surface directly for BOTH the game (src/ui) and admin (src/admin) tables,
+// pins that surface directly for the game (src/ui) table,
 // and exercises the I18N_OUT_DIR override branch (determinism + orphan-sweep) that the
 // build-script comments promise a test covers.
 
-import {
-  en_XA as adminEnXA,
-  pending as adminPending,
-  translations as adminTranslations,
-} from '../src/admin/i18n.resolved.generated';
-import {
-  LOCALE_LOADERS as adminLoaders,
-  SUPPORTED_LANGUAGES as adminSupported,
-} from '../src/admin/i18n.resolved.generated/loaders';
 import { supportedLanguages as uiRuntimeSupported } from '../src/ui/i18n';
 import {
   en_XA as uiEnXA,
@@ -64,7 +55,7 @@ const ALL_LOCALES = [
 // The lazy/pending set: every locale except `en` (and never the en_XA pseudo).
 const NON_EN_LOCALES = ALL_LOCALES.filter((l) => l !== 'en');
 
-// Reusable surface assertions over one generated table (game or admin).
+// Reusable surface assertions over one generated table.
 function assertEmitSurface(
   label: string,
   translations: Record<string, unknown>,
@@ -120,24 +111,6 @@ describe('i18n emit-split surface (game table)', () => {
     expect(es.es, 'ui loader resolves the es slice').toBeTypeOf('object');
     const ruRu = (await uiLoaders.ru_RU()) as Record<string, unknown>;
     expect(ruRu.ru_RU, 'ui loader resolves the ru_RU slice').toBeTypeOf('object');
-  });
-});
-
-describe('i18n emit-split surface (admin table)', () => {
-  it('barrel, loaders, and pending mirror the game directory surface', () => {
-    assertEmitSurface(
-      'admin',
-      adminTranslations as Record<string, unknown>,
-      adminEnXA,
-      adminPending,
-      adminLoaders as Record<string, () => Promise<unknown>>,
-      adminSupported,
-    );
-  });
-
-  it('each admin LOCALE_LOADERS thunk lazily resolves its own slice', async () => {
-    const es = (await adminLoaders.es()) as Record<string, unknown>;
-    expect(es.es, 'admin loader resolves the es slice').toBeTypeOf('object');
   });
 });
 
@@ -202,9 +175,5 @@ describe('i18n emit determinism + orphan-sweep (I18N_OUT_DIR override)', () => {
 
   it('game build is deterministic and prunes orphans', () => {
     checkEmit('scripts/i18n_build.mjs', 'i18n-emit-ui-');
-  }, 60_000);
-
-  it('admin build is deterministic and prunes orphans', () => {
-    checkEmit('scripts/i18n_admin_build.mjs', 'i18n-emit-admin-');
   }, 60_000);
 });

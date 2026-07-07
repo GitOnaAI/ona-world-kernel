@@ -34,7 +34,7 @@ npm (see `package.json`); many more run directly.
 | Security | `ws_security_e2e.mjs` (server), `malware_scan.mjs` (release-gate malicious-code flagger over the whole tree; `security:scan` / `security:gate`, exits 1 on findings) | server / none |
 | Screenshot tours | `visual_tour.mjs`, `arena_visual.mjs`, `market_visual.mjs`, `social_visual.mjs`, `tour_expansion.mjs` | dev (some + server) |
 | SEO / homepage / i18n | `homepage_verify.mjs`, `seo_audit.mjs`, `localization_e2e.mjs` (locale-matrix homepage E2E) | dev (+ server) |
-| i18n pipeline | `i18n_build.mjs`+`i18n_admin_build.mjs` (resolved tables), `i18n_scan.mjs` (status registry), `i18n_resolved_hash.mjs` (game-table SHA gate); seed `i18n_blocked_seed.mjs` owns `V07_SLASH`/`COPIED_ALLOW_IDS`; `i18n_pseudo.mjs` (en_XA dev pseudo-locale), `i18n_modulepreload.mjs` (lazy-locale boot modulepreload) | `i18n:gen`; SHA via `i18n:hash` |
+| i18n pipeline | `i18n_build.mjs` (resolved tables), `i18n_scan.mjs` (status registry), `i18n_resolved_hash.mjs` (game-table SHA gate); seed `i18n_blocked_seed.mjs` owns `V07_SLASH`/`COPIED_ALLOW_IDS`; `i18n_pseudo.mjs` (en_XA dev pseudo-locale), `i18n_modulepreload.mjs` (lazy-locale boot modulepreload) | `i18n:gen`; SHA via `i18n:hash` |
 | Data export | `export_loot_spreadsheet.mjs` (esbuild-bundles `src/sim` to a loot sheet in `docs/`) | none |
 | Admin / dev utils | `grant_admin.mjs`, `create_gm.mjs` | `DATABASE_URL` |
 | Local realms | `dev-realms.mjs` (launches built server processes) | built server (`npm run realms`) |
@@ -61,8 +61,8 @@ npm (see `package.json`); many more run directly.
   that need sim or i18n data bundle the TS with `esbuild` themselves (e.g.
   `export_loot_spreadsheet.mjs` and the `i18n_*` builders); follow that pattern and never
   `import` the TS sources raw.
-- Don't hand-edit the generated i18n artifacts: `src/ui/i18n.resolved.generated/` +
-  `src/admin/i18n.resolved.generated/` (resolved tables), `src/ui/i18n.status.json` /
+- Don't hand-edit the generated i18n artifacts: `src/ui/i18n.resolved.generated/`
+  (resolved table), `src/ui/i18n.status.json` /
   `i18n.status.summary.json` (registry), and `src/ui/i18n.resolved.sha256` (byte gate).
   Regenerate with `npm run i18n:gen`; after a real translation-content change re-baseline
   the SHA with `npm run i18n:hash -- --write`.
