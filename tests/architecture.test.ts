@@ -438,8 +438,7 @@ describe('src/ui pure-core invariants', () => {
   // only prove the LISTED cores are clean; this proves the converse - every on-disk
   // src/ui *_view / *_core IS registered - so a future extraction that names a pure
   // core <thing>_view.ts but forgets to add it to UI_PURE_CORES fails here instead
-  // of silently escaping the purity / determinism scans. src/guide is a separate SPA
-  // layer (src/guide/CLAUDE.md), not a hud.ts-consumed core, so it is out of scope.
+  // of silently escaping the purity / determinism scans.
   it('registers every on-disk src/ui *_view / *_core pure core (completeness)', () => {
     const registered = new Set(UI_PURE_CORES);
     const unregistered = onDiskCores(join(repoRoot, 'src', 'ui')).filter((f) => !registered.has(f));

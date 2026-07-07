@@ -650,7 +650,6 @@ async function runMobileHomepageAudit(page, locale, viewport) {
     '#header-logo-btn',
     '#nav-btn-play',
     '#nav-btn-highscores',
-    '#nav-btn-wiki',
     '#nav-btn-news',
     '#nav-btn-download',
     '#lang-select',

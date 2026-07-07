@@ -95,24 +95,12 @@ const STATIC_PAGE_ALIASES = new Map([
   ['/data-deletion/', '/data-deletion.html'],
   ['/support', '/support.html'],
   ['/support/', '/support.html'],
-  ['/wiki', '/guide.html'],
-  ['/wiki/', '/guide.html'],
 ]);
-// The Guide is the site wiki: a client-routed SPA at /wiki. Deep paths like
-// /wiki/classes/warrior have no static file, so any extensionless /wiki* request falls
-// back to guide.html (mirrored in server/main.ts serveStatic). Asset requests under
-// /wiki keep their extension and are left alone so they 404 rather than serving HTML.
-function isGuideSpaPath(pathOnly: string): boolean {
-  if (pathOnly !== '/wiki' && !pathOnly.startsWith('/wiki/')) return false;
-  const last = pathOnly.slice(pathOnly.lastIndexOf('/') + 1);
-  return !last.includes('.');
-}
 function staticPageAliasPlugin() {
   const rewrite = (req: { url?: string }) => {
     const url = req.url ?? '';
     const pathOnly = url.split('?')[0];
-    const target =
-      STATIC_PAGE_ALIASES.get(pathOnly) ?? (isGuideSpaPath(pathOnly) ? '/guide.html' : undefined);
+    const target = STATIC_PAGE_ALIASES.get(pathOnly);
     if (target) req.url = target + url.slice(pathOnly.length);
   };
   const attach = (server: {
@@ -196,7 +184,6 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('index.html', import.meta.url)),
         play: fileURLToPath(new URL('play.html', import.meta.url)),
-        guide: fileURLToPath(new URL('guide.html', import.meta.url)),
       },
     },
   },

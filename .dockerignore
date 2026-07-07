@@ -14,12 +14,9 @@ scripts/*
 !scripts/build_bot.mjs
 !scripts/migrate_old_cragmaw_pelt.ts
 !scripts/old_cragmaw_pelt_migration.ts
-!scripts/build_sitemap.mjs
 !scripts/browserslist_targets.mjs
 !scripts/check_backdrop_survival.mjs
 !scripts/i18n_*.mjs
-!scripts/wiki/
-!scripts/wiki/*.mjs
 deploy
 *.md
 .venv

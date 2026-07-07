@@ -22,7 +22,6 @@ dependency set.
 | `src/ui/` | Classic HUD (frames, windows, tooltips, map, FCT), procedural icons, i18n. |
 | `src/styles/` | Extracted HUD CSS (`tokens`/`base`/`layout`/`components`/`hud`/`hud.mobile` plus per-entry `.extra`) under one `@layer` order, imported once from the game entries via `src/main.ts`. See `src/styles/CLAUDE.md`. |
 | `src/net/` | Online client: REST auth + WebSocket world mirror (`ClientWorld`). |
-| `src/guide/` | Public guide/wiki SPA (separate `guide.html` entry, served at `/wiki`); spoiler-safe content generated from `src/sim/`. |
 | `src/world_api.ts` | `IWorld`, the seam render/ui depend on (see Architecture). |
 | `src/main.ts` | Client entry; fixes the world seed. |
 | `server/` | Authoritative game server: HTTP+WS, world loop, Postgres, auth, social, moderation. |
@@ -43,7 +42,7 @@ Most directories above have their own `CLAUDE.md` with local conventions; read i
   automatically on a `release/**` branch). Exit-code-safe; use it instead of an ad-hoc `&&` chain
   before calling a change done (piping `npm test` through `tail` masks its exit code, and an
   unbounded run flakes heavy suites under core contention).
-- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Three entries (game, play, guide).
+- `npm run build`: generate media manifest, then `vite build`, then emit manifest. Two entries (game, play).
 - `npm run env` / `npm run bench`: build + run the headless RL env server.
 - `npm run db:up` / `npm run db:down`: Postgres 16 in Docker (dev DB on :5433).
 - `npm run realms`: run multiple realm processes locally.
@@ -159,9 +158,6 @@ Use the seams this repo already has, do not invent new ones:
   coordinator. See `src/sim/CLAUDE.md`.
 - New game content (mob/quest/item/ability/zone): a declarative record in
   `src/sim/content/`, merged by `data.ts`, never a content table inline in `sim.ts`.
-  Player-facing content also feeds the `/wiki` guide: run `npm run wiki:content` (auto in
-  `pretest`/`build`, freshness-gated by `tests/guide.test.ts`) and add any new `guide.*`
-  prose keys (see `src/guide/CLAUDE.md`).
 - New server REST endpoint: a `RouteDef` module (`server/<domain>.ts` `export const routes`)
   registered in `server/http/registry.ts`, never an inline handler in `main.ts`. Scaffold with
   `npm run new:endpoint` (see `server/http/CLAUDE.md`).

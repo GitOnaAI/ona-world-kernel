@@ -211,7 +211,7 @@ export const hudChromeStrings = {
     modelPreview: 'Character Model Preview',
   },
   // Skip links: the first focusable elements on both game entries, a keyboard /
-  // screen-reader shortcut to the main HUD and the chat log (mirrors the src/guide
+  // screen-reader shortcut to the main HUD and the chat log (mirrors the retired guide
   // .guide-skip precedent). English-only control labels (the hud_chrome exception);
   // Title Case keeps them non-wordy (no run of four+ lowercase) so an English-filled
   // non-Latin locale does not trip the untranslated-leak guard, like the labels above.

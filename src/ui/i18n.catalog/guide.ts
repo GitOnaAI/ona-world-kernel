@@ -507,7 +507,7 @@ export const guideStrings = {
   },
 
   // Qualitative "feel" tags for the class chooser and class headers. Relative labels, never
-  // numbers (see src/guide/class_meta.ts for the per-class values).
+  // numbers (per-class values formerly kept in the retired guide's class_meta).
   tag: {
     melee: 'Melee',
     ranged: 'Ranged',

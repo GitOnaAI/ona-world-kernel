@@ -7143,7 +7143,6 @@ function wireStartScreens(): void {
   // Main Navigation View Switching
   const navBtnPlay = $('#nav-btn-play');
   const navBtnHighscores = $('#nav-btn-highscores');
-  const navBtnWiki = $('#nav-btn-wiki');
   const navBtnNews = $('#nav-btn-news');
   const navBtnDownload = $('#nav-btn-download');
   const navBtnLogin = $('#nav-btn-login');
@@ -7227,11 +7226,6 @@ function wireStartScreens(): void {
   setupNavBtn(navBtnHighscores, '#highscores-view', () => {
     switchMainView('#highscores-view');
     void loadHighscores();
-  });
-  // The wiki is the curated guide SPA at /wiki (its own page), so this nav item
-  // navigates there rather than switching an in-page view.
-  setupNavBtn(navBtnWiki, '', () => {
-    window.location.href = '/wiki';
   });
   setupNavBtn(navBtnNews, '#news-view', () => {
     switchMainView('#news-view');

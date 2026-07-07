@@ -126,7 +126,6 @@ function profileHtml(sheet: CharacterSheet, origin: string): string {
   const pageUrl = escapeHtml(sheet.profileUrl);
   const avatar = escapeHtml(sheet.avatarUrl);
   const leaderboardUrl = escapeHtml(`${origin}/leaderboard`);
-  const classWikiUrl = escapeHtml(`${origin}/wiki/classes/${sheet.class}`);
   const playUrl = escapeHtml(`${origin}/play`);
   const name = escapeHtml(sheet.name);
   const gameName = escapeHtml(GAME_NAME);
@@ -194,7 +193,6 @@ function profileHtml(sheet: CharacterSheet, origin: string): string {
     <nav>
       <a class="btn" href="${playUrl}">Play ${gameName}</a>
       <a class="link" href="${leaderboardUrl}">Leaderboard</a>
-      <a class="link" href="${classWikiUrl}">${escapeHtml(sheet.classLabel)} guide</a>
     </nav>
     <footer>${gameName}</footer>
   </main>

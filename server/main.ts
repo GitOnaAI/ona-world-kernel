@@ -264,8 +264,6 @@ const STATIC_PAGE_ALIASES = new Map([
   ['/data-deletion/', '/data-deletion.html'],
   ['/support', '/support.html'],
   ['/support/', '/support.html'],
-  ['/wiki', '/guide.html'],
-  ['/wiki/', '/guide.html'],
 ]);
 // Chat-log and perf-report retention days (0 = forever) plus the Turnstile secret
 // and the hard per-IP WS cap now live on the boot Config (see activeConfig above):
@@ -635,11 +633,7 @@ const MIME: Record<string, string> = {
 
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
   let urlPath = (req.url ?? '/').split('?')[0];
-  // The curated Guide is the site wiki: a client-routed SPA served at /wiki with its
-  // own shell, so deep paths (/wiki/classes/...) fall back to guide.html rather than the
-  // game's index.html. (It previously 302'd to a standalone MediaWiki; that is retired.)
-  const isGuide = urlPath === '/wiki' || urlPath.startsWith('/wiki/');
-  const shell = isGuide ? 'guide.html' : 'index.html';
+  const shell = 'index.html';
   // Pretty-URL aliases for standalone static pages.
   urlPath = STATIC_PAGE_ALIASES.get(urlPath) ?? urlPath;
   if (urlPath === '/') urlPath = `/${shell}`;

@@ -593,7 +593,7 @@
 
   /* ---------- skip links ---------- */
   /* a11y: the first focusable elements on both game entries, parked off-screen
-     until they take keyboard focus, then slid into view (mirrors the src/guide
+     until they take keyboard focus, then slid into view (mirrors the retired guide
      .guide-skip precedent). Only the position transitions, and that transition is
      dropped under prefers-reduced-motion (below); the :focus-visible ring is steady (no
      transition / animation / filter on the outline) per the focus-ring rule. Colours /

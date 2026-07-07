@@ -97,23 +97,6 @@ guard `tests/localization_fixes.test.ts` enforces it):
   copy; don't hand-build money/number strings as gameplay data: the engine formats
   those for display.
 
-## This data also feeds the public Guide/wiki
-The Guide at `/wiki` (`src/guide/`) is generated from THIS directory, so player-facing
-content you add here should reach it in the same change:
-- After adding or renaming a class, ability, talent, zone, dungeon, mob, or warlock pet,
-  run `npm run wiki:content` and commit the regenerated `src/guide/content.generated.ts`.
-  It also runs in `pretest`/`build`, and `tests/guide.test.ts` fails CI if the committed
-  file is stale, so a forgotten regen is caught.
-- A new (or retinted) creature/class/pet model also needs its still rendered: run
-  `npm run wiki:stills` and commit the new `public/guide-stills/*.webp`. Unlike `wiki:content`
-  this needs a headless browser, so it is NOT in `pretest`/`build`; `tests/guide.test.ts` fails
-  CI if a figure's baked still is missing on disk, and a second guard fails on an orphan WebP
-  that no figure references.
-- Only spoiler-safe, high-level facts surface (names, roles, level bands, signature kits,
-  POI labels): no balance numbers, mechanics, loot, the raid boss, or encounter scripts.
-- A brand-new content TYPE or system needs more than a regen (a generator change, a Guide
-  page, route, and `guide.*` prose). See `src/guide/CLAUDE.md` for that contract.
-
 ## Talents framework (`talents.ts`)
 - **Flat-precompute invariant:** an allocation is resolved **once** via
   `computeTalentModifiers` into a flat `TalentModifiers` (stats / per-ability mods /
