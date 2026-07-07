@@ -46,15 +46,8 @@ vi.mock('../../server/discord', () => ({
 }));
 vi.mock('../../server/discord_activity', () => ({ drainActivity: vi.fn() }));
 vi.mock('../../server/discord_relay', () => ({ drainRelay: vi.fn() }));
-vi.mock('../../server/daily_rewards', () => ({
-  dailyRewardService: {
-    discordWinnerAnnouncements: vi.fn(),
-    markDiscordWinnersAnnounced: vi.fn(),
-  },
-}));
 
 import type * as http from 'node:http';
-import { dailyRewardService } from '../../server/daily_rewards';
 import { pool } from '../../server/db';
 import {
   type DiscordFlex,
@@ -92,7 +85,7 @@ const DISCORD_SECRET = 'discord-secret';
 const DEPLOY_HEADERS = { 'x-woc-deploy-secret': DEPLOY_SECRET };
 const DISCORD_HEADERS = { 'x-woc-discord-secret': DISCORD_SECRET };
 
-// The 11 routes as [method, path], the legacy handleInternalApi ladder order.
+// The routes as [method, path], the legacy handleInternalApi ladder order.
 const EXPECTED_ROUTES: ReadonlyArray<readonly [Method, string]> = [
   ['POST', '/internal/restart-countdown'],
   ['GET', '/internal/discord/flex'],
@@ -102,8 +95,6 @@ const EXPECTED_ROUTES: ReadonlyArray<readonly [Method, string]> = [
   ['POST', '/internal/discord/member'],
   ['GET', '/internal/discord/relay'],
   ['GET', '/internal/discord/activity'],
-  ['GET', '/internal/discord/daily-rewards-winners'],
-  ['POST', '/internal/discord/daily-rewards-winners/mark'],
   ['POST', '/internal/discord/members-meta'],
 ];
 
@@ -236,8 +227,8 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('internal route registration', () => {
-  it('registers exactly 11 routes matching the legacy method+path ladder', () => {
-    expect(routes).toHaveLength(11);
+  it('registers exactly 9 routes matching the legacy method+path ladder', () => {
+    expect(routes).toHaveLength(9);
     const actual = routes.map((r) => `${r.method} ${r.path}`).sort();
     const expected = EXPECTED_ROUTES.map(([m, p]) => `${m} ${p}`).sort();
     expect(actual).toEqual(expected);
@@ -624,56 +615,6 @@ describe('discord/activity', () => {
       },
       error: null,
     });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// 10. discord/daily-rewards-winners (GET limit coercion + POST mark).
-// ---------------------------------------------------------------------------
-
-describe('discord/daily-rewards-winners', () => {
-  it('clamps the GET limit (99 -> 5, absent -> 1, 0 -> 1) and ok-wraps the service return', async () => {
-    process.env.DISCORD_BOT_SECRET = DISCORD_SECRET;
-    const service = vi.mocked(dailyRewardService.discordWinnerAnnouncements);
-    service.mockResolvedValue({ days: [] });
-
-    const r = await runRoute('GET', '/internal/discord/daily-rewards-winners', {
-      url: '/internal/discord/daily-rewards-winners?limit=99',
-      headers: DISCORD_HEADERS,
-    });
-    expect(r.status).toBe(200);
-    expect(r.body).toEqual({ success: true, data: { days: [] }, error: null });
-    expect(service).toHaveBeenLastCalledWith(5);
-
-    await runRoute('GET', '/internal/discord/daily-rewards-winners', { headers: DISCORD_HEADERS });
-    expect(service).toHaveBeenLastCalledWith(1);
-
-    await runRoute('GET', '/internal/discord/daily-rewards-winners', {
-      url: '/internal/discord/daily-rewards-winners?limit=0',
-      headers: DISCORD_HEADERS,
-    });
-    expect(service).toHaveBeenLastCalledWith(1);
-  });
-
-  it('mark returns the service fail body on error and ok-wraps success', async () => {
-    process.env.DISCORD_BOT_SECRET = DISCORD_SECRET;
-    const mark = vi.mocked(dailyRewardService.markDiscordWinnersAnnounced);
-
-    mark.mockResolvedValue({ error: 'nope', status: 400 });
-    const failed = await runRoute('POST', '/internal/discord/daily-rewards-winners/mark', {
-      headers: DISCORD_HEADERS,
-      body: { day: 'not-a-day' },
-    });
-    expect(failed.status).toBe(400);
-    expect(failed.body).toEqual({ success: false, data: null, error: 'nope' });
-
-    mark.mockResolvedValue({ marked: 2 } as unknown as { ok: true });
-    const ok = await runRoute('POST', '/internal/discord/daily-rewards-winners/mark', {
-      headers: DISCORD_HEADERS,
-      body: {},
-    });
-    expect(ok.status).toBe(200);
-    expect(ok.body).toEqual({ success: true, data: { marked: 2 }, error: null });
   });
 });
 

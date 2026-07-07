@@ -59,12 +59,6 @@ export type HttpMethod = (typeof HTTP_METHODS)[number];
 //   admin         an admin account (isAdminAccount)
 //   secret-deploy the x-woc-deploy-secret shared secret (RESTART_COUNTDOWN_SECRET)
 //   secret-discord the x-woc-discord-secret shared secret (DISCORD_BOT_SECRET)
-//   secret-daily-reward the x-woc-daily-reward-secret shared secret
-//                 (WOC_DAILY_REWARD_SERVICE_SECRET). Unlike the other two secret
-//                 scopes' feature-off 404, this gate FAILS CLOSED: an unset env
-//                 AND a wrong header both answer 401 'not authenticated'
-//                 (daily_rewards.ts internalAuthorized), and it never falls back
-//                 to RESTART_COUNTDOWN_SECRET.
 //   dev-gated     guarded by ALLOW_DEV_COMMANDS=1
 export const AUTH_SCOPE = {
   public: 'public',
@@ -73,7 +67,6 @@ export const AUTH_SCOPE = {
   admin: 'admin',
   secretDeploy: 'secret-deploy',
   secretDiscord: 'secret-discord',
-  secretDailyReward: 'secret-daily-reward',
   devGated: 'dev-gated',
 } as const;
 export type AuthScope = (typeof AUTH_SCOPE)[keyof typeof AUTH_SCOPE];
@@ -622,46 +615,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: null,
   },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/wallet/link/challenge',
-    handler: 'handleApi arm: /api/wallet/link/challenge',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/wallet/link',
-    handler: 'handleApi arm: /api/wallet/link (POST)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'DELETE',
-    path: '/api/wallet/link',
-    handler: 'handleApi arm: /api/wallet/link (DELETE)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/wallet',
-    handler: 'handleApi arm: /api/wallet',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
   // mode=login is unauthenticated; mode=link requires a full session.
   {
     dispatcher: DISPATCH.mainApi,
@@ -765,68 +718,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.full,
     limiter: 'githubRateLimited',
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/woc/balance',
-    handler: 'handleApi arm: /api/woc/balance',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.public,
-    limiter: 'wocBalanceRateLimited',
-    requireOwnedExpected: null,
-  },
-  // Daily-rewards player family (v0.19.0, server/daily_rewards.ts): served by
-  // the handleDailyRewardApi sub-dispatcher behind the main.ts PREFIX arm
-  // `url.startsWith('/api/daily-rewards')`, which runs bearerActiveAccount
-  // (full active session, read tokens 403) BEFORE delegating, method- and
-  // subpath-agnostic. The prefix has NO trailing-slash boundary, so a no-slash
-  // sibling like '/api/daily-rewardsfoo' also enters the family (auth first,
-  // then the in-family 404) instead of falling through the ladder. No rate
-  // limiter on any of the three (spin relies on the one-spin-per-day 409 guard
-  // only). In-family fallthrough (wrong method or unknown subpath, after auth)
-  // is 404 { error: 'unknown endpoint' }.
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/daily-rewards',
-    handler: 'handleDailyRewardApi arm: /api/daily-rewards (status)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  // v0.20.0 pagination: the standalone paginated leaderboard read (page/pageSize
-  // query params, lenient Number(...) || default decode like history's limit).
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/daily-rewards/leaderboard',
-    handler: 'handleDailyRewardApi arm: /api/daily-rewards/leaderboard',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/daily-rewards/spin',
-    handler: 'handleDailyRewardApi arm: /api/daily-rewards/spin',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/daily-rewards/history',
-    handler: 'handleDailyRewardApi arm: /api/daily-rewards/history',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: null,
     requireOwnedExpected: null,
   },
   {
@@ -1668,77 +1559,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     handler: 'handleDiscordInternal arm: /internal/discord/members-meta',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'GET',
-    path: '/internal/discord/daily-rewards-winners',
-    handler: 'handleDiscordInternal arm: /internal/discord/daily-rewards-winners',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/discord/daily-rewards-winners/mark',
-    handler: 'handleDiscordInternal arm: /internal/discord/daily-rewards-winners/mark',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  // Daily-rewards ops family (v0.19.0, server/daily_rewards.ts): served by the
-  // handleDailyRewardInternalApi sub-dispatcher, which the /internal composite
-  // delegate tries FIRST (before handleInternalApi, whose terminal 404 would
-  // otherwise swallow the family: the ordering is load-bearing and parity-pinned).
-  // NEVER part of handleInternalApi; the family is ALSO on the RouteDef table
-  // (fail-closed secret gate + the same sub-dispatcher core), with
-  // the composite delegate kept as the rollback arm. The whole `/internal/daily-rewards/` prefix
-  // is secret-gated BEFORE path/method resolution, fail-closed (see AUTH_SCOPE),
-  // and answers in the admin { success, data, error } envelope on every branch.
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/daily-rewards/pending-payouts',
-    handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/pending-payouts',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDailyReward,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/daily-rewards/payout-history',
-    handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/payout-history',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDailyReward,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  // v0.20.0 pagination: the ops-side paginated leaderboard read (day/page/pageSize
-  // query params, lenient decode; defaults to the current reward day).
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/daily-rewards/leaderboard',
-    handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/leaderboard',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDailyReward,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/daily-rewards/mark-payout',
-    handler: 'handleDailyRewardInternalApi arm: /internal/daily-rewards/mark-payout',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDailyReward,
     limiter: null,
     requireOwnedExpected: null,
   },

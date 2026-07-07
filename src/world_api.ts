@@ -34,7 +34,6 @@
 //   mail.ts             IWorldMail           Ravenpost mail send/take + unread badge
 //   dungeons.ts         IWorldDungeons       dungeon enter/leave + raid lockouts
 //   delves.ts           IWorldDelves         delve runs, lockpick, companion
-//   daily_rewards.ts    IWorldDailyRewards   daily WOC-holder rewards
 //   telemetry.ts        IWorldTelemetry      fire-and-forget metrics sink
 //   professions.ts      IWorldProfessions    skill/craft/recipe/node read surface (#1164; node
 //                                            harvest read + action landed in #1121; recipe
@@ -54,7 +53,6 @@
 import type { IWorldChat } from './world_api/chat';
 import type { IWorldCombat } from './world_api/combat';
 import type { IWorldCosmetics } from './world_api/cosmetics';
-import type { IWorldDailyRewards } from './world_api/daily_rewards';
 import type { IWorldDelves } from './world_api/delves';
 import type { IWorldDuelArena } from './world_api/duel_arena';
 import type { IWorldDungeons } from './world_api/dungeons';
@@ -86,17 +84,6 @@ export type { ArenaCombatant, ArenaFormat, ArenaStanding, OverheadEmoteId } from
 // --- facet aux-type + value re-exports (each travels with its facet file) ---
 export { isOverheadEmoteId, OVERHEAD_EMOTES } from './world_api/chat';
 export type { AccountCosmetics } from './world_api/cosmetics';
-export type {
-  DailyRewardEligibilityView,
-  DailyRewardHistory,
-  DailyRewardLeaderboardEntry,
-  DailyRewardLeaderboardPage,
-  DailyRewardPayoutLogEntry,
-  DailyRewardSpinResult,
-  DailyRewardSpinView,
-  DailyRewardStatus,
-  DailyRewardTaskView,
-} from './world_api/daily_rewards';
 export type {
   DelveCompanionInfo,
   DelveDailyInfo,
@@ -159,7 +146,6 @@ export interface IWorld
     IWorldMail,
     IWorldDungeons,
     IWorldDelves,
-    IWorldDailyRewards,
     IWorldTelemetry,
     IWorldProfessions {}
 
@@ -372,7 +358,6 @@ export type WorldFacet =
   | 'IWorldMail'
   | 'IWorldDungeons'
   | 'IWorldDelves'
-  | 'IWorldDailyRewards'
   | 'IWorldTelemetry';
 
 export const COMMAND_FACETS = {

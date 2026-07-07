@@ -49,15 +49,6 @@
     letter-spacing: 0.2px;
     margin-top: -1px;
   }
-  /* $WOC holder-tier flair badge, inline to the left of a player's name */
-  .np-tier {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    vertical-align: middle;
-    margin-right: 3px;
-    filter: drop-shadow(0 1px 1px #000);
-  }
   /* developer-badge flair, inline to the left of a player's name */
   .np-dev-tier {
     display: inline-block;
@@ -2294,105 +2285,6 @@
       0 0 8px #c9a86a66,
       0 1px 3px #000a;
   }
-  #daily-rewards-button {
-    position: relative;
-    width: 50px;
-    height: 46px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    cursor: var(--cursor-point);
-    pointer-events: auto;
-    touch-action: manipulation;
-    border-radius: 8px;
-    margin-bottom: 14px;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    color: #f6c15b;
-    overflow: visible;
-    transition:
-      transform 0.16s,
-      filter 0.16s;
-  }
-  #daily-rewards-button.spin-ready {
-    box-shadow: none;
-    color: #fff;
-  }
-  #daily-rewards-button.spin-ready .daily-rewards-icon {
-    animation: daily-rewards-icon-pulse 1.6s ease-in-out infinite;
-    animation-duration: calc(1.6s * var(--motion-scale, 1));
-    animation-play-state: var(--fx-ambient-anim, running);
-  }
-  #daily-rewards-button::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #ffe08a99 0%, #ffd10066 34%, #ffd10000 72%);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
-    pointer-events: none;
-    z-index: 0;
-  }
-  #daily-rewards-button::after {
-    content: none;
-  }
-  #daily-rewards-button.spin-ready::before {
-    animation: daily-rewards-glow-pulse 1.6s ease-in-out infinite;
-    animation-duration: calc(1.6s * var(--motion-scale, 1));
-    animation-play-state: var(--fx-ambient-anim, running);
-  }
-  #daily-rewards-button .daily-rewards-icon {
-    position: relative;
-    z-index: 1;
-    width: 64px;
-    height: 64px;
-    display: block;
-    object-fit: contain;
-    pointer-events: none;
-    filter: drop-shadow(0 2px 2px #000b) drop-shadow(0 0 4px #ffd56d55);
-  }
-  #daily-rewards-button:hover,
-  #daily-rewards-button:focus-visible {
-    border-color: #ffe08a;
-    outline: none;
-    color: #fff;
-  }
-  #daily-rewards-button:hover,
-  #daily-rewards-button:focus-visible {
-    transform: translateY(-1px);
-    filter: brightness(1.1);
-  }
-  #daily-rewards-button:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
-  }
-  @keyframes daily-rewards-icon-pulse {
-    0%,
-    100% {
-      filter: drop-shadow(0 2px 2px #000b) drop-shadow(0 0 4px #ffd56d55) brightness(1);
-    }
-    50% {
-      filter: drop-shadow(0 2px 2px #000b) drop-shadow(0 0 14px #ffe08acc) brightness(1.16)
-        saturate(1.12);
-    }
-  }
-  @keyframes daily-rewards-glow-pulse {
-    0%,
-    100% {
-      opacity: 0.34;
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-    50% {
-      opacity: 0.82;
-      transform: translate(-50%, -50%) scale(1.18);
-    }
-  }
   /* the lockout panel rows inside the shared tooltip box */
   .rl-panel-title {
     margin-bottom: 4px;
@@ -2496,19 +2388,11 @@
   body.native-app .donate-cta,
   body.native-app .community-link.donate,
   body.native-app .social-link.donate,
-  body.native-app #token-ca,
   body.native-app #nav-btn-download,
-  body.native-app .cs-wallet,
-  body.native-app .cs-wallet-hidden-note,
-  body.native-app .account-wallet-card,
   body.native-app #performance-tip,
   body.native-app .official-site-copy {
     display: none !important;
   }
-  body.desktop-app #token-ca,
-  body.desktop-app .cs-wallet,
-  body.desktop-app .cs-wallet-hidden-note,
-  body.desktop-app .account-wallet-card,
   body.desktop-app .official-site-copy {
     display: none !important;
   }

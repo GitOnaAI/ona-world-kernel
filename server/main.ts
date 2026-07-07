@@ -47,9 +47,9 @@ import {
 } from './auth';
 import { configureAuthRuntime } from './auth_routes';
 import { BUG_DESCRIPTION_MAX, BugReportRateLimitError, createBugReport } from './bug_report_db';
+import { configureCardRuntime } from './card_routes';
 import { characterSheet, type SheetRank } from './character_sheet';
 import { configureCharactersRuntime } from './characters';
-import { handleDailyRewardApi, handleDailyRewardInternalApi } from './daily_rewards';
 import {
   accountAndScopeForToken,
   accountById,
@@ -189,7 +189,6 @@ import {
   recordAuthFailure,
   requestIp,
   setRateLimitTier2Store,
-  wocBalanceRateLimited,
 } from './ratelimit';
 import { createPgRateLimitStore } from './ratelimit_db';
 import { isPublicCorsPath, publicOriginFromRequest, REALM, REALM_DIRECTORY } from './realm';
@@ -206,15 +205,7 @@ import {
   assetsListMineCore,
   assetUploadCore,
 } from './user_assets_routes';
-import {
-  configureWalletRuntime,
-  handleWalletChallenge,
-  handleWalletGet,
-  handleWalletLink,
-  handleWalletUnlink,
-} from './wallet';
 import { allowedCorsOrigin, isWebClientRequest } from './web_login_guard';
-import { handleWocBalance, parseWocBalanceQuery } from './woc_balance';
 import { createWsAuth } from './ws_auth';
 import { bufferHandshakeMessages } from './ws_buffer';
 
@@ -1431,7 +1422,7 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
     }
     // Account self-service portal, all bearer-auth, account-scoped. Each route
     // delegates to an exported, testable handler in server/account.ts (mirroring
-    // server/wallet.ts); main.ts only resolves the bearer account first.
+    // server/card_routes.ts); main.ts only resolves the bearer account first.
     if (req.method === 'GET' && url === '/api/account') {
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
@@ -1545,27 +1536,6 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       const token = new URL(req.url ?? '', 'http://localhost').searchParams.get('token') ?? '';
       return handleEmailUnsubscribe(res, token);
     }
-    // Non-custodial Solana wallet linking, all account-scoped.
-    if (req.method === 'POST' && url === '/api/wallet/link/challenge') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      return handleWalletChallenge(req, res, accountId);
-    }
-    if (req.method === 'POST' && url === '/api/wallet/link') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      return handleWalletLink(req, res, accountId);
-    }
-    if (req.method === 'DELETE' && url === '/api/wallet/link') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      return handleWalletUnlink(req, res, accountId);
-    }
-    if (req.method === 'GET' && url === '/api/wallet') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      return handleWalletGet(req, res, accountId);
-    }
     // Discord integration: OAuth login/link, link status, unlink. `start` returns
     // the authorize URL (the browser then navigates to Discord); `callback` is the
     // discord.com -> us redirect (no auth/Origin, so it is NOT gated by the
@@ -1641,23 +1611,6 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       if (!githubRateLimited(req, accountId).allowed)
         return json(res, 429, { error: 'rate limited' });
       return handleGitHubUnlink(req, res, accountId);
-    }
-    // $WOC balance proxy, keeps the Solana RPC endpoint (and any key in it)
-    // server-side so it never ships in the client bundle. Public (on-chain
-    // balances are public) but narrow + IP rate-limited + per-wallet cached.
-    if (req.method === 'GET' && url === '/api/woc/balance') {
-      if (!wocBalanceRateLimited(req).allowed) {
-        recordUsageMetric('woc.balance.rate_limited');
-        return json(res, 429, { error: 'rate limited' });
-      }
-      // `fresh=1` is parsed AFTER the IP rate-limit above, so it can't be used to hammer the RPC.
-      const { owner, fresh } = parseWocBalanceQuery(req.url ?? '');
-      return handleWocBalance(res, owner, fresh);
-    }
-    if (url.startsWith('/api/daily-rewards')) {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      return handleDailyRewardApi(req, res, accountId);
     }
     // Shareable player card: publish (PNG body) + referral stats for the card.
     if (req.method === 'POST' && url === '/api/card') {
@@ -1882,13 +1835,13 @@ configureAccountRuntime({
   disconnectAccount: (id, reason) => liveGame().disconnectAccount(id, reason),
 });
 
-// Inject the one main.ts-local singleton the ported wallet handlers
-// (server/wallet.ts) need but cannot import without a cycle: the live
+// Inject the one main.ts-local singleton the ported card handler
+// (server/card_routes.ts) needs but cannot import without a cycle: the live
 // authoritative Sim level the /api/card publish reads for an online character.
 // This is the exact (characterId) => game.liveLevelForCharacter(characterId) the
-// legacy /api/card arm passed to handleCardUpload; the legacy wallet/card/referral
+// legacy /api/card arm passed to handleCardUpload; the legacy card/referral
 // arms stay intact as the flag-off rollback path.
-configureWalletRuntime({
+configureCardRuntime({
   liveLevelForCharacter: (characterId) => liveGame().liveLevelForCharacter(characterId),
 });
 
@@ -2003,14 +1956,10 @@ let oauthApiEntry: ApiDispatcher = selectApiEntry(
   oauthLegacy,
 );
 
-// The /internal surface's flag-gated dispatcher. The delegate is the EXACT
-// legacy composite from the pre-migration ladder arm: the daily-rewards ops
-// family (/internal/daily-rewards/*, never part of handleInternalApi) is tried
-// first and short-circuits when handled; everything else falls to the legacy
+// The /internal surface's flag-gated dispatcher. The delegate is the legacy
 // handleInternalApi ladder UNCHANGED (unknown endpoints, wrong methods, HEAD, and
 // the flag-off rollback path).
 const internalLegacy: ApiDelegate = async (req, res) => {
-  if (await handleDailyRewardInternalApi(req, res)) return;
   await handleInternalApi(req, res, liveGame());
 };
 const internalApiDispatcher = createApiDispatcher({
@@ -2106,7 +2055,7 @@ function applyCorsAndPreflight(
 // /internal arms route through apiEntry / adminApiEntry / oauthApiEntry /
 // internalApiEntry (all four
 // flag-gated dispatchers) instead of calling handleApi / handleAdminApi / handleOAuth
-// / the daily-rewards+handleInternalApi composite directly; each dispatcher delegates
+// / handleInternalApi directly; each dispatcher delegates
 // its own unmatched paths to the same legacy handler, so behavior is byte-identical
 // until the ladder-deletion PR (next release).
 export function routeHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -2134,9 +2083,9 @@ export function routeHttpRequest(req: http.IncomingMessage, res: http.ServerResp
   else if (req.method === 'GET' && path === '/metrics')
     void handleMetricsGate(req, res, httpMetrics, activeConfig().metricsToken);
   else if (url.startsWith('/internal/')) {
-    // The flag-gated internal dispatcher; its delegate is the exact pre-migration
-    // composite (daily-rewards ops tried first, then handleInternalApi), so the
-    // 'legacy' mode and every unmatched path stay byte-identical.
+    // The flag-gated internal dispatcher; its delegate is the legacy
+    // handleInternalApi ladder, so the 'legacy' mode and every unmatched path
+    // stay byte-identical.
     void internalApiEntry(req, res);
   } else if (url.startsWith('/admin/api/')) void adminApiEntry(req, res);
   else if (url.startsWith('/api/')) void apiEntry(req, res);

@@ -324,10 +324,6 @@ describe('main /api characterization: bearer-auth denial contracts (no Authoriza
     );
   });
 
-  it('GET /api/wallet without auth is 401', async () => {
-    await characterize('wallet_get_noauth_401', makeReq({ method: 'GET', url: '/api/wallet' }));
-  });
-
   it('GET /api/referrals without auth is 401', async () => {
     await characterize(
       'referrals_get_noauth_401',
@@ -380,10 +376,10 @@ describe('main /api characterization: register + login validation (empty body, p
   });
 });
 
-describe('main /api characterization: late-arrival backfill (github + desktop-login + daily-rewards)', () => {
+describe('main /api characterization: late-arrival backfill (github + desktop-login)', () => {
   // These routes arrived via release merges AFTER the original capture (the
-  // v0.18.0 github family, the v0.19.0 desktop-login pair and daily-rewards
-  // player trio), so their db-free contract points are backfilled here
+  // v0.18.0 github family, the v0.19.0 desktop-login pair), so their
+  // db-free contract points are backfilled here
   // write-if-absent, freezing the legacy contract on disk before the dispatch
   // default flipped to 'new'. The desktop-login create 401 reflects the full-scope
   // arm (bearerActiveAccount), identical prose to the pre-fix no-auth reject.
@@ -437,27 +433,6 @@ describe('main /api characterization: late-arrival backfill (github + desktop-lo
     await characterize(
       'desktop_login_exchange_post_bad_code_401',
       makeReq({ method: 'POST', url: '/api/desktop-login/exchange', body: { code: 'nope' } }),
-    );
-  });
-
-  it('GET /api/daily-rewards with no auth is the bearer 401 (prefix arm)', async () => {
-    await characterize(
-      'daily_rewards_status_get_noauth_401',
-      makeReq({ method: 'GET', url: '/api/daily-rewards' }),
-    );
-  });
-
-  it('POST /api/daily-rewards/spin with no auth is the bearer 401 (prefix arm)', async () => {
-    await characterize(
-      'daily_rewards_spin_post_noauth_401',
-      makeReq({ method: 'POST', url: '/api/daily-rewards/spin', body: {} }),
-    );
-  });
-
-  it('GET /api/daily-rewards/history with no auth is the bearer 401 (prefix arm)', async () => {
-    await characterize(
-      'daily_rewards_history_get_noauth_401',
-      makeReq({ method: 'GET', url: '/api/daily-rewards/history' }),
     );
   });
 });

@@ -1,9 +1,5 @@
 import type {
   AccountCosmetics,
-  DailyRewardHistory,
-  DailyRewardLeaderboardPage,
-  DailyRewardSpinResult,
-  DailyRewardStatus,
   DelveCompanionInfo,
   DelveRunInfo,
   LockpickView,
@@ -2080,54 +2076,6 @@ export class Sim {
   // helper. Online play overrides this with the cached server query.
   devLeaderboard(page = 0, pageSize = LEADERBOARD_PAGE_SIZE): Promise<DevLeaderboardPage> {
     return Promise.resolve(paginateDevLeaderboard([], page, pageSize));
-  }
-
-  dailyRewards(): Promise<DailyRewardStatus> {
-    const day = '1970-01-01';
-    return Promise.resolve({
-      day,
-      resetAt: '1970-01-02T00:00:00.000Z',
-      prizePoolUsd: 0,
-      prizePoolSol: null,
-      eligibility: {
-        eligible: false,
-        reason: 'no_wallet',
-        walletPubkey: null,
-        wocBalance: null,
-        wocUsdPrice: null,
-        usdValue: null,
-        minUsd: 20,
-      },
-      score: 0,
-      rank: null,
-      spin: { claimed: false, points: null, outcomeKey: null, claimedAt: null },
-      tasks: [],
-      leaderboard: [],
-      leaderboardTotal: 0,
-    });
-  }
-
-  dailyRewardLeaderboard(
-    page = 0,
-    pageSize = LEADERBOARD_PAGE_SIZE,
-  ): Promise<DailyRewardLeaderboardPage> {
-    return Promise.resolve({
-      day: '1970-01-01',
-      leaders: [],
-      page: Math.max(0, Math.floor(page)),
-      pageCount: 1,
-      total: 0,
-      pageSize,
-    });
-  }
-
-  async spinDailyReward(): Promise<DailyRewardSpinResult> {
-    const status = await this.dailyRewards();
-    return { ...status, awardedPoints: 0, outcomeKey: '' };
-  }
-
-  dailyRewardHistory(): Promise<DailyRewardHistory> {
-    return Promise.resolve({ payouts: [] });
   }
 
   get known(): ResolvedAbility[] {

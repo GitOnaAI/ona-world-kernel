@@ -98,7 +98,6 @@ import {
 } from '../sim/types';
 import { worldBossIdFromLockout } from '../sim/world_boss';
 import {
-  type DailyRewardStatus,
   type DelveRunInfo,
   type IWorld,
   isOverheadEmoteId,
@@ -168,7 +167,6 @@ import { corpseHarvestView } from './corpse_harvest_view';
 import { renderCorpseHarvestPicker } from './corpse_harvest_window';
 import { buildCraftingView } from './crafting_view';
 import { renderCraftingWindow } from './crafting_window';
-import { DailyRewardsWindow } from './daily_rewards_window';
 import { DelveMapPainter } from './delve_map_painter';
 import { devTierBadgeDataUrl, devTierByIndex, devTierDisplayName } from './dev_tier';
 import { markDialogRoot } from './dialog_root';
@@ -197,12 +195,6 @@ import {
   enterGroundAim,
   type GroundAimState,
 } from './ground_aim';
-import {
-  holderTierBadgeDataUrl,
-  holderTierByIndex,
-  holderTierDisplayName,
-  holderTierForBalance,
-} from './holder_tier';
 import {
   buildDefaultFormBar,
   classHasFormBars,
@@ -337,14 +329,6 @@ import { UnitPortraitPainter } from './unit_portrait_painter';
 import { buildVendorView } from './vendor_view';
 import { renderVendorWindow } from './vendor_window';
 import { nextVoicedYell, type VoicedYellState, voicedYellGain } from './voice_events';
-import {
-  onWalletUiChange,
-  verifiedWocBalance,
-  walletDisplayAvailable,
-  walletUiEnabled,
-  wocBalance,
-  wocBalanceVerified,
-} from './wallet_balance';
 import { makeWindowFocus } from './window_focus';
 import { installWindowResize, markResizableWindow } from './window_resize';
 import { formatXp, xpBarView } from './xp_bar';
@@ -363,10 +347,6 @@ export interface OptionsHooks {
   // fans out woc:languagechange). onStatus receives localized progress/error text for an
   // aria-live element. Resolves false if the locale failed to load (active locale kept).
   changeLanguage(lang: SupportedLanguage, onStatus?: (msg: string) => void): Promise<boolean>;
-  // Re-fetch the connected/linked wallet's $WOC balance (server cache-bypassed) so the
-  // bag footer and player card reflect on-chain token changes. No-op when the wallet
-  // feature is off or no wallet is connected/linked.
-  refreshWocBalance(): void;
   perfOverlay: PerfOverlayHooks;
   // UI theming seam — main.ts owns the ThemeStore + live CSS-variable apply.
   theme: ThemeHooks;
@@ -1139,9 +1119,6 @@ export class Hud {
   private lastHudFastAt = 0;
   private lastHudMediumAt = 0;
   private lastHudSlowAt = 0;
-  private dailyRewardsButtonEl: HTMLButtonElement | null = null;
-  private dailyRewardsLauncherSeq = 0;
-  private lastDailyRewardsLauncherRefreshAt = 0;
   // Per-element tier cadence stamps (graphics-tier knobs). Each gates a non-self /
   // canvas redraw to a slower interval on the LOW static preset; on every other tier the
   // interval is 0 (cadenceDue is always true), so these are no-ops and the path is the
@@ -1173,10 +1150,6 @@ export class Hud {
   private cardModalTrap: FocusTrapHandle | null = null;
   // Shared by the confirm + input modals (one #confirm-dialog id; they never coexist).
   private confirmTrap: FocusTrapHandle | null = null;
-  // Set while the player-card modal is open: re-composites the card with the
-  // current pose so a $WOC balance change (the bag-footer path can't reach the
-  // card's canvas) is reflected. Cleared when the modal closes.
-  private recomposeOpenCard: (() => void) | null = null;
   private meters: Meters;
   private tutorial = new TutorialOverlay();
   private lastPetBarSig = '';
@@ -1206,12 +1179,6 @@ export class Hud {
     this.refreshKeybindLabels();
     this.buildXpTicks();
     document.addEventListener('woc:languagechange', () => this.refreshLocalizedDynamicUi());
-    // re-render the bag footer (and re-composite an open player card) when the
-    // connected wallet's $WOC balance changes
-    onWalletUiChange(() => {
-      if ($('#bags').style.display !== 'none') this.renderBags();
-      this.recomposeOpenCard?.();
-    });
     $('#pf-name').textContent = sim.player.name;
     this.drawPlayerFramePortrait();
     // Character GLBs preload after the HUD mounts; once the real 3D portraits are
@@ -1311,31 +1278,6 @@ export class Hud {
       this.raidLockoutEl.innerHTML = svgIcon('lock');
       this.raidLockoutEl.hidden = false;
       this.attachTooltip(this.raidLockoutEl, () => this.raidLockoutPanelView());
-    }
-    const dailyRewardsButton = document.getElementById(
-      'daily-rewards-button',
-    ) as HTMLButtonElement | null;
-    if (!this.dailyRewardsEnabled()) {
-      dailyRewardsButton?.setAttribute('hidden', '');
-      $('#daily-rewards-window').style.display = 'none';
-    } else if (dailyRewardsButton) {
-      this.dailyRewardsButtonEl = dailyRewardsButton;
-      dailyRewardsButton.innerHTML =
-        '<img class="daily-rewards-icon" src="/ui/daily-rewards/treasure_chest.webp" alt="" draggable="false" decoding="async">';
-      dailyRewardsButton.classList.remove('spin-ready');
-      this.applyDailyRewardsChestButtonVisibility();
-      dailyRewardsButton.addEventListener('pointerdown', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.button !== 0) return;
-        this.toggleDailyRewards();
-      });
-      dailyRewardsButton.addEventListener('pointerup', (event) => event.stopPropagation());
-      dailyRewardsButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      });
-      this.refreshDailyRewardsLauncher(true);
     }
     this.clock24 = (() => {
       try {
@@ -1994,9 +1936,6 @@ export class Hud {
         break;
       case 'leaderboard-window':
         this.leaderboardWindow.close();
-        break;
-      case 'daily-rewards-window':
-        this.dailyRewardsWindow.close();
         break;
       case 'emote-editor':
         this.closeEmoteEditor();
@@ -3182,13 +3121,12 @@ export class Hud {
   });
   // Bags window painter (bags_view.ts core + bags_window.ts painter). It composes
   // the shared presentation bag (icon/money/tooltip) and adds the inventory-cluster
-  // surface: world reads, cross-window mode flags + commands, pet-feed / drag /
-  // wallet plumbing. The cross-window modes stay HUD state, read each click.
+  // surface: world reads, cross-window mode flags + commands, pet-feed / drag
+  // plumbing. The cross-window modes stay HUD state, read each click.
   private readonly bagsWindow = new BagsWindow({
     ...this.presentationBag,
     root: () => $('#bags'),
     world: () => this.sim,
-    wocBalanceHtml: () => this.wocBalanceHtml(),
     hideTooltip: () => this.hideTooltip(),
     cancelPetFeed: () => this.cancelPetFeed(),
     // Non-trapping focus capture/return (bags is a non-modal companion of vendor /
@@ -3388,23 +3326,6 @@ export class Hud {
     onVisibilityChange: () => this.syncAnyWindowOpenState(),
     showDevBadges: () => this.optionsHooks?.settings.get('showDevBadges') ?? true,
   });
-  // Daily rewards window painter. It owns the async rewards reads, spin action,
-  // focus opener, and a low-rate refresh while open. All closures are lazy.
-  private readonly dailyRewardsWindow = new DailyRewardsWindow({
-    root: () => $('#daily-rewards-window'),
-    world: () => this.sim,
-    closeOthers: () => this.closeOtherWindows('#daily-rewards-window'),
-    onStatus: (status) => this.applyDailyRewardsLauncherStatus(status),
-    onWalletConnect: () => {
-      window.dispatchEvent(new CustomEvent('woc:wallet-verify'));
-    },
-    showChestButton: () => this.showDailyRewardsChestButton(),
-    setShowChestButton: (show) => this.setDailyRewardsChestButtonPreference(show),
-    confirmDialog: (title, body, okText, cancelText, onOk) =>
-      this.confirmDialog(title, body, okText, cancelText, onOk),
-    ...this.windowFocus('#daily-rewards-window'),
-    onVisibilityChange: () => this.syncAnyWindowOpenState(),
-  });
   // Spellbook window painter (spellbook_view.ts core + spellbook_window.ts painter).
   // The window renders ability rows (not item rows), so it composes no presentation
   // bag; it reads the class kit + bar state from the world and routes the hotbar /
@@ -3494,23 +3415,6 @@ export class Hud {
     if (parts.silver > 0 || parts.gold > 0) html += coin(parts.silver, 's', 'itemUi.money.silver');
     html += coin(parts.copper, 'c', 'itemUi.money.copper');
     return `<span class="money-inline" aria-label="${esc(formatLocalizedMoney(copper, 'long'))}">${html}</span>`;
-  }
-
-  // The connected wallet's $WOC balance, shown left of the coins in the bag.
-  // Unlinked balances are a local preview; verified balances belong to the
-  // account-linked wallet and may drive public holder claims elsewhere.
-  private wocBalanceHtml(): string {
-    if (!walletUiEnabled()) return '';
-    const bal = wocBalance();
-    if (bal === null) return '';
-    const amount = formatNumber(bal, { maximumFractionDigits: 2 });
-    const balance = t('wallet.balanceAmount', { amount });
-    const verified = wocBalanceVerified();
-    const title = verified ? t('wallet.balanceTitle') : t('wallet.balancePreviewTitle');
-    const aria = verified
-      ? t('wallet.balanceAria', { balance })
-      : t('wallet.balancePreviewAria', { balance });
-    return `<span class="woc-balance ${verified ? 'is-verified' : 'is-preview'}" title="${esc(title)}" aria-label="${esc(aria)}"><span class="woc-coin" aria-hidden="true"></span>${esc(balance)}</span>`;
   }
 
   // One-line aura effect summary HTML for the buff/debuff tooltip: the pure descriptor
@@ -5172,73 +5076,6 @@ export class Hud {
     return coerceFxTier(document.documentElement.dataset.fxLevel);
   }
 
-  private dailyRewardsEnabled(): boolean {
-    return !(
-      document.body.classList.contains('native-app') &&
-      document.body.classList.contains('mobile-touch')
-    );
-  }
-
-  private showDailyRewardsChestButton(): boolean {
-    return this.optionsHooks?.settings.get('showDailyRewardsChest') ?? true;
-  }
-
-  private applyDailyRewardsChestButtonVisibility(show = this.showDailyRewardsChestButton()): void {
-    const button = this.dailyRewardsButtonEl;
-    if (!button) return;
-    const visible = this.dailyRewardsEnabled() && show;
-    button.toggleAttribute('hidden', !visible);
-    if (!visible) button.classList.remove('spin-ready');
-  }
-
-  private setDailyRewardsChestButtonPreference(show: boolean): void {
-    if (this.optionsHooks) {
-      this.optionsHooks.onSettingChange('showDailyRewardsChest', show);
-      return;
-    }
-    this.setDailyRewardsChestButtonVisible(show);
-  }
-
-  setDailyRewardsChestButtonVisible(show: boolean): void {
-    this.applyDailyRewardsChestButtonVisibility(show);
-    if (show) this.refreshDailyRewardsLauncher(true);
-  }
-
-  private applyDailyRewardsLauncherStatus(status: DailyRewardStatus): void {
-    if (!this.dailyRewardsEnabled()) return;
-    const button = this.dailyRewardsButtonEl;
-    if (!button) return;
-    if (!this.showDailyRewardsChestButton()) {
-      button.hidden = true;
-      button.classList.remove('spin-ready');
-      return;
-    }
-    button.hidden = false;
-    button.classList.toggle('spin-ready', !status.eligibility.eligible || !status.spin.claimed);
-  }
-
-  private refreshDailyRewardsLauncher(force = false): void {
-    if (!this.dailyRewardsEnabled()) return;
-    const button = this.dailyRewardsButtonEl;
-    if (!button) return;
-    this.applyDailyRewardsChestButtonVisibility();
-    if (!this.showDailyRewardsChestButton()) return;
-    const now = performance.now();
-    if (!force && now - this.lastDailyRewardsLauncherRefreshAt < 60_000) return;
-    this.lastDailyRewardsLauncherRefreshAt = now;
-    const seq = ++this.dailyRewardsLauncherSeq;
-    void this.sim
-      .dailyRewards()
-      .then((status) => {
-        if (seq !== this.dailyRewardsLauncherSeq) return;
-        this.applyDailyRewardsLauncherStatus(status);
-      })
-      .catch(() => {
-        if (seq !== this.dailyRewardsLauncherSeq) return;
-        button.classList.remove('spin-ready');
-      });
-  }
-
   update(): void {
     const sim = this.sim;
     const p = sim.player;
@@ -5279,7 +5116,6 @@ export class Hud {
     this.reconcileLootRolls();
     this.updateLootRollTimers(now);
     if (slowHud) this.updateRaidLockoutBadge();
-    if (slowHud) this.refreshDailyRewardsLauncher();
     this.syncActiveHotbarForm();
     this.syncSlotMap(); // picks up newly learned abilities mid-session
 
@@ -8433,11 +8269,6 @@ export class Hud {
         count: formatNumber(Number(match[2]), { maximumFractionDigits: 0 }),
       });
     }
-    match = /^(\d+) daily rewards points gained\.$/.exec(text);
-    if (match)
-      return t('hudChrome.dailyRewards.pointsGained', {
-        points: formatNumber(Number(match[1]), { maximumFractionDigits: 0 }),
-      });
     // Server-sent friends/guild/who/world messages arrive as 'log' events; fall
     // back to the shared server-message localizer (same as localizeErrorText /
     // localizeLootText) so they are not displayed in raw English.
@@ -9775,9 +9606,6 @@ export class Hud {
     this.renderBags();
     el.style.display = 'flex';
     audio.bagOpen();
-    // Pull a fresh on-chain $WOC balance for the footer; the async result
-    // re-renders the bag via the onWalletUiChange listener wired in the ctor.
-    this.optionsHooks?.refreshWocBalance();
   }
 
   // Called when an authoritative inventory delta lands (online snapshots
@@ -10386,10 +10214,6 @@ export class Hud {
     if (!preview) return;
 
     this.closePlayerCardModal(false);
-    // Pull a fresh on-chain $WOC balance so the holder badge isn't stale. The
-    // async result lands via onWalletUiChange → recomposeOpenCard (below), which
-    // re-composites the card with the current pose once the new value arrives.
-    this.optionsHooks?.refreshWocBalance();
     this.cardModalTrap = this.focusManager.open({ root: () => this.cardModalEl });
     const back = document.createElement('div');
     back.className = 'modal-backdrop';
@@ -10403,7 +10227,6 @@ export class Hud {
       `<div class="panel-title"><span id="player-card-modal-title">${esc(t('playerCard.title'))}</span><button type="button" class="x-btn" data-close aria-label="${esc(t('playerCard.close'))}">${svgIcon('close')}</button></div>` +
       `<div class="pc-preview pc-loading">${esc(t('playerCard.loading'))}</div>` +
       `<div class="pc-poses" role="group" aria-label="${esc(t('playerCard.poseGroup'))}">${poseBtns}</div>` +
-      `<div class="pc-options"><button type="button" class="btn pc-wallet-toggle" data-wallet-card-toggle><span>${esc(t('hudChrome.playerCard.showWalletBadge'))}</span><span class="pc-toggle-state"></span></button></div>` +
       `<div class="pc-actions"></div>` +
       `<div class="pc-link" hidden><span class="pc-link-label">${esc(t('playerCard.referralLinkLabel'))}</span>` +
       `<input class="pc-link-input" type="text" readonly aria-label="${esc(t('playerCard.referralLinkAria'))}"></div>` +
@@ -10433,8 +10256,6 @@ export class Hud {
     const setStatus = (msg: string) => {
       status.textContent = msg;
     };
-    const walletToggle = back.querySelector<HTMLButtonElement>('[data-wallet-card-toggle]');
-    const walletToggleState = walletToggle?.querySelector<HTMLElement>('.pc-toggle-state') ?? null;
 
     // Current card state, shared with the action handlers by reference so a pose
     // change (which re-captures + re-composites) also invalidates any publish.
@@ -10446,9 +10267,6 @@ export class Hud {
 
     const poseButtons = Array.from(back.querySelectorAll<HTMLButtonElement>('.pc-pose'));
     let requestedPoseIndex = 0;
-    let showWalletOnCard =
-      walletDisplayAvailable() &&
-      (this.optionsHooks?.settings.get('showWalletOnPlayerCard') ?? true);
     let metadataReady = false;
     let referral: Awaited<ReturnType<typeof fetchReferralInfo>> = null;
     let standing: CharacterStanding | null = null;
@@ -10458,15 +10276,6 @@ export class Hud {
         b.classList.toggle('sel', i === poseIndex);
       });
     };
-    const syncWalletToggle = (): void => {
-      if (!walletToggle || !walletToggleState) return;
-      const on = walletDisplayAvailable() && showWalletOnCard;
-      walletToggle.classList.toggle('off', !on);
-      walletToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-      walletToggle.setAttribute('aria-label', t('hudChrome.playerCard.showWalletBadge'));
-      walletToggleState.textContent = on ? t('hud.options.on') : t('hud.options.off');
-    };
-    syncWalletToggle();
     // Generation guard: rapid pose clicks fire concurrent async renders; only the
     // most recent one may apply its result, or a slow earlier render could
     // overwrite a newer pose and desync state.canvas from what's shown.
@@ -10480,12 +10289,7 @@ export class Hud {
           poseClips: pose.clips,
           poseFraction: pose.fraction,
         });
-        const data = this.buildPlayerCardData(
-          characterImage,
-          referral,
-          standing,
-          walletDisplayAvailable() && showWalletOnCard,
-        );
+        const data = this.buildPlayerCardData(characterImage, referral, standing);
         const canvas = await renderPlayerCardCanvas(data);
         if (this.cardModalEl !== back || seq !== composeSeq) return; // closed or superseded
         canvas.classList.add('pc-card-canvas');
@@ -10518,27 +10322,6 @@ export class Hud {
         void compose(i);
       });
     });
-    walletToggle?.addEventListener('click', () => {
-      if (!walletDisplayAvailable()) return;
-      audio.click();
-      showWalletOnCard = !showWalletOnCard;
-      this.optionsHooks?.onSettingChange('showWalletOnPlayerCard', showWalletOnCard);
-      syncWalletToggle();
-      state.published = null;
-      linkRow.hidden = true;
-      setStatus('');
-      if (metadataReady) void compose(requestedPoseIndex);
-    });
-
-    // Re-composite the card with the current pose whenever the wallet balance
-    // (or availability) changes while this modal is open — e.g. the fresh read
-    // kicked at open lands, or tokens move during the session. Registered BEFORE
-    // the awaits below so a balance landing during that window isn't dropped; it
-    // no-ops until metadataReady, and the first compose picks up the fresh store
-    // value anyway.
-    this.recomposeOpenCard = () => {
-      if (this.cardModalEl === back && metadataReady) void compose(requestedPoseIndex);
-    };
 
     // Referral info + realm standing are online-only (null offline). Fetch once
     // and reuse across pose re-renders. Pose clicks before this resolves update
@@ -10557,7 +10340,6 @@ export class Hud {
     if (!back) return;
     back.remove();
     if (this.cardModalEl === back) this.cardModalEl = null;
-    this.recomposeOpenCard = null;
     this.cardModalTrap?.release(restoreFocus);
     this.cardModalTrap = null;
   }
@@ -10713,14 +10495,12 @@ export class Hud {
   }
 
   private cardShareText(data: PlayerCardData): string {
-    const tier = holderTierForBalance(data.balance);
-    const tierBit = tier ? t('playerCard.shareTierBit', { tier: holderTierDisplayName(tier) }) : '';
     // The URL X appends to this text is the player's card page; it unfurls the
     // card image and credits the referral when a recruit joins through it.
     return t('playerCard.shareText', {
       level: formatNumber(data.level, { maximumFractionDigits: 0 }),
       className: data.className,
-      tierBit,
+      tierBit: '',
     });
   }
 
@@ -10728,7 +10508,6 @@ export class Hud {
     characterImage: string,
     referral: { count: number; slug: string | null } | null,
     standing: CharacterStanding | null,
-    showWallet: boolean,
   ): PlayerCardData {
     const sim = this.sim;
     const p = sim.player;
@@ -10800,7 +10579,6 @@ export class Hud {
       combatStats,
       gear,
       topPercent,
-      balance: showWallet ? verifiedWocBalance() : null,
       devTier: showDevBadges ? (p.devTier ?? null) : null,
       devMergedPrs: showDevBadges ? (p.devMergedPrs ?? null) : null,
       referralHandle: referral?.slug ?? this.cardSlug(p.name),
@@ -11179,12 +10957,6 @@ export class Hud {
     this.leaderboardWindow.toggle();
   }
 
-  toggleDailyRewards(): void {
-    if (!this.dailyRewardsEnabled()) return;
-    this.dailyRewardsWindow.toggle();
-    this.refreshDailyRewardsLauncher(true);
-  }
-
   // -------------------------------------------------------------------------
   // Spellbook
   // -------------------------------------------------------------------------
@@ -11484,19 +11256,6 @@ export class Hud {
     const className = classDisplayName(cls);
     const el = $('#inspect-window');
     this.closeOtherWindows('#inspect-window');
-    // $WOC holder-tier flair: cosmetic badge for a connected/holder wallet,
-    // broadcast per-entity via the `ht`/`hb` identity fields (server-set). Shown
-    // only when the inspected player has a tier (> 0); the exact balance rides
-    // along in `hb` and reads out beneath the rung name when present.
-    const tierDef = holderTierByIndex(e.holderTier ?? 0);
-    const holderHtml = tierDef
-      ? `<div class="inspect-holder">` +
-        `<img class="inspect-holder-badge" src="${holderTierBadgeDataUrl(tierDef)}" alt="" draggable="false">` +
-        `<div class="inspect-holder-text">` +
-        `<div class="inspect-holder-name">${esc(holderTierDisplayName(tierDef))}</div>` +
-        `<div class="inspect-holder-sub">${e.holderBalance ? esc(t('wallet.balanceAmount', { amount: formatNumber(e.holderBalance, { maximumFractionDigits: 0 }) })) : esc(t('wallet.holder'))}</div>` +
-        `</div></div>`
-      : '';
     // Linked-Discord flair: avatar/badge, nickname, rank, "member since", role.
     const discordTierIdx = e.discordTier ?? 0;
     const discordImg = e.discordAvatar
@@ -11571,7 +11330,6 @@ export class Hud {
       portraitChipHtml({ cls, skin: e.skin ?? 0, name: e.name, variant: 'lg' }) +
       `<div class="inspect-name">${esc(e.name)}</div>` +
       `<div class="inspect-meta">${esc(t('itemUi.equipment.levelClass', { level: formatNumber(e.level, { maximumFractionDigits: 0 }), className }))}</div>` +
-      holderHtml +
       discordHtml +
       devHtml +
       `</div>` +

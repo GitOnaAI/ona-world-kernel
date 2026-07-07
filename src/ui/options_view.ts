@@ -363,8 +363,6 @@ export function buildInterfaceControls(s: OptionsSettingsSource): OptionsControl
     boolToggle(s, 'frostedPanels', 'hud.options.frostedPanels'),
     boolToggle(s, 'highContrastText', 'hud.options.highContrastText'),
     boolToggle(s, 'reduceMotion', 'hud.options.reduceMotion'),
-    boolToggle(s, 'showWalletOnCharacterScreen', 'hudChrome.options.showWalletOnCharacterScreen'),
-    boolToggle(s, 'showWalletOnPlayerCard', 'hudChrome.options.showWalletOnPlayerCard'),
     boolToggle(s, 'showDevBadges', 'hudChrome.options.showDevBadges'),
     boolToggle(s, 'showOwnNameplate', 'hudChrome.options.showOwnNameplate'),
     boolToggle(s, 'landingHighContrast', 'hudChrome.options.highContrastBackground'),
@@ -375,7 +373,6 @@ export function buildInterfaceControls(s: OptionsSettingsSource): OptionsControl
     boolToggle(s, 'aurasOnPlayerFrame', 'hudChrome.options.aurasOnPlayerFrame'),
     boolToggle(s, 'showItemLevel', 'hudChrome.options.showItemLevel'),
     boolToggle(s, 'showSecondaryActionBar', 'hudChrome.options.showSecondaryActionBar'),
-    boolToggle(s, 'showDailyRewardsChest', 'hudChrome.options.showDailyRewardsChest'),
   ];
 }
 

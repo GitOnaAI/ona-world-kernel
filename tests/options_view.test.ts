@@ -240,8 +240,6 @@ describe('options_view: interface dispatch matrix (cluster 5)', () => {
       'frostedPanels',
       'highContrastText',
       'reduceMotion',
-      'showWalletOnCharacterScreen',
-      'showWalletOnPlayerCard',
       'showDevBadges',
       'showOwnNameplate',
       'landingHighContrast',
@@ -252,7 +250,6 @@ describe('options_view: interface dispatch matrix (cluster 5)', () => {
       'aurasOnPlayerFrame',
       'showItemLevel',
       'showSecondaryActionBar',
-      'showDailyRewardsChest',
     ]);
     expect(find(controls, 'reduceMotion')).toMatchObject({ control: 'boolToggle' });
   });

@@ -97,8 +97,6 @@ export interface BagsWindowDeps extends PainterHostPresentation {
   root(): HTMLElement;
   /** The live world (offline Sim or online ClientWorld mirror). */
   world(): IWorld;
-  /** Localized $WOC on-chain balance markup for the money footer. */
-  wocBalanceHtml(): string;
   hideTooltip(): void;
   cancelPetFeed(): void;
   // Non-modal focus capture/return (WCAG 2.4.3). Bags rides alongside vendor / trade /
@@ -201,7 +199,7 @@ export class BagsWindow {
     grid.scrollTop = prevScrollTop;
     const moneyRow = document.createElement('div');
     moneyRow.className = 'money';
-    moneyRow.innerHTML = `${this.deps.wocBalanceHtml()}${this.deps.moneyHtml(world.copper)}`;
+    moneyRow.innerHTML = this.deps.moneyHtml(world.copper);
     el.appendChild(moneyRow);
     el.querySelector('[data-close]')?.addEventListener('click', () => {
       if (this.deps.vendorOpen() && document.body.classList.contains('mobile-touch')) {

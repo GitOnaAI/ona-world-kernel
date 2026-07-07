@@ -2,7 +2,6 @@ import { timingSafeEqual } from 'node:crypto';
 import type * as http from 'node:http';
 import { specialRoleByKey } from '../src/sim/discord_roles';
 import { DISCORD_REWARD_GRANTS, discordStatusIndexForPoints } from '../src/sim/discord_tier';
-import { dailyRewardService } from './daily_rewards';
 import { pool } from './db';
 import { discordFlexForAccount, setDiscordPresenceCache } from './discord';
 import { drainActivity } from './discord_activity';
@@ -193,19 +192,6 @@ async function handleDiscordInternal(
     return ok(res, { items: out });
   }
 
-  if (req.method === 'GET' && url.pathname === '/internal/discord/daily-rewards-winners') {
-    const limit = clampInt(Number(url.searchParams.get('limit')) || 1, 1, 5);
-    return ok(res, await dailyRewardService.discordWinnerAnnouncements(limit));
-  }
-
-  if (req.method === 'POST' && url.pathname === '/internal/discord/daily-rewards-winners/mark') {
-    const result = await dailyRewardService.markDiscordWinnersAnnounced(
-      await readBody(req).catch(() => ({})),
-    );
-    if ('error' in result) return fail(res, result.status, result.error);
-    return ok(res, result);
-  }
-
   // POST /internal/discord/members-meta -> the bot pushes guild join dates + top
   // staff/special role for members; we store it on the matching linked accounts.
   if (req.method === 'POST' && url.pathname === '/internal/discord/members-meta') {
@@ -251,10 +237,9 @@ function sanitizeVoiceMember(m: unknown): {
 }
 
 // ── Route table ────────────────────────────
-// All 11 handleInternalApi endpoints as RouteDefs for the shared dispatcher:
-// the deploy-gated restart-countdown plus the 10 Discord-bot-gated routes
-// (including the two daily-rewards-winners routes added after the original
-// count of 9). PARITY-FIRST: each thin handler REPRODUCES its frozen
+// All handleInternalApi endpoints as RouteDefs for the shared dispatcher:
+// the deploy-gated restart-countdown plus the Discord-bot-gated
+// routes. PARITY-FIRST: each thin handler REPRODUCES its frozen
 // legacy branch above byte-for-byte (same imported data cores, same clamps and
 // truncations, same ok()/fail() envelope bodies), and the secret gates move to
 // the requireInternalSecret middleware, which writes the SAME legacy bodies
@@ -263,10 +248,6 @@ function sanitizeVoiceMember(m: unknown): {
 // (and as the dispatcher's delegate for unknown paths, wrong methods, and
 // HEAD, which therefore keep the legacy 404 'unknown endpoint' behavior: the
 // wrong-method restart-countdown stays 404, never the table router's 405).
-//
-// The separate /internal/daily-rewards/* ops family (handleDailyRewardInternalApi,
-// server/daily_rewards.ts) was never part of this ladder and stays entirely on
-// the delegate, unchanged.
 //
 // The one divergence is an UNEXPECTED handler/DB throw
 // (internalBodyValidationRemap, tests/server/http/known_deviations.ts): the
@@ -473,31 +454,6 @@ export const routes: RouteDef[] = [
         out.push({ ...rest, participants });
       }
       return ok(ctx.res, { items: out });
-    },
-  },
-  {
-    method: 'GET',
-    path: '/internal/discord/daily-rewards-winners',
-    surface: 'internal',
-    meta: INTERNAL_META,
-    middleware: [discordGate],
-    handler: async (ctx) => {
-      const limit = clampInt(Number(ctx.url.searchParams.get('limit')) || 1, 1, 5);
-      return ok(ctx.res, await dailyRewardService.discordWinnerAnnouncements(limit));
-    },
-  },
-  {
-    method: 'POST',
-    path: '/internal/discord/daily-rewards-winners/mark',
-    surface: 'internal',
-    meta: INTERNAL_META,
-    middleware: [discordGate],
-    handler: async (ctx) => {
-      const result = await dailyRewardService.markDiscordWinnersAnnounced(
-        await readBody(ctx.req).catch(() => ({})),
-      );
-      if ('error' in result) return fail(ctx.res, result.status, result.error);
-      return ok(ctx.res, result);
     },
   },
   {

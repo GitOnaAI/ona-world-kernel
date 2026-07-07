@@ -56,10 +56,6 @@ import {
   type CharacterSearchResult,
   type ClientCommand,
   type CraftResultView,
-  type DailyRewardHistory,
-  type DailyRewardLeaderboardPage,
-  type DailyRewardSpinResult,
-  type DailyRewardStatus,
   type DelveCompanionInfo,
   type DelveDailyInfo,
   type DelveRunInfo,
@@ -578,27 +574,6 @@ export class Api {
     } catch {
       return [];
     }
-  }
-
-  // ── Non-custodial Solana wallet linking ───────────────────────────────────
-  // Step 1: ask the server for the exact message to sign for this address.
-  async walletLinkChallenge(address: string): Promise<{ nonce: string; message: string }> {
-    return this.post('/api/wallet/link/challenge', { address });
-  }
-
-  // Step 2: submit the wallet's signature; server verifies + persists the link.
-  async linkWallet(address: string, signature: string, nonce: string): Promise<{ pubkey: string }> {
-    return this.post('/api/wallet/link', { address, signature, nonce });
-  }
-
-  // Current account's linked wallet (null when none).
-  async linkedWallet(): Promise<{ pubkey: string; linkedAt: string } | null> {
-    const data = await this.get('/api/wallet');
-    return data.wallet ?? null;
-  }
-
-  async unlinkWallet(): Promise<void> {
-    await this.delete('/api/wallet/link', {});
   }
 
   // ── Discord link/login + status ────────────────────────────────────────────
@@ -1469,8 +1444,6 @@ export class ClientWorld implements IWorld {
         e.mainhandItemId = w.mh ?? null; // equipped mainhand → held weapon model (render-only)
         e.equippedItems = w.eq ?? {}; // full worn set (render-only), for the inspect window
         e.skinCatalog = w.cat === 'mech' ? 'mech' : 'class';
-        e.holderTier = w.ht ?? 0; // $WOC holder-tier flair (cosmetic, server-set)
-        e.holderBalance = typeof w.hb === 'number' ? w.hb : undefined; // exact $WOC, for inspect
         e.discordTier = w.dt ?? 0; // Discord status-tier flair (cosmetic, server-set)
         e.discordAvatar = typeof w.dav === 'string' ? w.dav : undefined; // Discord PFP (linked)
         e.discordName = typeof w.dnm === 'string' ? w.dnm : undefined; // Discord handle/nickname
@@ -2500,68 +2473,6 @@ export class ClientWorld implements IWorld {
     } catch {
       return empty;
     }
-  }
-
-  async dailyRewards(): Promise<DailyRewardStatus> {
-    const res = await fetch(apiUrl('/api/daily-rewards', this.base), {
-      headers: { Authorization: `Bearer ${this.token}` },
-    });
-    if (!res.ok) throw new Error('daily rewards unavailable');
-    return (await res.json()) as DailyRewardStatus;
-  }
-
-  async dailyRewardLeaderboard(
-    page = 0,
-    pageSize = LEADERBOARD_PAGE_SIZE,
-  ): Promise<DailyRewardLeaderboardPage> {
-    const empty: DailyRewardLeaderboardPage = {
-      day: '',
-      leaders: [],
-      page: 0,
-      pageCount: 1,
-      total: 0,
-      pageSize,
-    };
-    try {
-      const res = await fetch(
-        apiUrl(`/api/daily-rewards/leaderboard?page=${page}&pageSize=${pageSize}`, this.base),
-        { headers: { Authorization: `Bearer ${this.token}` } },
-      );
-      if (!res.ok) return empty;
-      const data = await res.json();
-      return {
-        day: data.day ?? '',
-        leaders: data.leaders ?? [],
-        page: data.page ?? page,
-        pageCount: data.pageCount ?? 1,
-        total: data.total ?? data.leaders?.length ?? 0,
-        pageSize: data.pageSize ?? pageSize,
-      };
-    } catch {
-      return empty;
-    }
-  }
-
-  async spinDailyReward(): Promise<DailyRewardSpinResult> {
-    const res = await fetch(apiUrl('/api/daily-rewards/spin', this.base), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: '{}',
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? 'daily spin unavailable');
-    return data as DailyRewardSpinResult;
-  }
-
-  async dailyRewardHistory(): Promise<DailyRewardHistory> {
-    const res = await fetch(apiUrl('/api/daily-rewards/history', this.base), {
-      headers: { Authorization: `Bearer ${this.token}` },
-    });
-    if (!res.ok) return { payouts: [] };
-    return (await res.json()) as DailyRewardHistory;
   }
 
   prestige(): void {

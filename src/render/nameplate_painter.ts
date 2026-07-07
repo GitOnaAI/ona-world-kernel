@@ -1,6 +1,6 @@
 // Thin Three/DOM painter for the overhead nameplates (v0.16.0). Owns the
 // per-entity nameplate elements (name, hp bar, marker,
-// raid mark, combo pips, holder-tier badge, overhead emote, cast bar): it
+// raid mark, combo pips, overhead emote, cast bar): it
 // projects each rig's anchor with the camera and writes the show/hide, transform,
 // and localized content to the EntityView DOM nodes the renderer built.
 //
@@ -27,11 +27,6 @@ import {
   devTierNameOutlineColor,
 } from '../ui/dev_tier';
 import { tEntity } from '../ui/entity_i18n';
-import {
-  holderTierBadgeDataUrl,
-  holderTierByIndex,
-  holderTierDisplayName,
-} from '../ui/holder_tier';
 import { formatNumber, type TranslationKey, t } from '../ui/i18n';
 import { raidMarkerDataUrl } from '../ui/icons';
 import { type IWorld, OVERHEAD_EMOTES } from '../world_api';
@@ -232,8 +227,6 @@ export class NameplatePainter {
           devOutline,
         );
         v.nameEl.style.display = nameDisplay;
-        // $WOC holder-tier flair (hidden only on a suppressed self plate).
-        this.setNameplateTier(v, suppressSelf ? 0 : (e.holderTier ?? 0));
         // Developer-badge flair.
         this.setNameplateDevTier(v, suppressSelf || !showDevBadges ? 0 : (e.devTier ?? 0));
         // Linked-Discord PFP indicator.
@@ -380,22 +373,6 @@ export class NameplatePainter {
     } else {
       v.nameEl.style.removeProperty('--dev-outline');
       v.nameEl.classList.remove('np-sig-dev');
-    }
-  }
-
-  // Show/hide the $WOC holder-tier badge on a player's nameplate. Cheap-diffed
-  // on the tier value so the badge image is only rebuilt when the tier changes.
-  private setNameplateTier(v: EntityView, tier: number): void {
-    if (tier === v.tierValue) return;
-    v.tierValue = tier;
-    const def = holderTierByIndex(tier);
-    if (def) {
-      v.tierEl.src = holderTierBadgeDataUrl(def, 32);
-      v.tierEl.title = t('wallet.holderTierTitle', { tier: holderTierDisplayName(def) });
-      v.tierEl.style.display = '';
-    } else {
-      v.tierEl.removeAttribute('src');
-      v.tierEl.style.display = 'none';
     }
   }
 

@@ -53,19 +53,14 @@ import { DISPATCHED_PREFIXES, SURFACE_INVENTORY } from './surface_inventory';
 // Resolve the dispatcher sources relative to THIS file, never the cwd (a shared
 // worktree can run the suite from elsewhere). readFileSync accepts a URL.
 //
-// daily_rewards.ts is here because it is a PREFIX-DELEGATED sub-dispatcher: its
-// exact-path arms sit behind `startsWith('/api/daily-rewards')` in main.ts and
-// the /internal composite delegate, so scanning only the four dispatcher files
-// misses them (the v0.19.0 merge added 6 routes the gate never saw). Any future
-// module that owns its own `=== '/api/...'` (or /internal/, /oauth/, /admin/api/)
-// path matching behind a prefix delegate MUST be added to this list, or its
-// routes are invisible to the freshness gate.
+// Any future module that owns its own `=== '/api/...'` (or /internal/, /oauth/,
+// /admin/api/) path matching behind a prefix delegate MUST be added to this
+// list, or its routes are invisible to the freshness gate.
 const DISPATCHER_SOURCES = [
   new URL('../../../server/main.ts', import.meta.url),
   new URL('../../../server/admin.ts', import.meta.url),
   new URL('../../../server/oauth.ts', import.meta.url),
   new URL('../../../server/internal.ts', import.meta.url),
-  new URL('../../../server/daily_rewards.ts', import.meta.url),
 ] as const;
 
 const API_PREFIX_ALTERNATION = '(?:api|admin\\/api|internal|oauth)';
