@@ -1315,13 +1315,6 @@
     box-shadow: inset 0 0 8px #000;
   }
 
-  /* "Browse the Wiki" launcher: reuses the .btn skin but renders as an anchor. */
-  .wiki-cta {
-    display: inline-block;
-    text-decoration: none;
-    margin-top: var(--spacing-sm);
-  }
-
   /* Home-page global leaderboard (Max-Level XP Overflow) */
   .hs-panel {
     display: flex;
@@ -1724,30 +1717,6 @@
   }
   body.mobile-touch .news-body li {
     margin: var(--spacing-xs) 0;
-  }
-
-  /* Wiki view with integrated Controls Guide */
-  .wiki-container-layout {
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg) var(--spacing-lg);
-  }
-
-  .wiki-guide-intro {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-    border-bottom: 1px solid rgba(78, 61, 29, 0.3);
-    padding-bottom: var(--spacing-md);
-    width: 100%;
-  }
-
-  .wiki-controls-guide {
-    width: 100%;
-    text-align: left;
   }
 
   .controls-guide-title {

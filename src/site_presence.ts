@@ -22,7 +22,7 @@ function visitorId(): string {
 function pageName(fallback: string): string {
   const path = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   if (path.startsWith('admin')) return 'admin';
-  if (path.startsWith('guide') || path.startsWith('wiki')) return 'guide';
+  if (path.startsWith('guide')) return 'guide';
   if (path.startsWith('play')) return 'play';
   if (path.startsWith('links') || path.startsWith('social')) return 'links';
   return path || fallback;
