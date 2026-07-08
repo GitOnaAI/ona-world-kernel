@@ -31,16 +31,6 @@
    "type": "copy"
   },
   {
-   "src": "tmp/asset_src/polyhaven/dikhololo_night_1k.hdr",
-   "out": "env/night_1k.hdr",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/polyhaven/dikhololo_night_2k.hdr",
-   "out": "env/night_2k.hdr",
-   "type": "copy"
-  },
-  {
    "src": "tmp/asset_src/ambientcg/Grass001/Grass001_1K-JPG_Color.jpg",
    "out": "textures/terrain/Grass001_Color.jpg",
    "type": "copy"
@@ -48,16 +38,6 @@
   {
    "src": "tmp/asset_src/ambientcg/Grass001/Grass001_1K-JPG_NormalGL.jpg",
    "out": "textures/terrain/Grass001_NormalGL.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Grass001/Grass001_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Grass001_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Grass001/Grass001_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Grass001_AmbientOcclusion.jpg",
    "type": "copy"
   },
   {
@@ -71,16 +51,6 @@
    "type": "copy"
   },
   {
-   "src": "tmp/asset_src/ambientcg/Ground048/Ground048_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Ground048_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Ground048/Ground048_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Ground048_AmbientOcclusion.jpg",
-   "type": "copy"
-  },
-  {
    "src": "tmp/asset_src/ambientcg/Rock051/Rock051_1K-JPG_Color.jpg",
    "out": "textures/terrain/Rock051_Color.jpg",
    "type": "copy"
@@ -91,33 +61,8 @@
    "type": "copy"
   },
   {
-   "src": "tmp/asset_src/ambientcg/Rock051/Rock051_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Rock051_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Rock051/Rock051_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Rock051_AmbientOcclusion.jpg",
-   "type": "copy"
-  },
-  {
    "src": "tmp/asset_src/ambientcg/Ground071/Ground071_1K-JPG_Color.jpg",
    "out": "textures/terrain/Ground071_Color.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Ground071/Ground071_1K-JPG_NormalGL.jpg",
-   "out": "textures/terrain/Ground071_NormalGL.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Ground071/Ground071_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Ground071_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Ground071/Ground071_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Ground071_AmbientOcclusion.jpg",
    "type": "copy"
   },
   {
@@ -131,53 +76,8 @@
    "type": "copy"
   },
   {
-   "src": "tmp/asset_src/ambientcg/Ground080/Ground080_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Ground080_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Ground080/Ground080_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Ground080_AmbientOcclusion.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/PavingStones046/PavingStones046_1K-JPG_Color.jpg",
-   "out": "textures/terrain/PavingStones046_Color.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/PavingStones046/PavingStones046_1K-JPG_NormalGL.jpg",
-   "out": "textures/terrain/PavingStones046_NormalGL.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/PavingStones046/PavingStones046_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/PavingStones046_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/PavingStones046/PavingStones046_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/PavingStones046_AmbientOcclusion.jpg",
-   "type": "copy"
-  },
-  {
    "src": "tmp/asset_src/ambientcg/Snow010A/Snow010A_1K-JPG_Color.jpg",
    "out": "textures/terrain/Snow010A_Color.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Snow010A/Snow010A_1K-JPG_NormalGL.jpg",
-   "out": "textures/terrain/Snow010A_NormalGL.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Snow010A/Snow010A_1K-JPG_Roughness.jpg",
-   "out": "textures/terrain/Snow010A_Roughness.jpg",
-   "type": "copy"
-  },
-  {
-   "src": "tmp/asset_src/ambientcg/Snow010A/Snow010A_1K-JPG_AmbientOcclusion.jpg",
-   "out": "textures/terrain/Snow010A_AmbientOcclusion.jpg",
    "type": "copy"
   },
   {
