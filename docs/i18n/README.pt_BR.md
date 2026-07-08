@@ -1,12 +1,10 @@
 <div align="center">
 
-# World of ClaudeCraft
+# Ona World Kernel
 
-**Faça missões, forme grupos e enfrente raides em um mundo feito a mão, gratuito no seu navegador. Open source, web3 e online agora mesmo.**
+**Um kernel completo de MMO clássico — sim determinística, renderer procedural, servidor autoritativo e suíte de testes completa — pronto para virar o seu jogo.**
 
-**Site oficial: https://worldofclaudecraft.com/**
-
-[![CI](https://github.com/levy-street/world-of-claudecraft/actions/workflows/ci.yml/badge.svg)](https://github.com/levy-street/world-of-claudecraft/actions/workflows/ci.yml)
+[![CI](https://github.com/GitOnaAI/ona-world-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/GitOnaAI/ona-world-kernel/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-r165-000000?logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
@@ -14,21 +12,18 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-RL%20env-0C7BDC)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../LICENSE)
-[![Version](https://img.shields.io/badge/version-0.14.1-blue)](../../package.json)
+[![Version](https://img.shields.io/badge/version-0.22.0-blue)](../../package.json)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.pt_BR.md)
-[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/GjhnUsBtw)
 
-[English](../../README.md) · [Español](README.es.md) · [Español (España)](README.es_ES.md) · [Français](README.fr_FR.md) · [Français (Canada)](README.fr_CA.md) · [Italiano](README.it_IT.md) · [Deutsch](README.de_DE.md) · [简体中文](README.zh_CN.md) · [繁體中文](README.zh_TW.md) · [한국어](README.ko_KR.md) · [日本語](README.ja_JP.md) · **Português (Brasil)** · [Русский](README.ru_RU.md) · [Nederlands](README.nl_NL.md) · [Polski](README.pl_PL.md) · [Bahasa Indonesia](README.id_ID.md) · [Türkçe](README.tr_TR.md) · [Svenska](README.sv_SE.md) · [Tiếng Việt](README.vi_VN.md) · [Dansk](README.da_DK.md)
+[English](../../README.md) · **Português (Brasil)**
 
-[Jogar agora](https://worldofclaudecraft.com/) · [Hospede seu próprio mundo](#host-your-own-world-one-command) · [Treine um agente](#train-an-agent-headless-rl) · [Web3](#web3) · [Contribuindo](CONTRIBUTING.pt_BR.md) · [Discord](https://discord.gg/GjhnUsBtw)
-
-![Tela de título do World of ClaudeCraft](../../docs/screenshots/title-screen.jpg)
+[Hospede seu próprio mundo](#host-your-own-world-one-command) · [Treine um agente](#train-an-agent-headless-rl) · [Contribuindo](CONTRIBUTING.pt_BR.md)
 
 </div>
 
 ## O que é isto
 
-World of ClaudeCraft é um MMO completo da era clássica que você pode jogar agora mesmo no seu navegador, hospedar sozinho com um único comando e até usar para treinar agentes de IA para jogar. É gratuito, open source e está no ar em [worldofclaudecraft.com](https://worldofclaudecraft.com/).
+Ona World Kernel é um MMO completo da era clássica que você pode rodar no seu navegador, hospedar sozinho com um único comando e até usar para treinar agentes de IA para jogar. Todo o conteúdo do jogo (zonas, missões, criaturas, lore) é conteúdo de exemplo do World of ClaudeCraft, mantido com atribuição — troque pelo seu próprio mundo.
 
 Um único mundo compartilhado roda em três lugares, todos a partir do mesmo núcleo de jogo:
 
@@ -47,9 +42,8 @@ Mesma semente, mesmo mundo, em todo lugar. E quase nada é um asset pré-pronto:
 - **The Ashen Coliseum**, uma arena de PvP ranqueada com ladders 1v1 e 2v2, mais um modo 2v2 Fiesta (coleta de aprimoramentos, um anel que encolhe, o primeiro a quinze abates vence).
 - **Multiplayer de verdade**: grupos, comércio, duelos, direitos de tap, XP dividido em grupo, sussurros, status de ausência e um servidor que é dono de cada rolagem de combate.
 - **Tudo procedural**: cidades de estrutura de madeira, famílias de criaturas com esqueleto, ícones de magia pintados em canvas, som via WebAudio, clima por bioma e sombras em tempo real. Nenhum arquivo de modelo 3D para o mundo.
-- **Localizado em 21 idiomas** por meio de um pipeline determinístico em que a sim emite chaves.
+- **Localizado (en + pt_BR)** por meio de um pipeline determinístico em que a sim emite chaves, escalável para mais idiomas.
 - **Ambiente de RL headless** com bindings do Gymnasium, modelagem de recompensa e um modo de benchmark.
-- **Nativo de web3**: vincule uma carteira Solana para mostrar seu saldo de $WOC e um selo cosmético de holder, totalmente opcional e não custodial.
 
 ## Capturas de tela
 
@@ -149,22 +143,6 @@ env.close()
 - **Determinístico por construção.** Sem relógio de parede, sem `Math.random`. Defina a semente no reset e o episódio se repete exatamente igual.
 
 O protocolo e os bindings estão documentados em `headless/CLAUDE.md` e `python/CLAUDE.md`.
-
-<a id="web3"></a>
-
-## Web3
-
-World of ClaudeCraft é nativo de web3 em torno do **$WOC**, nosso token de comunidade na Solana. Conecte uma carteira Solana, vincule-a à sua conta com uma única assinatura (não custodial, sem transação para aprovar), e seu saldo de $WOC somente leitura aparece no HUD ao lado de um selo cosmético de tier de holder.
-
-É apenas cosmético e não é necessário para jogar. Nada é gasto ou ganho dentro do jogo, não há pay-to-win, e o jogo inteiro funciona bem sem nunca conectar uma carteira.
-
-**Endereço do contrato do $WOC (Solana):**
-
-```
-3WjLscH2JsXLEFJZRA9z8ti8yRGxWGKbqymPd7UicRth
-```
-
-Mais sobre o token em [worldofclaudecraft.com](https://worldofclaudecraft.com/).
 
 ## Um tour pelo mundo
 
@@ -299,19 +277,11 @@ Para os comandos do servidor veja [Desenvolva online](#develop-online-with-hot-r
 
 ## Localização
 
-Toda string visível ao jogador é resolvida através de `t()`, e o jogo é distribuído em **21 idiomas** (inglês, dois espanhóis, dois franceses, inglês do Canadá, italiano, alemão, chinês simplificado e tradicional, coreano, japonês, português do Brasil, russo, holandês, polonês, indonésio, turco, sueco, vietnamita e dinamarquês). A sim e o servidor permanecem agnósticos quanto ao idioma: eles emitem chaves estáveis ou inglês que o cliente relocaliza na fronteira, o que mantém o determinismo intacto. Os contribuidores adicionam apenas inglês; o mantenedor preenche em lote os outros idiomas antes de cada release. O fluxo de trabalho está documentado em `docs/i18n-scaling/translation-workflow.md`.
+Toda string visível ao jogador é resolvida através de `t()`. O template é distribuído em **inglês e português do Brasil**; o pipeline escala para qualquer número de idiomas. A sim e o servidor permanecem agnósticos quanto ao idioma: eles emitem chaves estáveis ou inglês que o cliente relocaliza na fronteira, o que mantém o determinismo intacto. Os contribuidores adicionam apenas inglês; os demais idiomas são preenchidos em lote antes de cada release. O fluxo de trabalho está documentado em `docs/i18n-scaling/translation-workflow.md`.
 
 ## Contribuindo
 
-Contribuições de todo tipo são bem-vindas: código, traduções, relatórios de bug e documentação. Comece pelo [CONTRIBUTING.md](CONTRIBUTING.pt_BR.md) para a configuração, leia o [Código de Conduta](../../CODE_OF_CONDUCT.md) e confira o [SECURITY.md](../../SECURITY.md) antes de relatar uma vulnerabilidade. Novo por aqui? Procure issues marcadas com [`good first issue`](https://github.com/levy-street/world-of-claudecraft/labels/good%20first%20issue), abra uma [issue](https://github.com/levy-street/world-of-claudecraft/issues/new/choose) ou diga olá no [Discord](https://discord.gg/GjhnUsBtw).
-
-<div align="center">
-
-![World of Claude](../../worldofclaude.png)
-
-![Comunidade do World of ClaudeCraft](../../woc_community.png)
-
-</div>
+Contribuições de todo tipo são bem-vindas: código, traduções, relatórios de bug e documentação. Comece pelo [CONTRIBUTING.md](CONTRIBUTING.pt_BR.md) para a configuração, leia o [Código de Conduta](../../CODE_OF_CONDUCT.md) e confira o [SECURITY.md](../../SECURITY.md) antes de relatar uma vulnerabilidade. Novo por aqui? Abra uma [issue](https://github.com/GitOnaAI/ona-world-kernel/issues/new).
 
 ## Licença
 

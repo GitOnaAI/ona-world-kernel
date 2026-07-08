@@ -4,19 +4,17 @@
 > (MIT) with full git history preserved and `upstream` configured for
 > selective cherry-picks. All game content (zones, quests, creatures, lore)
 > is **sample content** from the original project, kept with attribution —
-> see `LICENSE` and `CREDITS.md`. Platform-specific layers (web3, mobile,
-> desktop, wiki) are being trimmed; the deterministic sim, renderer, HUD,
-> server and test suite are the kernel.
+> see `LICENSE` and `CREDITS.md`. The web3, wiki, Discord and marketing
+> layers were trimmed out; the deterministic sim, renderer, HUD, server,
+> desktop/mobile shells and test suite are the kernel.
 
 <div align="center">
 
-# World of ClaudeCraft
+# Ona World Kernel
 
-**Quest, group up, and raid a hand-built world, free in your browser. Open source, web3, and online right now.**
+**A complete classic-style MMO kernel — deterministic sim, procedural renderer, authoritative server, and a full test suite — ready to become your game.**
 
-**Official website: https://worldofclaudecraft.com/**
-
-[![CI](https://github.com/levy-street/world-of-claudecraft/actions/workflows/ci.yml/badge.svg)](https://github.com/levy-street/world-of-claudecraft/actions/workflows/ci.yml)
+[![CI](https://github.com/GitOnaAI/ona-world-kernel/actions/workflows/ci.yml/badge.svg)](https://github.com/GitOnaAI/ona-world-kernel/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-r165-000000?logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
@@ -24,21 +22,18 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-RL%20env-0C7BDC)](https://gymnasium.farama.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.14.1-blue)](package.json)
+[![Version](https://img.shields.io/badge/version-0.22.0-blue)](package.json)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/GjhnUsBtw)
 
 **English** · [Português (Brasil)](docs/i18n/README.pt_BR.md)
 
-[Play now](https://worldofclaudecraft.com/) · [Host your own world](#host-your-own-world-one-command) · [Train an agent](#train-an-agent-headless-rl) · [Web3](#web3) · [Contributing](CONTRIBUTING.md) · [Discord](https://discord.gg/GjhnUsBtw)
-
-![World of ClaudeCraft title screen](docs/screenshots/title-screen.jpg)
+[Host your own world](#host-your-own-world-one-command) · [Train an agent](#train-an-agent-headless-rl) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ## What this is
 
-World of ClaudeCraft is a complete classic-era MMO you can play right now in your browser, host yourself with one command, and even train AI agents to play. It is free, open source, and live at [worldofclaudecraft.com](https://worldofclaudecraft.com/).
+Ona World Kernel is a complete classic-era MMO you can run in your browser, host yourself with one command, and even use to train AI agents to play. All game content (zones, quests, creatures, lore) is sample content from World of ClaudeCraft, kept with attribution — swap it for your own world.
 
 One shared world runs in three places, all from the same game core:
 
@@ -57,9 +52,8 @@ Same seed, same world, everywhere. And almost nothing is a shipped asset: the to
 - **The Ashen Coliseum**, a ranked PvP arena with 1v1 and 2v2 ladders plus a 2v2 Fiesta mode (augment pickups, a shrinking ring, first to fifteen takedowns).
 - **Real multiplayer**: parties, trading, duels, tap rights, party-split XP, whispers, away status, and a server that owns every combat roll.
 - **Procedural everything**: timber-framed towns, rigged creature families, painted spell icons drawn on canvas, WebAudio sound, biome weather, and real-time shadows. No 3D model files for the world.
-- **Localized into 21 locales** through a deterministic, sim-emits-keys pipeline.
+- **Localized (en + pt_BR)** through a deterministic, sim-emits-keys pipeline that scales to more locales.
 - **Headless RL environment** with Gymnasium bindings, reward shaping, and a benchmark mode.
-- **Web3-native**: link a Solana wallet to show your $WOC balance and a cosmetic holder badge, fully optional and non-custodial.
 
 ## Screenshots
 
@@ -97,7 +91,7 @@ See [Host your own world](#host-your-own-world-one-command) below to stand up th
 
 ### Desktop app
 
-The Electron desktop shell wraps the same Vite client. Online sign-in is Discord and email only, exactly the web flow: email/password logs in inside the app, and "Continue with Discord" opens your default browser on the `/desktop-login` page, which hands a one-time code back to the app over a `worldofclaudecraft://` deep link that the app exchanges for a normal World of ClaudeCraft session token.
+The Electron desktop shell wraps the same Vite client. Online sign-in is email/password, exactly the web flow; the browser `/desktop-login` page can hand a one-time code back to the app over the `onaworld://` deep link, which the app exchanges for a normal session token.
 
 ```bash
 npm run electron:dev          # Vite + Electron dev shell
@@ -112,7 +106,7 @@ Point the shell at a different API with `VITE_DESKTOP_API_ORIGIN`, for example a
 VITE_DESKTOP_API_ORIGIN=http://127.0.0.1:8787 npm run electron:dev
 ```
 
-Override the production API origin for staging builds with `VITE_DESKTOP_API_ORIGIN=https://dev.worldofclaudecraft.com` (a BUILD-time value: it is baked into the bundle and stamped into the packaged app, and installed builds ignore it as a runtime env var). Steam is a distribution channel only (the same Electron bundle, uploaded via SteamPipe); there is no Steam sign-in. The full release runbook (signing, notarization, publishing an auto-update, SteamPipe depots, the server deploy) is `docs/desktop-release.md`.
+Override the production API origin for staging builds with `VITE_DESKTOP_API_ORIGIN=https://dev.onaworld.example` (a BUILD-time value: it is baked into the bundle and stamped into the packaged app, and installed builds ignore it as a runtime env var). Steam is a distribution channel only (the same Electron bundle, uploaded via SteamPipe); there is no Steam sign-in. The full release runbook (signing, notarization, publishing an auto-update, SteamPipe depots, the server deploy) is `docs/desktop-release.md`.
 
 ## Host your own world (one command)
 
@@ -172,20 +166,6 @@ env.close()
 - **Deterministic by construction.** No wall clock, no `Math.random`. Seed the reset and the episode replays exactly.
 
 The protocol and bindings are documented in `headless/CLAUDE.md` and `python/CLAUDE.md`.
-
-## Web3
-
-World of ClaudeCraft is web3-native around **$WOC**, our community token on Solana. Connect a Solana wallet, link it to your account with one signature (non-custodial, no transaction to approve), and your read-only $WOC balance shows up in the HUD alongside a cosmetic holder-tier badge.
-
-It is cosmetic only and not needed to play. Nothing is spent or earned in-game, there is no pay-to-win, and the whole game plays fine without ever connecting a wallet.
-
-**$WOC contract address (Solana):**
-
-```
-3WjLscH2JsXLEFJZRA9z8ti8yRGxWGKbqymPd7UicRth
-```
-
-More on the token at [worldofclaudecraft.com](https://worldofclaudecraft.com/).
 
 ## A tour of the world
 
@@ -319,19 +299,11 @@ For the server commands see [Develop online](#develop-online-with-hot-reload) ab
 
 ## Localization
 
-Every player-visible string resolves through `t()`, and the game ships in **21 locales** (English, two Spanish, two French, English Canada, Italian, German, Simplified and Traditional Chinese, Korean, Japanese, Brazilian Portuguese, Russian, Dutch, Polish, Indonesian, Turkish, Swedish, Vietnamese, and Danish). The sim and server stay language-agnostic: they emit stable keys or English that the client re-localizes at the boundary, which keeps determinism intact. Contributors add English only; the maintainer batch-fills the other locales before each release. The workflow is documented in `docs/i18n-scaling/translation-workflow.md`.
+Every player-visible string resolves through `t()`. The template ships **English and Brazilian Portuguese**; the pipeline scales to any number of locales. The sim and server stay language-agnostic: they emit stable keys or English that the client re-localizes at the boundary, which keeps determinism intact. Contributors add English only; other locales are batch-filled before each release. The workflow is documented in `docs/i18n-scaling/translation-workflow.md`.
 
 ## Contributing
 
-Contributions of every kind are welcome: code, translations, bug reports, and documentation. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, read the [Code of Conduct](CODE_OF_CONDUCT.md), and check [SECURITY.md](SECURITY.md) before reporting a vulnerability. New here? Look for issues labeled [`good first issue`](https://github.com/levy-street/world-of-claudecraft/labels/good%20first%20issue), open an [issue](https://github.com/levy-street/world-of-claudecraft/issues/new/choose), or say hello on [Discord](https://discord.gg/GjhnUsBtw).
-
-<div align="center">
-
-![World of Claude](worldofclaude.png)
-
-![World of ClaudeCraft community](woc_community.png)
-
-</div>
+Contributions of every kind are welcome: code, translations, bug reports, and documentation. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup, read the [Code of Conduct](CODE_OF_CONDUCT.md), and check [SECURITY.md](SECURITY.md) before reporting a vulnerability. New here? Open an [issue](https://github.com/GitOnaAI/ona-world-kernel/issues/new).
 
 ## License
 
