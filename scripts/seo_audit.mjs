@@ -37,6 +37,7 @@ function audit() {
     const regex = new RegExp(`<${tag}(?:\\s+[^>]*)?>([\\s\\S]*?)</${tag}>`, 'gi');
     const matches = [];
     let match;
+    // biome-ignore lint/suspicious/noAssignInExpressions: standard exec() loop idiom
     while ((match = regex.exec(html)) !== null) {
       matches.push({ full: match[0], content: match[1].trim() });
     }

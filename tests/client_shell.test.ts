@@ -522,9 +522,7 @@ describe('client HTML shell', () => {
     expect(robotsTxt).toContain('Sitemap: https://onaworld.example/sitemap-characters.xml');
     expect(sitemapXml).toContain('<loc>https://onaworld.example/</loc>');
     expect(sitemapXml).toContain('<loc>https://onaworld.example/play</loc>');
-    expect(playHtml).toContain(
-      '<link rel="canonical" href="https://onaworld.example/play" />',
-    );
+    expect(playHtml).toContain('<link rel="canonical" href="https://onaworld.example/play" />');
     expect(playHtml).toContain(
       '<meta property="og:url" content="https://onaworld.example/play" />',
     );
@@ -539,9 +537,7 @@ describe('client HTML shell', () => {
     expect(privacyHtml).toContain('<h1>Privacy Policy</h1>');
     expect(privacyHtml).toContain('href="/support">Support</a>');
     expect(privacyHtml).toContain('href="/data-deletion">Data Deletion</a>');
-    expect(termsHtml).toContain(
-      '<link rel="canonical" href="https://onaworld.example/terms" />',
-    );
+    expect(termsHtml).toContain('<link rel="canonical" href="https://onaworld.example/terms" />');
     expect(termsHtml).toContain('<h1>Terms and Conditions</h1>');
     expect(termsHtml).toContain('href="/support">Support</a>');
     expect(termsHtml).toContain('href="/data-deletion">Data Deletion</a>');

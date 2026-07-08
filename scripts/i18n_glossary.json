@@ -23,21 +23,15 @@
     },
     "abilityNames": {
       "note": "Ability proper names. Keep the established localized form; do not invent a new rendering for an ability already named elsewhere.",
-      "keyPatterns": [
-        "entities.abilities.*.name"
-      ]
+      "keyPatterns": ["entities.abilities.*.name"]
     },
     "zoneNames": {
       "note": "Zone proper nouns. Use the established localized name; the Latin root (e.g. Eastbrook, Mirefen, Thornpeak) is usually retained.",
-      "keyPatterns": [
-        "entities.zones.*.name"
-      ]
+      "keyPatterns": ["entities.zones.*.name"]
     },
     "dungeonNames": {
       "note": "Dungeon proper nouns. Use the established localized name; keep it identical wherever the dungeon is referenced.",
-      "keyPatterns": [
-        "entities.dungeons.*.name"
-      ]
+      "keyPatterns": ["entities.dungeons.*.name"]
     }
   }
 }

@@ -96,7 +96,6 @@ export const API_ERROR_KEYS = {
   // The Content-Type / Origin gate hardening contracts (no legacy English identity).
   'body.unsupported_media_type': 'apiError.body.unsupported_media_type',
   'origin.cross_site': 'apiError.origin.cross_site',
-
 } satisfies Record<string, TranslationKey>;
 
 /** The message of an Error, or the string form of any other thrown value. */

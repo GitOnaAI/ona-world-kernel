@@ -815,12 +815,8 @@ describe('GET /p/<slug>', () => {
       );
       const html = String(res.body);
       expect(res.statusCode).toBe(200);
-      expect(html).toContain(
-        '<link rel="canonical" href="https://onaworld.example/p/sir-test">',
-      );
-      expect(html).toContain(
-        'property="og:url" content="https://onaworld.example/p/sir-test"',
-      );
+      expect(html).toContain('<link rel="canonical" href="https://onaworld.example/p/sir-test">');
+      expect(html).toContain('property="og:url" content="https://onaworld.example/p/sir-test"');
       expect(html).toContain(
         'property="og:image" content="https://onaworld.example/p/sir-test/card.png"',
       );
@@ -848,9 +844,7 @@ describe('GET /p/<slug>', () => {
       expect(html).toContain(
         '<link rel="canonical" href="https://dev.onaworld.example/p/sir-test">',
       );
-      expect(html).toContain(
-        'property="og:url" content="https://dev.onaworld.example/p/sir-test"',
-      );
+      expect(html).toContain('property="og:url" content="https://dev.onaworld.example/p/sir-test"');
       expect(html).toContain(
         'property="og:image" content="https://dev.onaworld.example/p/sir-test/card.png"',
       );

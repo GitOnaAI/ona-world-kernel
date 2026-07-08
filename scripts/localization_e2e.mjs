@@ -78,9 +78,7 @@ function languageTag(locale) {
 }
 
 function siteUrlForLocale(locale) {
-  return locale === 'en'
-    ? 'https://onaworld.example/'
-    : `https://onaworld.example/?lang=${locale}`;
+  return locale === 'en' ? 'https://onaworld.example/' : `https://onaworld.example/?lang=${locale}`;
 }
 
 function localUrlForLocale(locale) {

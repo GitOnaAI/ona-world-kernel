@@ -562,7 +562,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'problem+json instead of the legacy outer-catch 500 { error }. Same 500 STATUS, ' +
       'different body shape; there is no status remap because these handlers self-read ' +
       'without withBody. Exact sibling to accountBodyValidationRemap / ' +
-      'the removed integrations\' body-validation remaps. These framework-error paths are NOT exercised by the ' +
+      "the removed integrations' body-validation remaps. These framework-error paths are NOT exercised by the " +
       'db-free parity corpus (which replays valid bodies only), so the divergence is ' +
       'documented here rather than harness-caught. Adding /api/reports and ' +
       '/api/site-presence here also masks them in the path-scoped parity filter, so ' +

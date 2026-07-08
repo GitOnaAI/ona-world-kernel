@@ -13,18 +13,14 @@ describe('desktop runtime helpers', () => {
   });
 
   it('normalizes HTTP origins and rejects non-web origins', () => {
-    expect(normalizeOrigin('https://onaworld.example/')).toBe(
-      'https://onaworld.example',
-    );
-    expect(() => normalizeOrigin('app://onaworld')).toThrow(
-      'unsupported origin protocol',
-    );
+    expect(normalizeOrigin('https://onaworld.example/')).toBe('https://onaworld.example');
+    expect(() => normalizeOrigin('app://onaworld')).toThrow('unsupported origin protocol');
   });
 
   it('builds websocket URLs from desktop API origins', () => {
-    expect(
-      runtimeWebSocketUrl('app:', 'onaworld', 'https://onaworld.example'),
-    ).toBe('wss://onaworld.example/ws');
+    expect(runtimeWebSocketUrl('app:', 'onaworld', 'https://onaworld.example')).toBe(
+      'wss://onaworld.example/ws',
+    );
     expect(runtimeWebSocketUrl('http:', '127.0.0.1:5173', '')).toBe('ws://127.0.0.1:5173/ws');
   });
 

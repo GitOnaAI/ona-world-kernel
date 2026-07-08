@@ -50,33 +50,29 @@ describe('web login guard (anti-bot)', () => {
     expect(
       isWebClientRequest(req({ origin: 'capacitor://localhost', host: 'onaworld.example' })),
     ).toBe(true);
-    expect(
-      isWebClientRequest(req({ origin: 'http://localhost', host: 'onaworld.example' })),
-    ).toBe(true);
-    expect(
-      isWebClientRequest(req({ origin: 'https://localhost', host: 'onaworld.example' })),
-    ).toBe(true);
+    expect(isWebClientRequest(req({ origin: 'http://localhost', host: 'onaworld.example' }))).toBe(
+      true,
+    );
+    expect(isWebClientRequest(req({ origin: 'https://localhost', host: 'onaworld.example' }))).toBe(
+      true,
+    );
   });
 
   it('identifies native app origins for Turnstile bypass', () => {
     expect(
       isNativeAppRequest(req({ origin: 'capacitor://localhost', host: 'onaworld.example' })),
     ).toBe(true);
+    expect(isNativeAppRequest(req({ origin: 'http://localhost', host: 'onaworld.example' }))).toBe(
+      true,
+    );
+    expect(isNativeAppRequest(req({ origin: 'https://localhost', host: 'onaworld.example' }))).toBe(
+      true,
+    );
     expect(
-      isNativeAppRequest(req({ origin: 'http://localhost', host: 'onaworld.example' })),
-    ).toBe(true);
-    expect(
-      isNativeAppRequest(req({ origin: 'https://localhost', host: 'onaworld.example' })),
-    ).toBe(true);
-    expect(
-      isNativeAppRequest(
-        req({ origin: 'https://onaworld.example', host: 'onaworld.example' }),
-      ),
+      isNativeAppRequest(req({ origin: 'https://onaworld.example', host: 'onaworld.example' })),
     ).toBe(false);
     expect(
-      isNativeAppRequest(
-        req({ origin: 'https://evil.example.com', host: 'onaworld.example' }),
-      ),
+      isNativeAppRequest(req({ origin: 'https://evil.example.com', host: 'onaworld.example' })),
     ).toBe(false);
     expect(isNativeAppRequest(req({ host: 'onaworld.example' }))).toBe(false);
   });
@@ -108,9 +104,7 @@ describe('desktop app origins (Electron shell)', () => {
     for (const origin of DESKTOP_APP_ORIGINS) {
       expect(isWebClientRequest(req({ origin, host: 'onaworld.example' }))).toBe(true);
     }
-    expect(isWebClientRequest(req({ origin: 'app://evil', host: 'onaworld.example' }))).toBe(
-      false,
-    );
+    expect(isWebClientRequest(req({ origin: 'app://evil', host: 'onaworld.example' }))).toBe(false);
   });
 });
 
