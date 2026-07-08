@@ -763,8 +763,9 @@ describe('delve reward chest + surface exit flow', () => {
     enterReliquary(sim);
     const run = sim.delveRunForPlayer(sim.playerId)!;
     // Pin the normal (non-Bountiful) chest so these fixtures aren't at the mercy of
-    // the ultra-rare roll (seed 42 happens to roll Bountiful). The Bountiful-Coffer
-    // tests below opt back in explicitly with `run.bountiful = true`.
+    // the ultra-rare roll (run.seed derives from the shared rng stream, so ANY
+    // upstream content change re-deals it). The Bountiful-Coffer tests below opt
+    // back in explicitly with `run.bountiful = true`.
     run.bountiful = false;
     // Jump straight to the finale as the only module
     run.modules = ['reliquary_finale'];
@@ -946,7 +947,9 @@ describe('delve reward chest + surface exit flow', () => {
 
   it('the Bountiful roll is deterministic for a given seed', () => {
     // Read the raw roll via enterReliquary (enterFinale pins it false). Same seed
-    // ⇒ same outcome; seed 42 is known to roll Bountiful (drives the fixtures above).
+    // ⇒ same outcome; seed 122 is known to roll Bountiful under the current world
+    // content (the derived run.seed shifts whenever upstream ctor spawns change —
+    // re-probe candidate seeds if this goes red after a content addition).
     const rollFor = (seed: number) => {
       const s = makeSim('warrior', seed);
       s.setPlayerLevel(DELVES.collapsed_reliquary.minLevel);
@@ -954,7 +957,7 @@ describe('delve reward chest + surface exit flow', () => {
       return s.delveRunForPlayer(s.playerId)?.bountiful;
     };
     expect(rollFor(1234)).toBe(rollFor(1234));
-    expect(rollFor(42)).toBe(true);
+    expect(rollFor(122)).toBe(true);
   });
 
   it('a Bountiful Coffer refuses the lower antes and only opens at Hard-tier + Premium ante', () => {
@@ -2383,9 +2386,20 @@ describe('The Drowned Litany (Phase 7 heroic affixes)', () => {
       p.pos.x = run.origin.x + h.x;
       p.pos.z = run.origin.z + zBase + h.z;
       p.prevPos = { ...p.pos };
-      const hp0 = p.hp;
-      for (let i = 0; i < 20; i++) sim.tick();
-      return hp0 - p.hp;
+      // Sum only the Blackwater pulse events: an hp-delta reading is poisoned by
+      // module-mob chip damage (mob swings re-deal on any shared-stream shift)
+      // and caps at death (%maxHp pulses can total past 100% under high_water).
+      // Topping off each tick keeps the pulses flowing for the whole window.
+      let dmg = 0;
+      for (let i = 0; i < 20; i++) {
+        for (const ev of sim.tick()) {
+          if (ev.type === 'damage' && ev.ability === 'Blackwater' && ev.targetId === p.id) {
+            dmg += ev.amount;
+          }
+        }
+        p.hp = p.maxHp;
+      }
+      return dmg;
     };
     const base = pulse([]);
     const flooded = pulse(['high_water']);
