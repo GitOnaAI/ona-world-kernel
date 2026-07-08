@@ -585,27 +585,15 @@ describe('client HTML shell', () => {
     expect(serverMain).toContain("['/support', '/support.html']");
   });
 
-  it('loads Meta Pixel outside local development and tracks level 5', () => {
-    expect(html).toContain('https://connect.facebook.net/en_US/fbevents.js');
-    expect(html).toContain("fbq('init', '1692101265042180');");
-    expect(html).toContain("fbq('track', 'PageView');");
-    expect(html).toContain(
-      'https://www.facebook.com/tr?id=1692101265042180&ev=PageView&noscript=1',
-    );
-    expect(html).toContain(
-      "if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {",
-    );
-    expect(hudTs).toContain("if (options) fbq('trackCustom', eventName, data ?? {}, options);");
-    expect(hudTs).toContain("else fbq('trackCustom', eventName, data ?? {});");
-    expect(hudTs).toContain('if (ev.level === 5) {');
-    expect(hudTs).toContain('characterId ? { eventID: `lvl5_$' + '{characterId}` } : undefined');
-    expect(mainTs).toContain("if (options) fbq('trackCustom', eventName, data ?? {}, options);");
-    expect(mainTs).toContain("else fbq('trackCustom', eventName, data ?? {});");
-    expect(mainTs).toContain(
-      'registered.accountId ? { eventID: `acct_$' + '{registered.accountId}` } : undefined',
-    );
-    expect(mainTs).toContain("'GitHubClick'");
-    expect(mainTs).toContain("'DiscordClick'");
+  it('ships no third-party marketing trackers (template guard)', () => {
+    // The Ona World Kernel template must not phone home to the original
+    // product's analytics: no Meta Pixel, no Google Analytics, no fbq calls.
+    expect(html).not.toContain('connect.facebook.net');
+    expect(html).not.toContain('googletagmanager.com');
+    expect(html).not.toContain('fbq(');
+    expect(hudTs).not.toContain('fbq(');
+    expect(mainTs).not.toContain('fbq(');
+    expect(mainTs).not.toContain("'GitHubClick'");
   });
 
   it('excludes web-only chrome from native and desktop app builds', () => {

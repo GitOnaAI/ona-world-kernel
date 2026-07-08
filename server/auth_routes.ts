@@ -61,7 +61,6 @@ import { withBody } from './http/middleware/body';
 import { turnstile } from './http/middleware/turnstile';
 import type { Ctx, Middleware, RouteDef } from './http/types';
 import { isUniqueViolation, json, moderationErrorBody } from './http_util';
-import { metaEventSourceUrl, metaRequestUserData, trackAccountCreated } from './meta_capi';
 import { createSuspiciousRegistrationReport } from './moderation_db';
 import { createNativeAttestationChallenge } from './native_attestation';
 import { captureReferral } from './player_card';
@@ -167,7 +166,6 @@ const REAL_AUTH_DB = {
   emailAccountCreated,
   createSuspiciousRegistrationReport,
   captureReferral,
-  trackAccountCreated,
 };
 let authDb = REAL_AUTH_DB;
 
@@ -287,20 +285,6 @@ async function registerHandler(ctx: Ctx): Promise<void> {
     locale: null,
     marketing_opt_in: false,
   });
-  // Server-side Meta CAPI conversion event (fire-and-forget; a no-op without
-  // META_CAPI env config, and it must never block or fail registration).
-  void authDb.trackAccountCreated(
-    account.id,
-    {
-      email: signupEmail,
-      // RequestMetadata's fields are nullable; the CAPI reader wants string | undefined.
-      ...metaRequestUserData(ctx.req, {
-        ip: meta.ip ?? undefined,
-        userAgent: meta.userAgent ?? undefined,
-      }),
-    },
-    metaEventSourceUrl(ctx.req),
-  );
   void authDb
     .createSuspiciousRegistrationReport({
       accountId: account.id,

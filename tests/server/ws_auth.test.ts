@@ -79,8 +79,6 @@ function setup() {
     // contract. permissionsForRoles echoes the roles so a test can pin the expansion.
     adminRolesForAccount: vi.fn(async () => null as { username: string; roles: string[] } | null),
     permissionsForRoles: vi.fn((roles: readonly string[]) => new Set<string>(roles)),
-    metaRequestUserData: vi.fn(() => ({ fbp: null, fbc: null })),
-    metaEventSourceUrl: vi.fn(() => undefined as string | undefined),
     loadAccountCosmetics: vi.fn(async () => ({ completedQuestIds: [], mechChromaIds: [] })),
     isConnectionRefused: vi.fn(() => false),
     bufferHandshakeMessages,
@@ -305,12 +303,10 @@ describe('createWsAuth: authenticateWebSocket accept path', () => {
     expect((session as { awaitingPong?: boolean }).awaitingPong).toBe(true);
   });
 
-  it('snapshots the staff roles into isAdmin + expanded adminPermissions, and rides the CAPI attribution', async () => {
+  it('snapshots the staff roles into isAdmin + expanded adminPermissions', async () => {
     const { ws, game, deps, req } = setup();
     deps.adminRolesForAccount = vi.fn(async () => ({ username: 'Op', roles: ['moderator'] }));
     deps.permissionsForRoles = vi.fn(() => new Set(['moderation.read', 'moderation.act']));
-    deps.metaRequestUserData = vi.fn(() => ({ fbp: 'fb.1.a', fbc: 'fb.1.b' }));
-    deps.metaEventSourceUrl = vi.fn(() => 'https://example.test/');
     const { authenticateWebSocket } = createWsAuth(deps);
     await authenticateWebSocket(asWs(ws), authRaw(), req);
     // The identity is resolved from the ROLES table (accountId 1) and expanded via
@@ -329,9 +325,6 @@ describe('createWsAuth: authenticateWebSocket accept path', () => {
       expect.objectContaining({
         isAdmin: true,
         adminPermissions: ['moderation.read', 'moderation.act'],
-        fbp: 'fb.1.a',
-        fbc: 'fb.1.b',
-        sourceUrl: 'https://example.test/',
       }),
     );
   });

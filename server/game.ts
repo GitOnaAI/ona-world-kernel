@@ -74,7 +74,6 @@ import { IpBlockList } from './ip_block';
 import { loadActiveBlockedIps } from './ip_block_db';
 import { LINKDEAD_GRACE_MS, planJoin } from './linkdead';
 import { type LiveSharedIp, sharedIpsFromLiveSessions } from './live_shared_ips';
-import { trackReachedLevel5 } from './meta_capi';
 import {
   forceCharacterRename,
   moderateAccount,
@@ -403,9 +402,6 @@ export interface ClientSession {
   // IP address at join time (from requestMetadata); used for per-IP session counting.
   ip: string;
   userAgent: string;
-  fbp: string;
-  fbc: string;
-  sourceUrl: string;
   isAdmin: boolean;
   // Expanded admin permissions, snapshotted at join like isAdmin (a role change
   // applies at the next login). Gates the in-game moderation commands.
@@ -1063,7 +1059,6 @@ export class GameServer {
             const events = this.sim.tick();
             lap('tick');
             this.routeEvents(events);
-            this.detectActivity(events);
             lap('events');
             this.runAntibotTick();
             lap('antibot');
@@ -1383,9 +1378,6 @@ export class GameServer {
         isAdmin?: boolean;
         adminPermissions?: readonly string[];
         clientSeed?: string;
-        fbp?: string | null;
-        fbc?: string | null;
-        sourceUrl?: string | null;
       } = {},
   ): ClientSession | { error: string } {
     // Anti-bot: cap simultaneous online characters per account. Accounts can
@@ -1474,9 +1466,6 @@ export class GameServer {
       sentEnts: new Map(),
       ip: sessionIp,
       userAgent: meta.userAgent ?? '',
-      fbp: meta.fbp ?? '',
-      fbc: meta.fbc ?? '',
-      sourceUrl: meta.sourceUrl ?? '',
       isAdmin: meta.isAdmin ?? false,
       // Permissions come only from the explicit set main.ts computes from the
       // account's roles; no is_admin fallback (fail closed, matching
@@ -3563,29 +3552,6 @@ export class GameServer {
     if (!d) return null;
     const otherPid = d.a === pid ? d.b : d.a;
     return { otherPid, otherName: this.sim.meta(otherPid)?.name ?? '?', state: d.state };
-  }
-
-  // Scan a tick's events for marketing-relevant milestones (the level-5 ding
-  // feeds the Meta CAPI tracker). Formerly this also enqueued "significant
-  // activity" cards for the Discord bot; that integration was removed.
-  private detectActivity(events: SimEvent[]): void {
-    for (const ev of events) {
-      if (ev.type === 'levelup' && ev.level === 5 && ev.pid !== undefined) {
-        const s = this.clients.get(ev.pid);
-        if (s) {
-          void trackReachedLevel5(
-            s.characterId,
-            {
-              clientIp: s.ip,
-              clientUserAgent: s.userAgent,
-              fbp: s.fbp,
-              fbc: s.fbc,
-            },
-            s.sourceUrl,
-          );
-        }
-      }
-    }
   }
 
   private routeEvents(events: SimEvent[]): void {

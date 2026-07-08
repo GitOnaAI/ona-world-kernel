@@ -148,7 +148,6 @@ import {
   mapsListMineCore,
   mapsPublicListCore,
 } from './maps_routes';
-import { metaEventSourceUrl, metaRequestUserData, trackAccountCreated } from './meta_capi';
 import {
   cleanReportReason,
   createPlayerReport,
@@ -819,14 +818,6 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
         locale: null,
         marketing_opt_in: false,
       });
-      void trackAccountCreated(
-        account.id,
-        {
-          email: signupEmail,
-          ...metaRequestUserData(req, meta),
-        },
-        metaEventSourceUrl(req),
-      );
       void createSuspiciousRegistrationReport({
         accountId: account.id,
         username: account.username,
@@ -2176,8 +2167,6 @@ export async function startServer(): Promise<http.Server> {
     chatMuteStatusForAccount,
     adminRolesForAccount,
     permissionsForRoles,
-    metaRequestUserData,
-    metaEventSourceUrl,
     loadAccountCosmetics,
     isConnectionRefused,
     bufferHandshakeMessages,

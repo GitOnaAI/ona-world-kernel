@@ -67,14 +67,6 @@ export interface WsAuthDeps {
     accountId: number,
   ) => Promise<{ username: string; roles: string[] } | null>;
   permissionsForRoles: (roles: readonly string[]) => ReadonlySet<string>;
-  // Meta CAPI attribution (server/meta_capi.ts): the browser-cookie user data and
-  // the event source URL ride the join metadata into the session for the
-  // server-side conversion events (e.g. trackReachedLevel5 in game.ts).
-  metaRequestUserData: (
-    req: http.IncomingMessage,
-    meta: { ip: string; userAgent: string },
-  ) => { fbp?: string | null; fbc?: string | null };
-  metaEventSourceUrl: (req: http.IncomingMessage) => string | undefined;
   loadAccountCosmetics: (accountId: number) => Promise<AccountCosmetics>;
   isConnectionRefused: (input: {
     blocked: boolean;
@@ -102,8 +94,6 @@ export function createWsAuth(deps: WsAuthDeps): WsAuthHandlers {
     chatMuteStatusForAccount,
     adminRolesForAccount,
     permissionsForRoles,
-    metaRequestUserData,
-    metaEventSourceUrl,
     loadAccountCosmetics,
     isConnectionRefused,
     bufferHandshakeMessages,
@@ -182,8 +172,6 @@ export function createWsAuth(deps: WsAuthDeps): WsAuthHandlers {
       character.is_gm,
       {
         ...meta,
-        ...metaRequestUserData(req, meta),
-        sourceUrl: metaEventSourceUrl(req),
         mutedUntil: status.chatMutedUntil ?? chatMute.mutedUntil,
         reason: chatMute.reason,
         chatStrikes: status.chatStrikes,

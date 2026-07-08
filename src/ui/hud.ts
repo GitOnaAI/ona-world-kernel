@@ -425,16 +425,6 @@ const ABSENT_TARGET_DESCRIPTOR: UnitFrameDescriptor = {
   dead: false,
   outOfRange: false,
 };
-const trackMetaPixel = (
-  eventName: string,
-  data?: Record<string, unknown>,
-  options?: Record<string, unknown>,
-): void => {
-  const fbq = (window as Window & { fbq?: (...args: unknown[]) => void }).fbq;
-  if (typeof fbq !== 'function') return;
-  if (options) fbq('trackCustom', eventName, data ?? {}, options);
-  else fbq('trackCustom', eventName, data ?? {});
-};
 // The HUD's i18n + number-formatting surface, handed to the pure stat-tooltip
 // view so it can render localized breakdowns without importing the i18n runtime.
 // Ghost-mode display thresholds, mirroring src/sim/spirit.ts (CORPSE_REZ_RANGE and
@@ -7123,14 +7113,6 @@ export class Hud {
           this.showBanner(t('hud.core.levelBanner', { level: ev.level }));
           this.log(t('hud.core.levelLog', { level: ev.level }), '#ffd100');
           audio.levelUp();
-          if (ev.level === 5) {
-            const characterId = (this.sim as unknown as { characterId?: number }).characterId;
-            trackMetaPixel(
-              'ReachedLevel5',
-              { level: ev.level },
-              characterId ? { eventID: `lvl5_${characterId}` } : undefined,
-            );
-          }
           // First talent point (and spec) unlock — nudge the player to the panel.
           if (ev.level === FIRST_TALENT_LEVEL && talentsFor(this.sim.cfg.playerClass)) {
             this.showBanner(t('game.talents.unlockBanner'));
