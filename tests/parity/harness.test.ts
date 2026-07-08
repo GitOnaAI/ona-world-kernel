@@ -133,7 +133,6 @@ describe('exclude lists are pinned and real (anti-loosening guard)', () => {
       'color',
       'equippedItems',
       'guild',
-      'holderBalance',
       'mainhandItemId',
       'name',
       'netInterval',
