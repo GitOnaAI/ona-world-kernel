@@ -17,14 +17,14 @@ permissions:
 #   pr-gate       cheap, English-only-legal tier. Runs on pull requests, on pushes
 #                 to non-release branches (main, dev-*), and on manual dispatch.
 #                 It runs `npm test` WITHOUT I18N_RELEASE_TIER, so the release-only
-#                 checks (s3_localized, copied-English rendered content, 14-locale
+#                 checks (s3_localized, copied-English rendered content, all-locale
 #                 key parity, empty-`pending`) are skipped. What it still enforces:
 #                 tsc against the dense generated artifact, registry-in-sync,
 #                 s3_registered (every emit maps to a registered key/RULE), and
 #                 placeholder parity for the translations that actually exist. An
 #                 English-only PR (sparse overlay) passes here.
 #
-#   release-gate  full 14-locale tier. Runs on pushes to release/** only, with
+#   release-gate  full locale tier (en + pt_BR since the kernel trim). Runs on pushes to release/** only, with
 #                 I18N_RELEASE_TIER=1 so the release-only checks RUN. A merely
 #                 `pending` (untranslated) key cannot survive this gate.
 #
@@ -157,7 +157,7 @@ jobs:
         run: npm run build
 
   release-gate:
-    name: Release gate (full 14-locale)
+    name: Release gate (full locale tier)
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
     runs-on: ubuntu-latest
 
@@ -196,7 +196,7 @@ jobs:
       - name: Malicious-code gate
         run: npm run security:gate
 
-      - name: Run tests (release tier - 14-locale + empty-pending)
+      - name: Run tests (release tier - all locales + empty-pending)
         run: npm test
 
       - name: Typecheck

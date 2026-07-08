@@ -37,11 +37,19 @@ Most directories above have their own `CLAUDE.md` with local conventions; read i
 - `npm run dev`: Vite client on :5173 (proxies `/api`, `/ws` to :8787).
 - `npm run server`: esbuild-bundle + run the authoritative server on :8787.
 - `npm test`: Vitest. **Prefer a single file while iterating:** `npx vitest run tests/sim.test.ts`.
-- `npm run gate`: the full CI-equivalent pre-merge gate (i18n gen + freshness, malware scan,
-  changed-files biome, full tests with bounded workers, `tsc`, all builds; release-tier
-  automatically on a `release/**` branch). Exit-code-safe; use it instead of an ad-hoc `&&` chain
-  before calling a change done (piping `npm test` through `tail` masks its exit code, and an
-  unbounded run flakes heavy suites under core contention).
+- `npm run gate`: the full CI-equivalent pre-merge gate (9 steps: i18n gen + freshness, malware
+  scan, changed-files biome, full tests with bounded workers, `tsc`, env + server + client
+  builds; release-tier automatically on a `release/**` branch). Exit-code-safe; use it instead
+  of an ad-hoc `&&` chain before calling a change done (piping `npm test` through `tail` masks
+  its exit code, and an unbounded run flakes heavy suites under core contention).
+- **Phase gates (when to run what).** During development, run only the tests for the files you
+  touched (`npx vitest run tests/<affected>.test.ts`) plus the guard tests in play
+  (architecture / S3 i18n / parity); the full `npm run gate` is the PRE-MERGE step, not the
+  inner loop. On low-RAM machines the gate's half-the-cores cap can still show rotating
+  per-file timeouts across 4 workers (the load-flake failure mode documented in
+  `scripts/gate.mjs`): rerun the test step as `npx vitest run --maxWorkers=2`, or run the gate
+  in a quiet window; files that then pass in isolation are load flakes, not regressions. The
+  full protocol is the `phase-check` skill (`.claude/skills/phase-check/SKILL.md`).
 - `npm run build`: generate media manifest, then `vite build`, then emit manifest. Two entries (game, play).
 - `npm run env` / `npm run bench`: build + run the headless RL env server.
 - `npm run db:up` / `npm run db:down`: Postgres 16 in Docker (dev DB on :5433).
