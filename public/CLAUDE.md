@@ -50,7 +50,7 @@ standalone localized HTML pages `server-unavailable.html` (offline page) and
 ## i18n: the two standalone HTML pages
 `server-unavailable.html` and `links.html` carry **player-facing copy** and are fully
 localized, but they do **NOT** use the app's `t()` system: they ship outside the bundle.
-Each page embeds its **own self-contained `copy = { en, es, …, ru_RU }` map (every locale in
+Each page embeds its **own self-contained `copy = { en, pt_BR }` map (every locale in
 `supportedLanguages` inline)** plus a `data-i18n*` loader that picks the language (`?lang=`, then
 `localStorage["locale"]`, then `navigator.language`, then `en`), sets
 `document.documentElement.lang`/`document.title`, and writes text via `data-i18n*`

@@ -58,7 +58,7 @@ describe('server-sent message localization', () => {
       for (const s of samples) {
         const out = localizeServerText(s);
         expect(out, `${lang}: "${s}" should be recognized`).not.toBeNull();
-        if (lang !== 'en' && lang !== 'en_CA') {
+        if (lang !== 'en') {
           expect(out, `${lang}: "${s}" should not stay English`).not.toBe(s);
         }
       }
@@ -82,7 +82,7 @@ describe('server-sent message localization', () => {
   });
 
   it('returns null for text that is not a server message', () => {
-    setLanguage('es');
+    setLanguage('pt_BR');
     expect(localizeServerText('This is an ordinary chat line.')).toBeNull();
     expect(localizeServerText('')).toBeNull();
     setLanguage('en');
@@ -129,52 +129,43 @@ describe('server-sent message localization', () => {
 });
 
 describe('in-game moderation strings round-trip through localizeServerText', () => {
-  const cases: { input: string; es: string; de: string }[] = [
+  const cases: { input: string; pt: string }[] = [
     {
       input: 'Enclose the character name in double quotes.',
-      es: 'Escribe el nombre del personaje entre comillas dobles.',
-      de: 'Setzt den Charakternamen in doppelte Anführungszeichen.',
+      pt: 'Coloque o nome do personagem entre aspas duplas.',
     },
     {
       input: "You can't moderate that player.",
-      es: 'No puedes moderar a ese jugador.',
-      de: 'Diesen Spieler könnt ihr nicht moderieren.',
+      pt: 'Você não pode moderar esse jogador.',
     },
     {
       input: 'Usage: /spectate <name>',
-      es: 'Uso: /spectate <nombre>',
-      de: 'Verwendung: /spectate <Name>',
+      pt: 'Uso: /spectate <nome>',
     },
     {
       input: "No online player named 'Bob'.",
-      es: "No hay ningún jugador conectado llamado 'Bob'.",
-      de: "Kein Spieler namens 'Bob' ist online.",
+      pt: "Não há nenhum jogador online chamado 'Bob'.",
     },
     {
       input: 'Now spectating Bob.',
-      es: 'Ahora estás observando a Bob.',
-      de: 'Ihr beobachtet jetzt Bob.',
+      pt: 'Agora observando Bob.',
     },
     {
       input: 'Bob is no longer online; spectate ended.',
-      es: 'Bob ya no está conectado; la observación ha terminado.',
-      de: 'Bob ist nicht mehr online; die Beobachtung wurde beendet.',
+      pt: 'Bob não está mais online; a observação foi encerrada.',
     },
-    { input: 'Kicked Bob.', es: 'Has expulsado a Bob.', de: 'Bob wurde entfernt.' },
-    { input: 'Killed Bob.', es: 'Has matado a Bob.', de: 'Bob wurde getötet.' },
+    { input: 'Kicked Bob.', pt: 'Bob foi expulso.' },
+    { input: 'Killed Bob.', pt: 'Bob foi morto.' },
     {
       input: 'Muted Bob for 5 minutes.',
-      es: 'Has silenciado a Bob durante 5 minutos.',
-      de: 'Bob wurde für 5 Minuten stummgeschaltet.',
+      pt: 'Bob foi silenciado por 5 minutos.',
     },
   ];
 
-  it('renders the exact localized form in es and de_DE', () => {
+  it('renders the exact localized form in pt_BR', () => {
+    setLanguage('pt_BR');
     for (const c of cases) {
-      setLanguage('es');
-      expect(localizeServerText(c.input), `es: ${c.input}`).toBe(c.es);
-      setLanguage('de_DE');
-      expect(localizeServerText(c.input), `de_DE: ${c.input}`).toBe(c.de);
+      expect(localizeServerText(c.input), `pt_BR: ${c.input}`).toBe(c.pt);
     }
     setLanguage('en');
   });
@@ -191,48 +182,40 @@ describe('in-game moderation strings round-trip through localizeServerText', () 
 });
 
 // Concrete round-trips for the chat-moderation RULES (the strings the server emits at
-// runtime after substituting the count). Pinned to es + de_DE so a RULE that stops
-// matching, stops interpolating, or loses a dialect bites with an exact mismatch.
+// runtime after substituting the count). Pinned to pt_BR so a RULE that stops
+// matching or stops interpolating bites with an exact mismatch.
 describe('chat-moderation strings round-trip through localizeServerText', () => {
-  const cases: { input: string; es: string; de: string }[] = [
+  const cases: { input: string; pt: string }[] = [
     {
       input: 'You are muted from chat for 5 more minutes.',
-      es: 'Estás silenciado en el chat durante 5 minutos más.',
-      de: 'Ihr seid noch 5 Minuten lang vom Chat stummgeschaltet.',
+      pt: 'Você está silenciado no chat por mais 5 minutos.',
     },
     {
       input: 'You are muted from chat for 1 more minute.',
-      es: 'Estás silenciado en el chat durante 1 minuto más.',
-      de: 'Ihr seid noch 1 Minute lang vom Chat stummgeschaltet.',
+      pt: 'Você está silenciado no chat por mais 1 minuto.',
     },
     {
       input: "That language isn't allowed here. You're muted for 5 minutes.",
-      es: 'Ese lenguaje no está permitido aquí. Estás silenciado durante 5 minutos.',
-      de: 'Diese Sprache ist hier nicht erlaubt. Ihr seid für 5 Minuten stummgeschaltet.',
+      pt: 'Esse tipo de linguagem não é permitido aqui. Você foi silenciado por 5 minutos.',
     },
     {
       input: 'Chat is on cooldown for 5s.',
-      es: 'El chat está en recarga durante 5s.',
-      de: 'Chat hat noch 5s Abklingzeit.',
+      pt: 'O chat está em recarga por 5s.',
     },
   ];
 
-  it('renders the exact localized form in es and de_DE', () => {
+  it('renders the exact localized form in pt_BR', () => {
+    setLanguage('pt_BR');
     for (const c of cases) {
-      setLanguage('es');
-      expect(localizeServerText(c.input), `es: ${c.input}`).toBe(c.es);
-      setLanguage('de_DE');
-      expect(localizeServerText(c.input), `de_DE: ${c.input}`).toBe(c.de);
+      expect(localizeServerText(c.input), `pt_BR: ${c.input}`).toBe(c.pt);
     }
     setLanguage('en');
   });
 
-  it('recognizes but does not alter the English source under en / en_CA', () => {
+  it('recognizes but does not alter the English source under en', () => {
+    setLanguage('en');
     for (const c of cases) {
-      for (const lang of ['en', 'en_CA'] as const) {
-        setLanguage(lang);
-        expect(localizeServerText(c.input), `${lang}: ${c.input}`).toBe(c.input);
-      }
+      expect(localizeServerText(c.input), `en: ${c.input}`).toBe(c.input);
     }
     setLanguage('en');
   });
@@ -242,19 +225,19 @@ describe('chat-moderation strings round-trip through localizeServerText', () => 
 // whose build() calls it. These duration strings are exactly what server/game.ts's
 // formatDuration emits ("1 minute" / "5 minutes" / "1 hour" / "3 days").
 describe('localizeServerDuration maps formatDuration output (via the filter-mute RULE)', () => {
-  const cases: { duration: string; es: string }[] = [
-    { duration: '1 minute', es: '1 minuto' },
-    { duration: '5 minutes', es: '5 minutos' },
-    { duration: '1 hour', es: '1 hora' },
-    { duration: '3 days', es: '3 días' },
+  const cases: { duration: string; pt: string }[] = [
+    { duration: '1 minute', pt: '1 minuto' },
+    { duration: '5 minutes', pt: '5 minutos' },
+    { duration: '1 hour', pt: '1 hora' },
+    { duration: '3 days', pt: '3 dias' },
   ];
 
-  it('localizes each duration unit inside the filter-mute notice (es)', () => {
-    setLanguage('es');
+  it('localizes each duration unit inside the filter-mute notice (pt_BR)', () => {
+    setLanguage('pt_BR');
     for (const c of cases) {
       const input = `You are muted and can't chat for another ${c.duration}.`;
-      expect(localizeServerText(input), `es duration ${c.duration}`).toBe(
-        `Estás silenciado y no puedes chatear durante ${c.es} más.`,
+      expect(localizeServerText(input), `pt_BR duration ${c.duration}`).toBe(
+        `Você está silenciado e não pode usar o chat por mais ${c.pt}.`,
       );
     }
     setLanguage('en');

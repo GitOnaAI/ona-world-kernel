@@ -22,7 +22,6 @@ import {
 } from './db';
 import { logger } from './http/logger';
 import { isUniqueViolation, json, parsePngInfo, readBinaryBody } from './http_util';
-import { PLAYERCARD_NEW } from './player_card.newlocales';
 import { recordUsageMetric } from './provider_usage';
 import { REALM_PUBLIC_ORIGIN } from './realm';
 
@@ -51,29 +50,7 @@ const CARD_PAGE_NOT_FOUND_HEADERS = {
   'Cache-Control': 'no-store, max-age=0',
 } as const;
 
-export const PUBLIC_CARD_LOCALES = [
-  'en',
-  'es',
-  'es_ES',
-  'fr_FR',
-  'fr_CA',
-  'en_CA',
-  'it_IT',
-  'de_DE',
-  'zh_CN',
-  'zh_TW',
-  'ko_KR',
-  'ja_JP',
-  'pt_BR',
-  'ru_RU',
-  'nl_NL',
-  'pl_PL',
-  'id_ID',
-  'tr_TR',
-  'sv_SE',
-  'vi_VN',
-  'da_DK',
-] as const;
+export const PUBLIC_CARD_LOCALES = ['en', 'pt_BR'] as const;
 export type PublicCardLocale = (typeof PUBLIC_CARD_LOCALES)[number];
 
 type PlayerClassKey =
@@ -125,239 +102,6 @@ export const PUBLIC_CARD_COPY: Record<PublicCardLocale, PublicCardCopy> = {
     missingCta: 'Enter World of Claudecraft',
     classes: EN_CLASSES,
   },
-  es: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Aventurero',
-    levelClass: 'Nivel {level} {className}',
-    description: '{name} está forjando una leyenda en World of Claudecraft. Únete al reino.',
-    cta: 'Forja tu leyenda',
-    missingTitle: 'Carta no encontrada',
-    missingHeading: 'Esta carta ya no está disponible.',
-    missingDescription: 'Puede haberse retirado o no haber existido nunca.',
-    missingCta: 'Entrar en World of Claudecraft',
-    classes: {
-      warrior: 'Guerrero',
-      paladin: 'Paladín',
-      hunter: 'Cazador',
-      rogue: 'Pícaro',
-      priest: 'Sacerdote',
-      shaman: 'Chamán',
-      mage: 'Mago',
-      warlock: 'Brujo',
-      druid: 'Druida',
-    },
-  },
-  es_ES: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Aventurero',
-    levelClass: 'Nivel {level} {className}',
-    description: '{name} está forjando una leyenda en World of Claudecraft. Únete al reino.',
-    cta: 'Forja tu leyenda',
-    missingTitle: 'Carta no encontrada',
-    missingHeading: 'Esta carta ya no está disponible.',
-    missingDescription: 'Puede haberse retirado o no haber existido nunca.',
-    missingCta: 'Entrar en World of Claudecraft',
-    classes: {
-      warrior: 'Guerrero',
-      paladin: 'Paladín',
-      hunter: 'Cazador',
-      rogue: 'Pícaro',
-      priest: 'Sacerdote',
-      shaman: 'Chamán',
-      mage: 'Mago',
-      warlock: 'Brujo',
-      druid: 'Druida',
-    },
-  },
-  fr_FR: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Aventurier',
-    levelClass: 'Niveau {level} {className}',
-    description: '{name} forge sa légende dans World of Claudecraft. Rejoignez le royaume.',
-    cta: 'Forgez votre légende',
-    missingTitle: 'Carte introuvable',
-    missingHeading: "Cette carte n'est plus disponible.",
-    missingDescription: "Elle a peut-être été retirée ou n'a jamais existé.",
-    missingCta: 'Entrer dans World of Claudecraft',
-    classes: {
-      warrior: 'Guerrier',
-      paladin: 'Paladin',
-      hunter: 'Chasseur',
-      rogue: 'Voleur',
-      priest: 'Prêtre',
-      shaman: 'Chaman',
-      mage: 'Mage',
-      warlock: 'Démoniste',
-      druid: 'Druide',
-    },
-  },
-  fr_CA: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Aventurier',
-    levelClass: 'Niveau {level} {className}',
-    description: '{name} forge sa légende dans World of Claudecraft. Rejoignez le royaume.',
-    cta: 'Forgez votre légende',
-    missingTitle: 'Carte introuvable',
-    missingHeading: "Cette carte n'est plus disponible.",
-    missingDescription: "Elle a peut-être été retirée ou n'a jamais existé.",
-    missingCta: 'Entrer dans World of Claudecraft',
-    classes: {
-      warrior: 'Guerrier',
-      paladin: 'Paladin',
-      hunter: 'Chasseur',
-      rogue: 'Voleur',
-      priest: 'Prêtre',
-      shaman: 'Chaman',
-      mage: 'Mage',
-      warlock: 'Démoniste',
-      druid: 'Druide',
-    },
-  },
-  en_CA: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Adventurer',
-    levelClass: 'Level {level} {className}',
-    description: '{name} is forging a legend in World of Claudecraft. Join the realm.',
-    cta: 'Forge your legend',
-    missingTitle: 'Card not found',
-    missingHeading: 'This card is no longer available.',
-    missingDescription: 'It may have been retired or never existed.',
-    missingCta: 'Enter World of Claudecraft',
-    classes: EN_CLASSES,
-  },
-  it_IT: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Avventuriero',
-    levelClass: 'Livello {level} {className}',
-    description: '{name} sta forgiando una leggenda in World of Claudecraft. Entra nel reame.',
-    cta: 'Forgia la tua leggenda',
-    missingTitle: 'Carta non trovata',
-    missingHeading: 'Questa carta non è più disponibile.',
-    missingDescription: 'Potrebbe essere stata ritirata o non essere mai esistita.',
-    missingCta: 'Entra in World of Claudecraft',
-    classes: {
-      warrior: 'Guerriero',
-      paladin: 'Paladino',
-      hunter: 'Cacciatore',
-      rogue: 'Ladro',
-      priest: 'Sacerdote',
-      shaman: 'Sciamano',
-      mage: 'Mago',
-      warlock: 'Stregone',
-      druid: 'Druido',
-    },
-  },
-  de_DE: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Abenteurer',
-    levelClass: 'Stufe {level} {className}',
-    description: '{name} schmiedet eine Legende in World of Claudecraft. Betretet das Reich.',
-    cta: 'Schmiedet eure Legende',
-    missingTitle: 'Karte nicht gefunden',
-    missingHeading: 'Diese Karte ist nicht mehr verfügbar.',
-    missingDescription: 'Sie wurde vielleicht entfernt oder hat nie existiert.',
-    missingCta: 'World of Claudecraft betreten',
-    classes: {
-      warrior: 'Krieger',
-      paladin: 'Paladin',
-      hunter: 'Jäger',
-      rogue: 'Schurke',
-      priest: 'Priester',
-      shaman: 'Schamane',
-      mage: 'Magier',
-      warlock: 'Hexenmeister',
-      druid: 'Druide',
-    },
-  },
-  zh_CN: {
-    gameName: 'World of Claudecraft',
-    unknownClass: '冒险者',
-    levelClass: '{level}级 {className}',
-    description: '{name} 正在 World of Claudecraft 中铸就传奇。加入这个国度。',
-    cta: '铸就你的传奇',
-    missingTitle: '未找到卡片',
-    missingHeading: '这张卡片已不可用。',
-    missingDescription: '它可能已被撤下，或从未存在。',
-    missingCta: '进入 World of Claudecraft',
-    classes: {
-      warrior: '战士',
-      paladin: '圣骑士',
-      hunter: '猎人',
-      rogue: '潜行者',
-      priest: '牧师',
-      shaman: '萨满祭司',
-      mage: '法师',
-      warlock: '术士',
-      druid: '德鲁伊',
-    },
-  },
-  zh_TW: {
-    gameName: 'World of Claudecraft',
-    unknownClass: '冒險者',
-    levelClass: '{level}級 {className}',
-    description: '{name} 正在 World of Claudecraft 中鑄就傳奇。加入這個國度。',
-    cta: '鑄就你的傳奇',
-    missingTitle: '找不到卡片',
-    missingHeading: '這張卡片已不可用。',
-    missingDescription: '它可能已被移除，或從未存在。',
-    missingCta: '進入 World of Claudecraft',
-    classes: {
-      warrior: '戰士',
-      paladin: '聖騎士',
-      hunter: '獵人',
-      rogue: '潛行者',
-      priest: '牧師',
-      shaman: '薩滿',
-      mage: '法師',
-      warlock: '術士',
-      druid: '德魯伊',
-    },
-  },
-  ko_KR: {
-    gameName: 'World of Claudecraft',
-    unknownClass: '모험가',
-    levelClass: '{level}레벨 {className}',
-    description:
-      '{name}님이 World of Claudecraft에서 전설을 만들어 가고 있습니다. 세계에 합류하세요.',
-    cta: '나만의 전설 만들기',
-    missingTitle: '카드를 찾을 수 없음',
-    missingHeading: '이 카드는 더 이상 사용할 수 없습니다.',
-    missingDescription: '삭제되었거나 존재한 적이 없을 수 있습니다.',
-    missingCta: 'World of Claudecraft 입장',
-    classes: {
-      warrior: '전사',
-      paladin: '성기사',
-      hunter: '사냥꾼',
-      rogue: '도적',
-      priest: '사제',
-      shaman: '주술사',
-      mage: '마법사',
-      warlock: '흑마법사',
-      druid: '드루이드',
-    },
-  },
-  ja_JP: {
-    gameName: 'World of Claudecraft',
-    unknownClass: '冒険者',
-    levelClass: 'レベル{level} {className}',
-    description: '{name} は World of Claudecraft で伝説を築いています。王国に参加しましょう。',
-    cta: '自分の伝説を築く',
-    missingTitle: 'カードが見つかりません',
-    missingHeading: 'このカードは現在利用できません。',
-    missingDescription: '削除されたか、存在しなかった可能性があります。',
-    missingCta: 'World of Claudecraft に入る',
-    classes: {
-      warrior: '戦士',
-      paladin: 'パラディン',
-      hunter: 'ハンター',
-      rogue: 'ローグ',
-      priest: 'プリースト',
-      shaman: 'シャーマン',
-      mage: 'メイジ',
-      warlock: 'ウォーロック',
-      druid: 'ドルイド',
-    },
-  },
   pt_BR: {
     gameName: 'World of Claudecraft',
     unknownClass: 'Aventureiro',
@@ -380,29 +124,6 @@ export const PUBLIC_CARD_COPY: Record<PublicCardLocale, PublicCardCopy> = {
       druid: 'Druida',
     },
   },
-  ru_RU: {
-    gameName: 'World of Claudecraft',
-    unknownClass: 'Искатель приключений',
-    levelClass: '{className}, уровень {level}',
-    description: '{name} создает легенду в World of Claudecraft. Присоединяйтесь к миру.',
-    cta: 'Создать свою легенду',
-    missingTitle: 'Карточка не найдена',
-    missingHeading: 'Эта карточка больше недоступна.',
-    missingDescription: 'Она могла быть удалена или никогда не существовала.',
-    missingCta: 'Войти в World of Claudecraft',
-    classes: {
-      warrior: 'Воин',
-      paladin: 'Паладин',
-      hunter: 'Охотник',
-      rogue: 'Разбойник',
-      priest: 'Жрец',
-      shaman: 'Шаман',
-      mage: 'Маг',
-      warlock: 'Чернокнижник',
-      druid: 'Друид',
-    },
-  },
-  ...PLAYERCARD_NEW,
 };
 
 const PUBLIC_CARD_LOCALE_BY_LOWER = new Map(
@@ -415,26 +136,8 @@ export function normalizePublicCardLocale(raw: unknown): PublicCardLocale {
   const exact = PUBLIC_CARD_LOCALE_BY_LOWER.get(cleaned.toLowerCase());
   if (exact) return exact;
   const lower = cleaned.toLowerCase();
-  if (lower.startsWith('es')) return 'es';
-  if (lower === 'fr_ca') return 'fr_CA';
-  if (lower.startsWith('fr')) return 'fr_FR';
-  if (lower === 'en_ca') return 'en_CA';
   if (lower.startsWith('en')) return 'en';
-  if (lower.startsWith('it')) return 'it_IT';
-  if (lower.startsWith('de')) return 'de_DE';
-  if (lower === 'zh_tw' || lower === 'zh_hant' || lower.startsWith('zh_hk')) return 'zh_TW';
-  if (lower.startsWith('zh')) return 'zh_CN';
-  if (lower.startsWith('ko')) return 'ko_KR';
-  if (lower.startsWith('ja')) return 'ja_JP';
   if (lower.startsWith('pt')) return 'pt_BR';
-  if (lower.startsWith('ru')) return 'ru_RU';
-  if (lower.startsWith('nl')) return 'nl_NL';
-  if (lower.startsWith('pl')) return 'pl_PL';
-  if (lower.startsWith('id')) return 'id_ID';
-  if (lower.startsWith('tr')) return 'tr_TR';
-  if (lower.startsWith('sv')) return 'sv_SE';
-  if (lower.startsWith('vi')) return 'vi_VN';
-  if (lower.startsWith('da')) return 'da_DK';
   return 'en';
 }
 

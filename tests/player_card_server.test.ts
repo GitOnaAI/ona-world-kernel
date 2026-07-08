@@ -392,14 +392,14 @@ describe('POST /api/card', () => {
   it('stores localized public-page metadata using the upload locale', async () => {
     characterRows = [{ id: 5, account_id: 1, name: 'Sir Test', class: 'paladin', level: 12 }];
     slugRows = [];
-    const { status } = await callUpload('/api/card?character=5&lang=es-ES', validCardPng);
+    const { status } = await callUpload('/api/card?character=5&lang=pt-BR', validCardPng);
     expect(status).toBe(200);
     const insert = dbMock.query.mock.calls.find((c) =>
       String(c[0]).includes('INSERT INTO player_cards'),
     );
-    expect(insert?.[1][4]).toBe('Sir Test - Nivel 12 Paladín');
-    expect(insert?.[1][5]).toContain('Sir Test está forjando una leyenda');
-    expect(insert?.[1][6]).toBe('es_ES');
+    expect(insert?.[1][4]).toBe('Sir Test - Nível 12 Paladino');
+    expect(insert?.[1][5]).toContain('Sir Test está forjando uma lenda');
+    expect(insert?.[1][6]).toBe('pt_BR');
   });
 
   it('falls back to a character-id-suffixed slug when the name slug is taken', async () => {
@@ -663,27 +663,27 @@ describe('GET /p/<slug>', () => {
         png: validCardPng,
         title: 't',
         description: 'd',
-        locale: 'es_ES',
+        locale: 'pt_BR',
       },
     ];
     const res = makeRes();
     await handleCardRoutes(makeGetReq('/p/sir-test'), res);
     const html = String(res.body);
-    expect(html).toContain('<html lang="es-ES">');
-    expect(html).toContain(`>${PUBLIC_CARD_COPY.es_ES.cta}</a>`);
-    expect(html).toContain(`<footer>${PUBLIC_CARD_COPY.es_ES.gameName}</footer>`);
+    expect(html).toContain('<html lang="pt-BR">');
+    expect(html).toContain(`>${PUBLIC_CARD_COPY.pt_BR.cta}</a>`);
+    expect(html).toContain(`<footer>${PUBLIC_CARD_COPY.pt_BR.gameName}</footer>`);
     expect(html).not.toContain('\u2192');
     expect(html).not.toContain('\u2014');
 
     cardRows = [];
     const missing = makeRes();
-    await handleCardRoutes(makeGetReq('/p/nope?lang=fr-CA'), missing);
+    await handleCardRoutes(makeGetReq('/p/nope?lang=pt-BR'), missing);
     const missingHtml = String(missing.body);
     expect(missing.statusCode).toBe(404);
-    expect(missingHtml).toContain('<html lang="fr-CA">');
-    expect(missingHtml).toContain('Cette carte n&#39;est plus disponible.');
-    expect(missingHtml).toContain('Elle a peut-être été retirée ou n&#39;a jamais existé.');
-    expect(missingHtml).toContain(`>${PUBLIC_CARD_COPY.fr_CA.missingCta}</a>`);
+    expect(missingHtml).toContain('<html lang="pt-BR">');
+    expect(missingHtml).toContain('Este cartão não está mais disponível.');
+    expect(missingHtml).toContain('Ele pode ter sido removido ou nunca ter existido.');
+    expect(missingHtml).toContain(`>${PUBLIC_CARD_COPY.pt_BR.missingCta}</a>`);
     expect(missingHtml).not.toContain('\u2192');
     expect(missingHtml).not.toContain('\u2014');
   });
@@ -703,9 +703,10 @@ describe('GET /p/<slug>', () => {
   });
 
   it('normalizes card locale inputs and falls back to English', () => {
-    expect(normalizePublicCardLocale('fr-CA')).toBe('fr_CA');
-    expect(normalizePublicCardLocale('zh-Hant')).toBe('zh_TW');
     expect(normalizePublicCardLocale('pt')).toBe('pt_BR');
+    expect(normalizePublicCardLocale('pt-BR')).toBe('pt_BR');
+    expect(normalizePublicCardLocale('en-CA')).toBe('en');
+    expect(normalizePublicCardLocale('fr-CA')).toBe('en');
     expect(normalizePublicCardLocale('unknown')).toBe('en');
   });
 
@@ -714,14 +715,14 @@ describe('GET /p/<slug>', () => {
     const res = makeRes();
     await handleCardRoutes(
       makeGetReq('/p/nope', {
-        headers: { 'accept-language': 'de-DE;q=0.9,fr-CA;q=0.8,en;q=0.1' },
+        headers: { 'accept-language': 'pt-BR;q=0.9,en;q=0.1' },
       }),
       res,
     );
     const html = String(res.body);
     expect(res.statusCode).toBe(404);
-    expect(html).toContain('<html lang="de-DE">');
-    expect(html).toContain(PUBLIC_CARD_COPY.de_DE.missingCta);
+    expect(html).toContain('<html lang="pt-BR">');
+    expect(html).toContain(PUBLIC_CARD_COPY.pt_BR.missingCta);
   });
 
   it('HTML-escapes an apostrophe in the title', async () => {

@@ -29,7 +29,7 @@ const EN: Record<(typeof HUD_CHROME_KEYS)[number], string> = {
 
 describe('hudChrome.* keys (English-only catalog module)', () => {
   beforeAll(async () => {
-    await ensureLocaleLoaded('es');
+    await ensureLocaleLoaded('pt_BR');
   });
 
   it('every new key resolves to its exact English value under en', () => {
@@ -40,19 +40,18 @@ describe('hudChrome.* keys (English-only catalog module)', () => {
     setLanguage('en');
   });
 
-  it('the translatable keys resolve to non-English under es', () => {
-    setLanguage('es');
-    // emoteWheel / clickMoveLeft / talents.defaultBuildName / tips.joinChannels are all
-    // translated in Spanish. (defaultBuildName keeps the "Build" loanword in some locales
-    // such as de_DE, so this assertion uses es, which translates it.)
+  it('the translatable keys resolve to non-English under pt_BR', () => {
+    setLanguage('pt_BR');
+    // emoteWheel / clickMoveLeft / tips.joinChannels are all translated in Brazilian
+    // Portuguese. (talents.defaultBuildName keeps the "Build" loanword in pt_BR, so it
+    // stays byte-identical to English and is not asserted here.)
     const translated = [
       'hudChrome.keybinds.emoteWheel',
       'hudChrome.options.clickMoveLeft',
-      'hudChrome.talents.defaultBuildName',
       'hudChrome.tips.joinChannels',
     ] as const;
     for (const key of translated) {
-      expect(t(key), `${key} should be translated in es`).not.toBe(EN[key]);
+      expect(t(key), `${key} should be translated in pt_BR`).not.toBe(EN[key]);
     }
     setLanguage('en');
   });

@@ -153,10 +153,6 @@ Skip if no player-visible text changed.
 - No user-readable literal escapes the system: no `?? 'English'` fallbacks, no concat of English
   fragments, no literal passed to `setAttribute('aria-label'|'title'|'placeholder'|'alt')` or
   `document.title`. The admin dashboard text is in scope (operators are users).
-- Watch the M16 trap: a wordy new English value (a run of 4+ consecutive lowercase letters)
-  needs its five non-Latin (`zh_CN`/`zh_TW`/`ja_JP`/`ko_KR`/`ru_RU`) fills in the SAME change,
-  because the always-on `tests/i18n_completeness.test.ts` reds at PR tier, not just release
-  (the maintainer normally adds them at merge).
   For any change to the wire/matcher seam, dispatch `cross-platform-sync`.
 
 ### 6. Renderer & UI

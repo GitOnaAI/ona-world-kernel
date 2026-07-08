@@ -7,7 +7,6 @@ import { ITEM_SETS } from '../../sim/data';
 import { worldEntityText as worldNames } from '../world_entity_i18n';
 import { abilityStrings, classAbilityNames } from './abilities';
 import { apiErrorStrings } from './api_error';
-import { editorStrings } from './editor';
 import { gameStrings } from './game';
 import { guideStrings } from './guide';
 import { hudStrings } from './hud';
@@ -19,7 +18,6 @@ import { shellStrings } from './shell';
 
 export { abilityStrings, classAbilityNames } from './abilities';
 export { apiErrorStrings } from './api_error';
-export { editorStrings } from './editor';
 export {
   gameStrings,
   gameStringsDeDE,
@@ -82,7 +80,6 @@ export const en = {
   hudChrome: hudChromeStrings,
   apiError: apiErrorStrings,
   guide: guideStrings,
-  editor: editorStrings,
   // Cosmetic skin-select event overlay. Rarity names reuse itemUi.quality.*.
   skinEvent: {
     title: 'Cosmetic Cache',
@@ -249,101 +246,6 @@ export const en = {
       logOut: 'Log out',
       invalid: 'Please enter a valid email address.',
       failed: 'Could not save your email. Please try again.',
-    },
-  },
-  wallet: {
-    label: '$WOC Wallet',
-    connect: 'Verify Wallet',
-    connectTitle: 'Verify your Solana wallet',
-    connectAria: 'Verify your Solana wallet',
-    verify: 'Verify Wallet',
-    verifyNew: 'Verify New Wallet',
-    verifyTitle: 'Choose a wallet and sign once to verify ownership.',
-    verifyAria: 'Choose a wallet and sign once to verify ownership',
-    verifyAddressAria: 'Sign to verify wallet {address} for your account',
-    appConnected: 'App Connected',
-    connectApp: 'Connect App',
-    connectAppTitle: 'Connect the wallet app on this browser',
-    connectAppAria: 'Connect the wallet app on this browser',
-    verifying: 'Verifying...',
-    verifyingTitle: 'Wallet verification is in progress.',
-    switch: 'Switch',
-    switchTitle: 'Verify a different wallet',
-    switchAria: 'Verify a different wallet',
-    unlink: 'Unlink',
-    unlinkTitle: 'Remove wallet verification from this account',
-    unlinkAria: 'Remove wallet verification from this account',
-    signOut: 'Disconnect',
-    signOutTitle: 'Disconnect the wallet app on this browser',
-    signOutAria: 'Disconnect the wallet app on this browser',
-    hide: 'Hide',
-    hideTitle: 'Hide wallet row on this screen',
-    hideAria: 'Hide wallet row on this screen',
-    hiddenNotice: 'Wallet row hidden. Re-enable it in-game from Options > Interface.',
-    linkedTitle: 'Wallet verified for your account. Click to manage the wallet app.',
-    linkedDisconnectedTitle:
-      'Wallet remains verified for your account. Reconnect to manage the wallet app.',
-    linkedDisconnectedAria:
-      'Wallet remains verified for your account. Reconnect to manage the wallet app.',
-    linkTitle: 'Click to sign and link this wallet to your account.',
-    connectedTitle: 'Connected. Log in to link this wallet to your account.',
-    balanceTitle: 'Verified Solana wallet $WOC balance',
-    balanceAria: 'Verified Solana wallet balance: {balance}',
-    balancePreviewTitle: 'Connected wallet $WOC balance preview',
-    balancePreviewAria:
-      'Connected wallet balance preview: {balance}. Link the wallet to verify holder flair.',
-    balanceAmount: '{amount} $WOC',
-    connected: 'Connected: {address}',
-    connectedWithBalance: 'Connected: {balance} - {address}',
-    connectedLinked: 'Verified: {address}',
-    connectedLinkedWithBalance: 'Verified: {balance} - {address}',
-    helpDisconnected:
-      'Verify a Solana wallet to enable holder flair and player-card badges. No transaction or SOL required.',
-    helpLoginToLink: 'Connected {address}. Log in to link it to your account.',
-    helpLoginToLinkWithBalance:
-      'Connected {address} with {balance}. Log in to link it to your account.',
-    helpReadyToLink:
-      'Wallet selected: {address}. Sign once to verify holder flair and player cards.',
-    helpReadyToLinkWithBalance:
-      'Wallet selected: {address} with {balance}. Sign once to verify holder flair and player cards.',
-    helpLinked: 'Holder perks are active. Wallet app connected on this browser.',
-    helpLinkedWithBalance: 'Holder perks are active. Wallet app connected on this browser.',
-    helpLinkedDisconnected:
-      'Holder perks are active. Connect the app when you need to sign or spend.',
-    helpLinkedDisconnectedWithBalance:
-      'Holder perks are active. Connect the app when you need to sign or spend.',
-    extensionHelp:
-      'To see a wallet here, keep a browser wallet extension such as Solflare Wallet active.',
-    flowConnect: 'Choose a wallet. Verification continues automatically.',
-    flowSign: 'Sign the verification message in your wallet app. No transaction or SOL required.',
-    flowVerify: 'Verifying wallet ownership...',
-    linkFailed: 'Wallet verification failed.',
-    verifyFailed: 'Wallet verification failed.',
-    unlinkFailed: 'Could not unlink wallet.',
-    holder: '$WOC holder',
-    holderTierTitle: '{tier} $WOC holder',
-    holderTiers: {
-      ember: { name: 'Ember', flavor: 'The spark is lit.' },
-      coinbearer: { name: 'Coinbearer', flavor: 'First coin in the war chest.' },
-      coppercrest: { name: 'Coppercrest', flavor: 'Coppers stacked, your name spoken.' },
-      silverbound: { name: 'Silverbound', flavor: 'Bound in silver, building the bag.' },
-      gilded: { name: 'Gilded', flavor: 'Gilded and grinning.' },
-      vaultwarden: { name: 'Vaultwarden', flavor: 'Guarding a real vault now: 0.01% of all $WOC.' },
-      whale: { name: 'Whale', flavor: 'The deep parts when you swim: 0.1% of supply.' },
-      leviathan: { name: 'Leviathan', flavor: 'Markets feel you move: 1% of supply.' },
-      tidelord: { name: 'Tidelord', flavor: 'The tide answers your call: 2% of supply.' },
-      stormcaller: { name: 'Stormcaller', flavor: 'Storms gather at your name: 3% of supply.' },
-      krakencrown: { name: 'Krakencrown', flavor: 'Crowned by the deep: 4% of supply.' },
-      titanforged: { name: 'Titanforged', flavor: 'Forged among titans: 5% of supply.' },
-      starhoard: { name: 'Starhoard', flavor: 'A hoard that bends starlight: 6% of supply.' },
-      voidwarden: { name: 'Voidwarden', flavor: "Keeper at the void's edge: 7% of supply." },
-      realmshaper: { name: 'Realmshaper', flavor: 'You reshape the realm: 8% of supply.' },
-      worldforger: { name: 'Worldforger', flavor: 'Forging a world of your own: 9% of supply.' },
-      worldbearer: {
-        name: 'Worldbearer',
-        flavor: 'You carry a piece of the world: 10% of supply.',
-      },
-      sovereign: { name: 'Sovereign', flavor: 'The realm bends the knee: the entire supply.' },
     },
   },
   playerCard: {

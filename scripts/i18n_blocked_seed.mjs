@@ -18,38 +18,9 @@
 // list. These are SOURCE strings, not keys.
 
 export const COPIED_ALLOW_IDS = [
-  'server::fr_FR::who.statusCombat',
-  'server::fr_CA::who.statusCombat',
-  'server::it_IT::who.statusOnline',
-  'server::de_DE::who.statusOnline',
+  // pt_BR cognates / borrowed terms that are legitimately byte-identical to
+  // English (e.g. "online" is the accepted borrowed term).
   'server::pt_BR::who.statusOnline',
-  // French "minute"/"minutes" are byte-identical to English (true cognates); the
-  // chat-mute duration readout renders them verbatim. Allowlist rather than re-coin.
-  'server::fr_FR::time.minute',
-  'server::fr_FR::time.minutes',
-  'server::fr_CA::time.minute',
-  'server::fr_CA::time.minutes',
-  // Bug-report admin table columns (v0.13.0). These header words are true cognates
-  // / borrowed terms that are legitimately byte-identical to English in the locale,
-  // matching how the moderation/report/online columns above are already handled.
-  // New locales (v0.16.0): nl/pl/id/tr/sv/vi/da. Cognates / brand / borrowed UI
-  // terms (Status, online, Paladin, Session, Account, permanent, ...) that are
-  // legitimately byte-identical to English in these locales, mirroring the
-  // de_DE/it_IT/pt_BR rows above. id_ID who.row is translated, not allowlisted.
-  'server::da_DK::who.statusOnline',
-  'server::id_ID::who.statusDungeon',
-  'server::nl_NL::who.statusOnline',
-  'server::pl_PL::who.statusOnline',
-  'server::sv_SE::who.statusOnline',
-  // Admin location panel (v0.17.0 "admin-friendly-location"). Two cognate classes
-  // that are legitimately byte-identical to English in these locales:
-  //  - Hub-town proper place-names (Eastbrook / Fenbridge / Highwatch). These stay
-  //    verbatim in the Western-European locales whose zone names also keep them
-  //    (e.g. es "Valle de Eastbrook", de "Eastbrook-Tal"); the locales that adapt
-  //    proper nouns (nl/pl/tr/sv/da/vi/ru and the CJK/KR transliterations) translate
-  //    them instead and need no row here.
-  //  - Borrowed UI terms (Dungeon / Slot / Zone / Type / Instance) that those
-  //    languages already use verbatim, mirroring the moderation/stats rows above.
 ];
 
 export const V07_SLASH = [

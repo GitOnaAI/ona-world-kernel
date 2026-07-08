@@ -11,24 +11,9 @@ const SCREENSHOT_DIR = path.resolve('tmp/localization-e2e');
 const LOW_GFX = process.env.LOCALIZATION_E2E_GFX ?? 'low';
 const WAIT_TIMEOUT = 45000;
 
-const SUPPORTED_LOCALES = [
-  'en',
-  'es',
-  'es_ES',
-  'fr_FR',
-  'fr_CA',
-  'en_CA',
-  'it_IT',
-  'de_DE',
-  'zh_CN',
-  'zh_TW',
-  'ko_KR',
-  'ja_JP',
-  'pt_BR',
-  'ru_RU',
-];
+const SUPPORTED_LOCALES = ['en', 'pt_BR'];
 
-const DEEP_LOCALES = ['en', 'de_DE', 'fr_FR', 'ru_RU', 'ja_JP', 'zh_CN', 'zh_TW', 'ko_KR'];
+const DEEP_LOCALES = ['en', 'pt_BR'];
 
 const VIEWPORTS = [
   { name: 'desktop', width: 1366, height: 900, isMobile: false, hasTouch: false },
@@ -732,7 +717,7 @@ async function assertAuditBasics(page, label, options = {}) {
 }
 
 async function assertNonEnglishNotFallback(page, locale, selector, englishText, label) {
-  if (locale === 'en' || locale === 'en_CA') return;
+  if (locale === 'en') return;
   const text = await page.$eval(selector, (el) =>
     (el.textContent ?? el.getAttribute('aria-label') ?? '').replace(/\s+/g, ' ').trim(),
   );
@@ -747,7 +732,7 @@ async function assertNonEnglishNotFallback(page, locale, selector, englishText, 
 // localizeZone(). Guard both the visible .zone span and the status tooltip so a
 // raw English zone name can never leak back into a translated social panel.
 async function assertSocialZonesLocalized(page, locale, englishZones, label) {
-  if (locale === 'en' || locale === 'en_CA') return;
+  if (locale === 'en') return;
   const texts = await page.$$eval(
     '#social-window .soc-row .zone, #social-window .soc-row [title]',
     (els) =>
@@ -768,8 +753,7 @@ async function runHomepageLocaleMatrix(browser) {
   const { page, assertNoDiagnostics } = await newAuditedPage(browser, viewport, 'homepage');
   try {
     await gotoLocale(page, 'en');
-    await switchLanguage(page, 'es');
-    await switchLanguage(page, 'ja_JP');
+    await switchLanguage(page, 'pt_BR');
     for (const locale of SUPPORTED_LOCALES) {
       await gotoLocale(page, locale);
       await assertHomepageLocale(page, locale);

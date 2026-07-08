@@ -26,14 +26,15 @@ describe('ground-pickup line localization (the S3-invisible surface)', () => {
     expect(GROUND_PICKUP_KEYS.length).toBe(34);
   });
 
-  it('pins a known literal per representative locale', () => {
-    expect(DICT.es['groundPickup.supplyCrateDeny']).toBe('El cajón está cerrado con clavos.');
-    expect(DICT.ru_RU['groundPickup.supplyCrateDeny']).toBe('Ящик наглухо заколочен.');
-    expect(DICT.zh_CN['groundPickup.graveSealedDeny']).toBe('坟墓向生者封闭，直到死者召唤你前来。');
+  it('pins a known literal in pt_BR', () => {
+    expect(DICT.pt_BR['groundPickup.supplyCrateDeny']).toBe('O caixote está fechado com pregos.');
+    expect(DICT.pt_BR['groundPickup.graveSealedDeny']).toBe(
+      'O túmulo está selado contra os vivos até que os mortos chamem você a ele.',
+    );
   });
 
   it('every non-English locale carries a real translation for every groundPickup key', () => {
-    const nonEnglish = supportedLanguages.filter((l) => l !== 'en' && l !== 'en_CA');
+    const nonEnglish = supportedLanguages.filter((l) => l !== 'en');
     for (const lang of nonEnglish) {
       for (const key of GROUND_PICKUP_KEYS) {
         expect(DICT[lang][key], `${lang} ${key}`).not.toBe(DICT.en[key]);

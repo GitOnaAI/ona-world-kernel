@@ -28,30 +28,8 @@ import {
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// The authoritative ordered locale set both build scripts emit (LOCALES). en + 20.
-const ALL_LOCALES = [
-  'en',
-  'es',
-  'es_ES',
-  'fr_FR',
-  'fr_CA',
-  'en_CA',
-  'it_IT',
-  'de_DE',
-  'zh_CN',
-  'zh_TW',
-  'ko_KR',
-  'ja_JP',
-  'pt_BR',
-  'ru_RU',
-  'nl_NL',
-  'pl_PL',
-  'id_ID',
-  'tr_TR',
-  'sv_SE',
-  'vi_VN',
-  'da_DK',
-];
+// The authoritative ordered locale set both build scripts emit (LOCALES). en + 1.
+const ALL_LOCALES = ['en', 'pt_BR'];
 // The lazy/pending set: every locale except `en` (and never the en_XA pseudo).
 const NON_EN_LOCALES = ALL_LOCALES.filter((l) => l !== 'en');
 
@@ -64,14 +42,14 @@ function assertEmitSurface(
   loaders: Record<string, () => Promise<unknown>>,
   supported: readonly string[],
 ) {
-  // Barrel translations map: exactly the 14 locales, in emit order, en_XA EXCLUDED.
+  // Barrel translations map: exactly the emitted locales, in emit order, en_XA EXCLUDED.
   expect(Object.keys(translations), `${label}: translations key set`).toEqual(ALL_LOCALES);
   expect('en_XA' in translations, `${label}: en_XA must NOT be in translations`).toBe(false);
   expect(translations.en, `${label}: en present`).toBeTypeOf('object');
   // en_XA is re-exported by the barrel but lives outside the runtime locale set.
   expect(en_XA, `${label}: en_XA re-export`).toBeTypeOf('object');
 
-  // loaders.ts: one dynamic-import thunk per non-en/non-en_XA locale; SUPPORTED is 14.
+  // loaders.ts: one dynamic-import thunk per non-en/non-en_XA locale.
   expect(Object.keys(loaders), `${label}: LOCALE_LOADERS key set (no en, no en_XA)`).toEqual(
     NON_EN_LOCALES,
   );
@@ -107,10 +85,8 @@ describe('i18n emit-split surface (game table)', () => {
   });
 
   it('each LOCALE_LOADERS thunk lazily resolves its own dense slice', async () => {
-    const es = (await uiLoaders.es()) as Record<string, unknown>;
-    expect(es.es, 'ui loader resolves the es slice').toBeTypeOf('object');
-    const ruRu = (await uiLoaders.ru_RU()) as Record<string, unknown>;
-    expect(ruRu.ru_RU, 'ui loader resolves the ru_RU slice').toBeTypeOf('object');
+    const ptBr = (await uiLoaders.pt_BR()) as Record<string, unknown>;
+    expect(ptBr.pt_BR, 'ui loader resolves the pt_BR slice').toBeTypeOf('object');
   });
 });
 

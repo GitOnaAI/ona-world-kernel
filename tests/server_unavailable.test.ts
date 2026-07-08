@@ -7,7 +7,7 @@ describe('server unavailable fallback page', () => {
   it('uses branded static assets and clear downtime copy', () => {
     expect(html).toContain('/loading-screen.jpg');
     expect(html).toContain('/worldofclaudecraft-logo.png');
-    expect(html).toContain('The realm is temporarily unavailable.');
+    expect(html).toContain('The world is temporarily unavailable.');
     expect(html).toContain('Back soon');
     expect(html).toContain('http-equiv="refresh" content="30"');
   });

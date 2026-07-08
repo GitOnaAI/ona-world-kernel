@@ -236,13 +236,6 @@ feature branch is expected and fine at the PR-tier gate.
 3. Run `npm run i18n:scan` / `i18n:build` (+ `i18n:hash -- --write` if the resolved table
    changed) and commit the regenerated files. The PR is green at the PR-tier gate; the
    release-tier gate (`I18N_RELEASE_TIER=1`) hard-fails on any `pending` row.
-   - **The one PR-tier i18n exception (M16).** A new English value that is *wordy* (a run of
-     4+ consecutive lowercase letters after stripping `{tokens}`, i.e. most real prose) also
-     needs its five non-Latin fills (`zh_CN`/`zh_TW`/`ja_JP`/`ko_KR`/`ru_RU`) in the SAME
-     change, or the always-on `tests/i18n_completeness.test.ts` reds even at PR tier: the
-     build English-fills the omission, and untranslated English left byte-identical in a
-     non-Latin locale is exactly the leak it catches. The maintainer normally supplies those
-     five at merge; brand/URL leaves are the only ones that may stay identical.
 
 **Catalog-domain gotcha (where to put a new client key).** Most catalog domains carry
 per-locale data that `tsc` ENFORCES (`merge.ts` / `index.ts` cross-reference every locale

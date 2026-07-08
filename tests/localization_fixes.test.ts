@@ -4,32 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { resolveReportTarget } from '../server/report_target';
 import { DELVE_MOBS } from '../src/sim/content/delves/mobs';
 import { ABILITIES } from '../src/sim/data';
-import {
-  da_DK,
-  de_DE,
-  en,
-  en_CA,
-  ensureLocaleLoaded,
-  es,
-  es_ES,
-  fr_CA,
-  fr_FR,
-  id_ID,
-  it_IT,
-  ja_JP,
-  ko_KR,
-  nl_NL,
-  pl_PL,
-  pt_BR,
-  ru_RU,
-  setLanguage,
-  supportedLanguages,
-  sv_SE,
-  tr_TR,
-  vi_VN,
-  zh_CN,
-  zh_TW,
-} from '../src/ui/i18n';
+import { en, ensureLocaleLoaded, pt_BR, setLanguage, supportedLanguages } from '../src/ui/i18n';
 import { localizeServerText, DICT as serverDICT, tServer } from '../src/ui/server_i18n';
 import { localizeSimAuraName, localizeSimText, DICT as simDICT } from '../src/ui/sim_i18n';
 import {
@@ -49,26 +24,7 @@ beforeAll(async () => {
 
 const locales: Record<string, any> = {
   en,
-  es,
-  es_ES,
-  fr_FR,
-  fr_CA,
-  en_CA,
-  it_IT,
-  de_DE,
-  zh_CN,
-  zh_TW,
-  ko_KR,
-  ja_JP,
   pt_BR,
-  ru_RU,
-  nl_NL,
-  pl_PL,
-  id_ID,
-  tr_TR,
-  sv_SE,
-  vi_VN,
-  da_DK,
 };
 const ph = (s: string) =>
   [...String(s).matchAll(/\{([A-Za-z0-9_]+)\}/g)]
@@ -159,8 +115,7 @@ describe('B1: server log-type messages localize through the log path', () => {
       for (const m of logMessages) {
         const out = localizeServerText(m);
         expect(out, `${lang}: "${m}" should be recognized`).not.toBeNull();
-        if (lang !== 'en' && lang !== 'en_CA')
-          expect(out, `${lang}: "${m}" should not stay English`).not.toBe(m);
+        if (lang !== 'en') expect(out, `${lang}: "${m}" should not stay English`).not.toBe(m);
       }
     }
     setLanguage('en');
@@ -175,13 +130,13 @@ describe('L3/L4: additional server-message coverage', () => {
       setLanguage(lang);
       const out = localizeServerText(msg);
       expect(out, `${lang}`).not.toBeNull();
-      if (lang !== 'en' && lang !== 'en_CA') expect(out, `${lang}`).not.toBe(msg);
+      if (lang !== 'en') expect(out, `${lang}`).not.toBe(msg);
     }
     setLanguage('en');
   });
 
   it('localizes the (combat) /who status flag', () => {
-    setLanguage('es');
+    setLanguage('pt_BR');
     const out = localizeServerText('Carl - level 12 warrior - Eastbrook Vale (combat)')!;
     expect(out).toContain('Carl');
     expect(out.toLowerCase()).not.toContain('(combat)');
@@ -196,7 +151,7 @@ describe('H1: every talent name resolves via override or ability name', () => {
 
   it('each talent name has an explicit override or is an ability name in every translated locale', () => {
     for (const lang of supportedLanguages) {
-      if (lang === 'en' || lang === 'en_CA') continue;
+      if (lang === 'en') continue;
       for (const e of nameEntries) {
         const ok = hasTalentTitleOverride(lang, e.source) || abilityNames.has(e.source);
         expect(
@@ -206,38 +161,12 @@ describe('H1: every talent name resolves via override or ability name', () => {
       }
     }
   });
-
-  it('CJK talent names contain no leftover Latin words', () => {
-    for (const lang of ['zh_CN', 'zh_TW', 'ja_JP', 'ko_KR'] as const) {
-      setLanguage(lang);
-      for (const e of nameEntries) {
-        const rendered = renderTalentManifestEntry(e);
-        expect(
-          /[A-Za-z]{2,}/.test(rendered),
-          `${lang}: "${e.source}" -> "${rendered}" has leftover English`,
-        ).toBe(false);
-      }
-    }
-    setLanguage('en');
-  });
 });
 
 // --- H2: game.* keeps required diacritics ---
 describe('H2: game.* values keep required diacritics', () => {
   const stripped: Record<string, RegExp> = {
-    es: /\b(Clasificacion|posicion|Campeon|Mitico|Especializacion|Maestria|Configuracion|Dano|cosmetica|maximo|proximamente|actualizacion|arbol|arboles|Aun)\b/,
-    es_ES:
-      /\b(Clasificacion|posicion|Campeon|Mitico|Especializacion|Maestria|Configuracion|Dano|cosmetica|maximo|proximamente|actualizacion|arbol|arboles|Aun)\b/,
-    fr_FR: /\b(debloque|Reessayez|Eternel|Specialisation|Depenses|sauvegardee)\b/,
-    fr_CA: /\b(debloque|Reessayez|Eternel|Specialisation|Depenses|sauvegardee)\b/,
     pt_BR: /\b(Posicao|Classificacao|Especializacao|Nivel|Voce|Funcao|nao)\b/,
-    de_DE: /(naechsten|erhoeht|zurueck|Ueberschuss|Verfuegbar)/,
-    // Italian: each listed form REQUIRES a final/internal accent in correct Italian
-    // and has NO unaccented homograph, so a match means the diacritic was stripped.
-    // (Deliberately excludes ambiguous forms like "abilita"/"necessita", which are
-    // also valid unaccented 3rd-person verbs — "abilita il PvP" = "enables PvP".)
-    it_IT:
-      /\b(perche|piu|gia|citta|qualita|velocita|liberta|cosi|puo|universita|attivita|possibilita)\b/,
   };
   it('no accent-stripped forms remain in the game.* subtree', () => {
     for (const [lang, re] of Object.entries(stripped)) {
@@ -301,7 +230,7 @@ describe('H3: DICT key parity, non-empty values, placeholder integrity', () => {
   function checkNoCopiedEnglish(dict: Record<string, Record<string, string>>, label: string) {
     const en = dict.en;
     for (const lang of Object.keys(dict)) {
-      if (lang === 'en' || lang === 'en_CA') continue;
+      if (lang === 'en') continue;
       for (const k of Object.keys(en)) {
         const v = dict[lang][k];
         if (v !== en[k]) continue;
@@ -330,7 +259,7 @@ describe('H1b: talent names are unique within a class tree', () => {
   const nameEntries = talentTranslationManifest().filter((e) => e.field === 'name');
   it('has zero same-tree name collisions in any translated locale', () => {
     for (const lang of supportedLanguages) {
-      if (lang === 'en' || lang === 'en_CA') continue;
+      if (lang === 'en') continue;
       setLanguage(lang);
       const perClass = new Map<string, Map<string, Set<string>>>();
       for (const e of nameEntries) {
@@ -439,7 +368,7 @@ describe('H4b: talent-name resolution is complete (no silent English fallthrough
       for (const e of nameEntries) {
         const rendered = renderTalentManifestEntry(e);
         expect(rendered.trim().length, `${lang}: "${e.source}" rendered empty`).toBeGreaterThan(0);
-        if (lang !== 'en' && lang !== 'en_CA') {
+        if (lang !== 'en') {
           // must resolve via an explicit override or be an ability name (which tEntity localizes)
           const resolved = hasTalentTitleOverride(lang, e.source) || abilityNames.has(e.source);
           expect(
@@ -507,7 +436,7 @@ describe('S1: sim event-text pipeline is localized in every locale', () => {
           out,
           `${lang}: sim text "${s}" not recognized (would leak raw English)`,
         ).not.toBeNull();
-        if (lang !== 'en' && lang !== 'en_CA') {
+        if (lang !== 'en') {
           expect(out, `${lang}: sim text "${s}" stayed English`).not.toBe(s);
         }
       }
@@ -516,14 +445,14 @@ describe('S1: sim event-text pipeline is localized in every locale', () => {
   });
 
   it('localizes embedded item and mob names inside sim text', () => {
-    setLanguage('de_DE');
+    setLanguage('pt_BR');
     expect(localizeSimText('Equipped Pitted Shortsword.')).not.toContain('Pitted Shortsword');
     expect(localizeSimText('Forest Wolf dies.')).not.toContain('Forest Wolf');
     setLanguage('en');
   });
 
   it('localizes the flavor aura name Tamed and reuses talent/ability titles', () => {
-    setLanguage('de_DE');
+    setLanguage('pt_BR');
     expect(localizeSimAuraName('Tamed')).not.toBeNull();
     expect(localizeSimAuraName('Tamed')).not.toBe('Tamed');
     expect(localizeSimAuraName('not-an-aura')).toBeNull();
@@ -536,7 +465,7 @@ describe('S1: sim event-text pipeline is localized in every locale', () => {
     // renders raw English in every non-English locale: the exact Litany Pulse /
     // Web Snare / Silt Hide / Frenzy drift class, which occurred four ways in one
     // delve. Scan the content records so a rename on either side reddens this.
-    setLanguage('zh_CN');
+    setLanguage('pt_BR');
     const names: string[] = [];
     for (const tmpl of Object.values(DELVE_MOBS)) {
       for (const proc of [
@@ -570,7 +499,7 @@ describe('S1: sim event-text pipeline is localized in every locale', () => {
     // enumerates literals at the emit call site, so it is structurally blind to
     // these: pin them here explicitly so a future delve pet-error added the same
     // way still needs a matcher row.
-    setLanguage('es');
+    setLanguage('pt_BR');
     for (const emitted of [
       'You have no pet.',
       'You have no living pet.',
@@ -1013,11 +942,11 @@ describe('S3: every sim.ts emit is recognized (drift guard)', () => {
     expect(leaks, 'unregistered sim emit strings (add a key/RULE to sim_i18n.ts)').toEqual([]);
   });
 
-  // RELEASE TIER: the same coverage across all 14 locales, and where a real matcher
-  // resolves the string, its localized form is not raw English in any translated
-  // locale (no silently-shipped English).
+  // RELEASE TIER: the same coverage across every supported locale, and where a real
+  // matcher resolves the string, its localized form is not raw English in any
+  // translated locale (no silently-shipped English).
   it.runIf(RELEASE_TIER)(
-    's3_localized: every emit is recognized in all 14 locales and not left English where a matcher resolves it',
+    's3_localized: every emit is recognized in every locale and not left English where a matcher resolves it',
     () => {
       const cands = candidateStrings();
       expect(cands.length, 'sanity: should enumerate many emit sites').toBeGreaterThan(80);
@@ -1029,7 +958,7 @@ describe('S3: every sim.ts emit is recognized (drift guard)', () => {
             leaks.push(`${lang} (${type}) ${JSON.stringify(s)} not recognized`);
             continue;
           }
-          if (lang === 'en' || lang === 'en_CA') continue;
+          if (lang === 'en') continue;
           const out = localizedOut(s);
           if (out !== null && out === s)
             leaks.push(`${lang} (${type}) ${JSON.stringify(s)} stayed English`);
@@ -1125,8 +1054,8 @@ describe('server restart-countdown announcements are localized (broadcastSystem 
     expect(steps).toContain('Server restarting now.');
   });
 
-  it('every restart step is recognized and not left English in es/de_DE', () => {
-    for (const lang of ['es', 'de_DE'] as const) {
+  it('every restart step is recognized and not left English in pt_BR', () => {
+    for (const lang of ['pt_BR'] as const) {
       setLanguage(lang);
       for (const s of steps) {
         const out = localizeServerText(s);

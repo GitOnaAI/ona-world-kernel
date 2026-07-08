@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { chatPlayerContextActions } from '../src/ui/player_context_menu';
 import { ensureLocaleLoaded, setLanguage } from '../src/ui/i18n';
+import { chatPlayerContextActions } from '../src/ui/player_context_menu';
 
 describe('chat player context menu', () => {
   afterEach(() => setLanguage('en'));
@@ -47,9 +47,9 @@ describe('chat player context menu', () => {
 
   it('localizes chat context action labels', async () => {
     // Lazy locale flip: await the locale chunk so the synchronous t() label reads resolve
-    // German rather than the English fallback (the bootstrap awaits the same way before paint).
-    await ensureLocaleLoaded('de_DE');
-    setLanguage('de_DE');
+    // Portuguese rather than the English fallback (the bootstrap awaits the same way before paint).
+    await ensureLocaleLoaded('pt_BR');
+    setLanguage('pt_BR');
     const actions = chatPlayerContextActions({
       playerName: 'Badmage',
       selfName: 'Adventurer',
@@ -61,7 +61,7 @@ describe('chat player context menu', () => {
       canReport: true,
     });
 
-    expect(actions.find((a) => a.id === 'whisper')?.label).toBe('Flüstern');
-    expect(actions.find((a) => a.id === 'report')?.label).toBe('Spieler melden');
+    expect(actions.find((a) => a.id === 'whisper')?.label).toBe('Sussurrar');
+    expect(actions.find((a) => a.id === 'report')?.label).toBe('Denunciar jogador');
   });
 });

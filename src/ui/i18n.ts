@@ -4,7 +4,7 @@
 //              !import.meta.env.PROD branch in tableFor, so a prod build tree-shakes it),
 //   - `pending` feeds the release-gate hard-fail in t(),
 //   - `LOCALE_LOADERS` + `SUPPORTED_LANGUAGES` drive lazy per-locale loading.
-// The 13 non-en dense slices are NO LONGER static-imported for use - each loads lazily via
+// The non-en dense slices (pt_BR) are NO LONGER static-imported for use - each loads lazily via
 // LOCALE_LOADERS[lang]()'s dynamic import() as its own content-hashed chunk, so a
 // default-English visitor downloads zero non-en locale bytes. These are imported from the
 // SPECIFIC generated modules (en / en_XA / pending / loaders), never the index.ts barrel,
@@ -30,32 +30,10 @@ import { pending } from './i18n.resolved.generated/pending';
 // re-export (export-from, NO local binding): the app runtime references none of these names
 // through './i18n' - every read-path below (t, translationValue, hasTranslation, tOptional)
 // reads the lazy `resident` table instead - so Rollup drops the unused re-export and
-// tree-shakes the 13 non-en slices (and the barrel that assembles them) out of the app
+// tree-shakes the non-en slices (and the barrel that assembles them) out of the app
 // chunk. THAT drop is the payload win of the lazy locale flip. `en` stays in the chunk via the eager
 // local import above (the universal English default), not via this line.
-export {
-  da_DK,
-  de_DE,
-  en,
-  en_CA,
-  es,
-  es_ES,
-  fr_CA,
-  fr_FR,
-  id_ID,
-  it_IT,
-  ja_JP,
-  ko_KR,
-  nl_NL,
-  pl_PL,
-  pt_BR,
-  ru_RU,
-  sv_SE,
-  tr_TR,
-  vi_VN,
-  zh_CN,
-  zh_TW,
-} from './i18n.resolved.generated';
+export { en, pt_BR } from './i18n.resolved.generated';
 // gameStrings is the post-cap/XP/leaderboard layer, which the table carries under the
 // `game` key. Source it from the eager generated dense `en` rather than re-exporting from
 // i18n.catalog, so importing './i18n' does not pull the full i18n.catalog base (en + shared content
@@ -64,7 +42,7 @@ export {
 export const gameStrings = en.game;
 export type { DeepPartial, InterpolationValue, InterpolationValues, Leaves, TranslationKey };
 
-// The 21-locale set + its type derive from the generated SUPPORTED_LANGUAGES (the loaders
+// The locale set (en + pt_BR) + its type derive from the generated SUPPORTED_LANGUAGES (the loaders
 // surface), NOT `keyof typeof translations`: after the lazy flip the full `translations`
 // map is no longer eagerly imported. The two are pinned equal (same 21 codes, same order)
 // by tests/i18n_emit_shape.test.ts.

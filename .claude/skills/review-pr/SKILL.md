@@ -113,9 +113,9 @@ locale at release time.**
   `src/ui/i18n.catalog/<domain>.ts`, rendered via `t()`. `hud_chrome` is the English-only
   catalog domain. Numbers/money/dates/percents go through the formatters, never string
   concat.
-- Do NOT raise any non-English i18n finding. Missing translations, the five non-Latin
-  overlays (`zh_CN`, `zh_TW`, `ja_JP`, `ko_KR`, `ru_RU`), Latin-script `pending` rows, and
-  the M16 completeness gate (`tests/i18n_completeness.test.ts`) are all release-time
+- Do NOT raise any non-English i18n finding. Missing translations (the shipped locale set
+  is `{en, pt_BR}`), `pending` rows, and the completeness gate
+  (`tests/i18n_completeness.test.ts`) are all release-time
   maintainer work, not a review finding and not a contributor ask. From the contributor's
   side a PR is English-only.
 - `shell.ts` and some catalog modules carry inline per-locale blocks that need all

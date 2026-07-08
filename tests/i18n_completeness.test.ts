@@ -1,64 +1,26 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
-  da_DK,
-  de_DE,
   en,
-  en_CA,
   ensureLocaleLoaded,
-  es,
-  es_ES,
   formatMoney,
-  fr_CA,
-  fr_FR,
   hasTranslation,
-  id_ID,
-  it_IT,
-  ja_JP,
-  ko_KR,
   languageTag,
-  nl_NL,
-  pl_PL,
   pt_BR,
-  ru_RU,
   type SupportedLanguage,
   setLanguage,
   supportedLanguages,
-  sv_SE,
   tPlural,
-  tr_TR,
-  vi_VN,
-  zh_CN,
-  zh_TW,
 } from '../src/ui/i18n';
 
 // Whole-catalog i18n completeness guards that the per-key sample tests in
 // localization_coverage.test.ts do not cover: full interpolation-token parity
 // across EVERY leaf and locale, per-locale lazy loadability, locale-aware money
-// grouping, an English-leak regression bound for the non-Latin locales, and the
-// CLDR pluralization subsystem (tPlural + the hudChrome.plurals.* keys).
+// grouping, and the CLDR pluralization subsystem (tPlural + the
+// hudChrome.plurals.* keys).
 
 const TABLES: Record<SupportedLanguage, unknown> = {
   en,
-  es,
-  es_ES,
-  fr_FR,
-  fr_CA,
-  en_CA,
-  it_IT,
-  de_DE,
-  zh_CN,
-  zh_TW,
-  ko_KR,
-  ja_JP,
   pt_BR,
-  ru_RU,
-  nl_NL,
-  pl_PL,
-  id_ID,
-  tr_TR,
-  sv_SE,
-  vi_VN,
-  da_DK,
 };
 
 function flatten(
@@ -108,7 +70,7 @@ describe('i18n whole-catalog completeness', () => {
   });
 
   // L6: every advertised locale must lazy-load, become resident, and resolve real
-  // localized text - not just the 7 that older tests exercise individually.
+  // localized text.
   it('every supportedLanguage loads and resolves a localized, non-empty sample', async () => {
     for (const lang of supportedLanguages) {
       await ensureLocaleLoaded(lang);
@@ -127,60 +89,19 @@ describe('i18n whole-catalog completeness', () => {
   });
 
   // M17: money grouping must follow the active locale (the compact-money path runs
-  // each amount through formatNumber). 12,345 gold exercises a thousands separator.
+  // each amount through formatNumber). 12,345 gold exercises a thousands separator:
+  // en groups with a comma, pt_BR with a period.
   it('formatMoney groups thousands by the active locale', async () => {
     const bigGold = 12_345 * 10_000; // copper -> 12,345g
-    await ensureLocaleLoaded('de_DE');
+    await ensureLocaleLoaded('pt_BR');
     setLanguage('en');
     const enMoney = formatMoney(bigGold);
-    setLanguage('de_DE');
-    const deMoney = formatMoney(bigGold);
+    setLanguage('pt_BR');
+    const ptMoney = formatMoney(bigGold);
     setLanguage('en');
     expect(enMoney).toContain('12,345');
-    expect(deMoney).toContain('12.345');
-    expect(deMoney).not.toContain('12,345');
-  });
-
-  // M16: no untranslated English in the non-Latin locales. A "wordy" en leaf (>=4
-  // consecutive lowercase ASCII letters AFTER removing {placeholder} tokens - i.e.
-  // real English prose, not an acronym or a token-only template) that is byte-
-  // identical in a CJK/Cyrillic locale is an untranslated-English leak. The ONLY
-  // leaves that legitimately stay identical are brand / URL strings, kept verbatim
-  // in every locale on purpose; everything else must differ. Add a key here only if
-  // it is a genuine brand/URL that should never be translated.
-  it('non-Latin locales ship no untranslated English (only brand/URL leaves stay identical)', () => {
-    const BRAND_ALLOW = new Set([
-      'footer.copyright', // "{year} World of ClaudeCraft" - brand
-      'footer.githubLink', // repository URL
-      'fiesta.bracket', // "Fiesta" event brand
-      'serverUnavailable.logoAlt', // "World of ClaudeCraft" logo alt text - brand
-      'guide.brand', // "World of ClaudeCraft" - brand (Guide)
-      'guide.brandShort', // "ClaudeCraft" - brand (Guide)
-      'guide.home.title', // "World of ClaudeCraft" - brand (Guide hero)
-      'guide.footer.rights', // "World of ClaudeCraft" - brand (Guide footer)
-      'hudChrome.discord.title', // "Discord" - brand
-      'hudChrome.discord.open', // "Discord" - brand
-      'hudChrome.discord.panelTitle', // "World of ClaudeCraft" - brand
-      'hudChrome.discord.linkedTitle', // "Discord: {name}" - brand + player name
-      'hudChrome.keybinds.discord', // "Discord" - brand (Key Bindings action label)
-      'desktop.crash.title', // "World of ClaudeCraft" - brand (desktop crash dialog title)
-      'auth.emailPlaceholder', // "you@example.com" - RFC 2606 example address, kept verbatim
-    ]);
-    const wordy = (v: string) => /[a-z]{4,}/.test(v.replace(/\{[^}]*\}/g, ''));
-    const nonLatin: SupportedLanguage[] = ['zh_CN', 'zh_TW', 'ja_JP', 'ko_KR', 'ru_RU'];
-    const leaks: string[] = [];
-    for (const lang of nonLatin) {
-      const flat = flatten(TABLES[lang]);
-      for (const [key, enValue] of Object.entries(enFlat)) {
-        if (wordy(enValue) && flat[key] === enValue && !BRAND_ALLOW.has(key)) {
-          leaks.push(`${lang} ${key}: "${enValue}"`);
-        }
-      }
-    }
-    expect(
-      leaks,
-      `untranslated English leaked into non-Latin locales:\n${leaks.join('\n')}`,
-    ).toEqual([]);
+    expect(ptMoney).toContain('12.345');
+    expect(ptMoney).not.toContain('12,345');
   });
 });
 
@@ -227,15 +148,12 @@ describe('i18n CLDR pluralization', () => {
     expect(missing, missing.join('\n')).toEqual([]);
   });
 
-  it('tPlural selects the correct Russian 1 / 2-4 / 5+ forms', async () => {
-    await ensureLocaleLoaded('ru_RU');
-    setLanguage('ru_RU');
-    // персонаж (1) / персонажа (2-4) / персонажей (5+)
-    expect(tPlural('hudChrome.plurals.characterCount', 1)).toBe('1 персонаж');
-    expect(tPlural('hudChrome.plurals.characterCount', 3)).toBe('3 персонажа');
-    expect(tPlural('hudChrome.plurals.characterCount', 5)).toBe('5 персонажей');
-    expect(tPlural('hudChrome.plurals.characterCount', 22)).toBe('22 персонажа'); // few
-    expect(tPlural('hudChrome.plurals.characterCount', 25)).toBe('25 персонажей'); // many
+  it('tPlural selects the correct Portuguese one/other forms', async () => {
+    await ensureLocaleLoaded('pt_BR');
+    setLanguage('pt_BR');
+    // personagem (1) / personagens (2+)
+    expect(tPlural('hudChrome.plurals.characterCount', 1)).toBe('1 personagem');
+    expect(tPlural('hudChrome.plurals.characterCount', 7)).toBe('7 personagens');
     setLanguage('en');
   });
 

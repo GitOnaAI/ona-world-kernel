@@ -1,12 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { assertDeterministic } from './helpers/i18n_determinism';
 
 // Byte-equivalence safety net for the i18n scaling refactor. Every
-// behavior-preserving change must leave the resolved 14-locale table
+// behavior-preserving change must leave the resolved {en, pt_BR} table
 // byte-identical; this asserts the table's deterministic SHA-256 still matches
 // the committed baseline. The baseline changes ONLY in a change that
 // deliberately changes resolved output - a drift here is a bug, not a re-baseline.
@@ -30,7 +30,7 @@ describe('i18n resolved-table byte equivalence', () => {
     const match = out.match(/locales=(\d+) bytes=(\d+) sha256=([0-9a-f]{64})/);
     expect(match, `unexpected hash script output: ${out}`).toBeTruthy();
     const [, locales, , sha256] = match!;
-    expect(Number(locales)).toBe(21);
+    expect(Number(locales)).toBe(2);
 
     const baseline = readFileSync(baselinePath, 'utf8').trim();
     expect(sha256).toBe(baseline);
@@ -58,19 +58,26 @@ describe('i18n resolved-artifact reproducibility', () => {
     ).not.toThrow();
   });
 
-  it('regenerating src/ui/i18n.resolved.generated/ leaves the committed directory unchanged', () => {
+  it('regenerating src/ui/i18n.resolved.generated/ leaves the directory unchanged (freshness)', () => {
     // The dense generated artifact is the tsc safety net and is committed. Like
     // the media manifest, it must regenerate byte-identically: a drift here means
-    // the generator is non-deterministic or the committed directory is stale. The
-    // generator replaces the directory atomically, so a removed locale would also
-    // surface as a deletion in the diff.
+    // the generator is non-deterministic or the checked-out directory is stale.
+    // Compare the emitted tree byte-for-byte before/after a rebuild (on a clean CI
+    // checkout this is equivalent to `git diff --exit-code`, but it also holds on a
+    // dirty working tree mid-change). The generator replaces the directory
+    // atomically, so a removed locale would also surface as a file-set difference.
+    const dir = path.join(root, generatedPath);
+    const snapshot = () => {
+      const out: Record<string, string> = {};
+      for (const f of readdirSync(dir)) {
+        if (f.endsWith('.ts')) out[f] = readFileSync(path.join(dir, f), 'utf8');
+      }
+      return out;
+    };
+    const before = snapshot();
+    expect(Object.keys(before).length).toBeGreaterThan(0);
     execFileSync(process.execPath, [buildScript], { cwd: root, encoding: 'utf8' });
-    expect(() =>
-      execFileSync('git', ['diff', '--exit-code', '--', generatedPath], {
-        cwd: root,
-        encoding: 'utf8',
-      }),
-    ).not.toThrow();
+    expect(snapshot()).toEqual(before);
   });
 
   it('regenerates byte-identically across two perturbed-env runs (determinism)', () => {

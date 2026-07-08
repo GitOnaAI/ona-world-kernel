@@ -39,7 +39,7 @@
 // scripts/i18n_scan.mjs / i18n_build.mjs). No Date.now / Math.random / network.
 //
 // Usage:
-//   node scripts/i18n_fill_worklist.mjs            all 13 non-en locales
+//   node scripts/i18n_fill_worklist.mjs            all non-en locales
 //   node scripts/i18n_fill_worklist.mjs --lang de_DE,fr_FR   a subset
 
 import { createHash } from 'node:crypto';
@@ -62,7 +62,7 @@ const MAX_SIBLINGS = 6;
 // Mirror of scripts/i18n_scan.mjs / i18n_build.mjs. Dialect locales resolve a key
 // they omit through their base, then English. Kept in lockstep with the
 // scanner by hand; the worklist round-trip test would surface a divergence.
-const DIALECT_BASE = { es_ES: 'es', fr_CA: 'fr_FR', en_CA: 'en' };
+const DIALECT_BASE = {};
 const SCOPE_RANK = { main: 0, sim: 1, server: 2 };
 
 const isPresent = (v) => typeof v === 'string' && v.trim().length > 0;
@@ -456,7 +456,7 @@ async function main() {
 
   const registry = JSON.parse(readFileSync(REGISTRY_PATH, 'utf8'));
   const glossarySrc = JSON.parse(readFileSync(GLOSSARY_PATH, 'utf8'));
-  const allLocales = registry.locales; // 13 non-en, registry order
+  const allLocales = registry.locales; // non-en, registry order
 
   if (langFilter) {
     const unknown = langFilter.filter((l) => !allLocales.includes(l));

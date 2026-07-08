@@ -9,8 +9,8 @@
 // src/ui/i18n.ts EXPORTS via scripts/i18n_resolved_hash.mjs, not file bytes).
 //
 // This is the load-bearing tsc safety net for the i18n scaling refactor. `en`
-// (src/ui/i18n.catalog) is the authoritative NESTED base; the 13 non-English
-// locales are FLAT dotted-key overlays (`Record<string, string>`). Each
+// (src/ui/i18n.catalog) is the authoritative NESTED base; the non-English
+// locales (pt_BR) are FLAT dotted-key overlays (`Record<string, string>`). Each
 // overlay is unflattened back to a nested object and overlaid onto a deep copy of
 // `en`, with any missing leaf filled from the English value, so every emitted
 // locale is DENSE (no gaps). The generated file types each locale
@@ -49,29 +49,7 @@ const OUT_DIR = process.env.I18N_OUT_DIR
 // the generated `translations`). The generator reads these SOURCE modules directly
 // and never imports src/ui/i18n.ts, so it never depends on the file it generates
 // (no circular import at build time).
-const LOCALES = [
-  'en',
-  'es',
-  'es_ES',
-  'fr_FR',
-  'fr_CA',
-  'en_CA',
-  'it_IT',
-  'de_DE',
-  'zh_CN',
-  'zh_TW',
-  'ko_KR',
-  'ja_JP',
-  'pt_BR',
-  'ru_RU',
-  'nl_NL',
-  'pl_PL',
-  'id_ID',
-  'tr_TR',
-  'sv_SE',
-  'vi_VN',
-  'da_DK',
-];
+const LOCALES = ['en', 'pt_BR'];
 
 // Dialect locales declare a base locale. A dialect's (now
 // divergence-only) overlay is applied ON TOP of its base locale's overlay, which
@@ -81,11 +59,7 @@ const LOCALES = [
 // is the single, data-driven declaration of the dialect graph; the resolver below
 // reads it instead of branching on locale codes inline. A locale absent from this
 // map has no base and is overlaid directly onto `en`, exactly as before.
-const DIALECT_BASE = {
-  es_ES: 'es',
-  fr_CA: 'fr_FR',
-  en_CA: 'en',
-};
+const DIALECT_BASE = {};
 
 function sourceModule(lang) {
   return lang === 'en' ? './src/ui/i18n.catalog' : `./src/ui/i18n.locales/${lang}`;
@@ -212,7 +186,7 @@ function emitPendingModule(pending) {
 // Per-locale dynamic-import thunks for the later lazy flip: each loads one dense
 // locale slice as its own content-hashed chunk. `en` is the eager base and en_XA is
 // the dev-only pseudo-locale, so neither gets a loader. SUPPORTED_LANGUAGES mirrors
-// the runtime `translations` key set (en + the 13 non-en locales, NOT en_XA). Nothing
+// the runtime `translations` key set (en + the non-en locales, NOT en_XA). Nothing
 // imports this module yet - the runtime still static-imports every slice via the
 // barrel for now, so the bundle is unchanged; the async loader wires these in later.
 function emitLoadersModule(locales) {

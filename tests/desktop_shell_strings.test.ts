@@ -40,7 +40,7 @@ describe('repushWhenLocaleResident', () => {
       () => {
         pushes += 1;
       },
-      'ru_RU',
+      'pt_BR',
       { isLocaleResident: () => false, ensureLocaleLoaded: () => load },
     );
     expect(pushes).toBe(0);
@@ -73,7 +73,7 @@ describe('repushWhenLocaleResident', () => {
       () => {
         pushes += 1;
       },
-      'ru_RU',
+      'pt_BR',
       {
         isLocaleResident: () => false,
         ensureLocaleLoaded: () => Promise.reject(new Error('offline')),

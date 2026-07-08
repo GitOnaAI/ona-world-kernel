@@ -40,18 +40,14 @@ edit the `i18n.locales/<lang>.ts` overlays and never fake a translation in one.
    - `index.html` / `admin.html` static text uses `data-i18n` / `data-i18n-title` /
      `data-i18n-aria` attributes pointing at a key; the boot localizer fills them.
 2. **`src/sim/` emit.** sim stays language-agnostic. Emit stable English, then in
-   `src/ui/sim_i18n.ts` add the English to `baseEnTable` + all 21 `BASE_DICT` blocks
-   and an `EXACT`/`RULES` matcher so `localizeSimText` re-renders it. `BASE_DICT` is
-   `Record<SupportedLanguage, ...>` so `tsc` forces all 21 locales; fill dialects
-   inline as **es_ES = es, fr_CA = fr_FR, en_CA = English**. The 7 newest locales
-   (nl_NL, pl_PL, id_ID, tr_TR, sv_SE, vi_VN, da_DK) are spread in via
-   `...BASE_NEW`/`...PET_NEW` from the generated `sim_i18n.newlocales.ts` (regenerated
-   by the new-locale fill pipeline), so a new key must be English-filled in those
-   blocks too or `tsc` red-fails on the missing locale. Broad `(.+)` RULES go
+   `src/ui/sim_i18n.ts` add the English to `baseEnTable` + both `BASE_DICT` blocks
+   (en, pt_BR) and an `EXACT`/`RULES` matcher so `localizeSimText` re-renders it.
+   `BASE_DICT` is `Record<SupportedLanguage, ...>` so `tsc` forces both locales.
+   Broad `(.+)` RULES go
    LAST (after every more-specific form); the catch-all `unleashes` rule is the last
    entry by design.
 3. **`server/` emit.** Same idea in `src/ui/server_i18n.ts`: add the English to the
-   inline `DICT` (all 21 locales, same dialect rule) + an `EXACT`/`RULES` matcher so
+   inline `DICT` (both locales) + an `EXACT`/`RULES` matcher so
    `localizeServerText` re-renders it. Numbers/durations spliced into a server
    message localize via a helper (see `localizeServerDuration`, which re-renders
    `formatDuration`'s `N second/minute/hour/day` output through `tServer`).
@@ -66,12 +62,7 @@ edit the `i18n.locales/<lang>.ts` overlays and never fake a translation in one.
    `error.moderationFailed`. Admin numbers/dates localize via `Intl.*` with
    `adminLanguage()` (see `fmtDate` / `fmtBytes` in `src/admin/format.ts`).
 
-The PR is green at the PR-tier gate (no translations required), with one always-on
-exception: a NEW *wordy* English value (a run of 4+ consecutive lowercase letters after
-stripping `{tokens}`, i.e. most real prose) also needs its five non-Latin fills
-(`zh_CN`/`zh_TW`/`ja_JP`/`ko_KR`/`ru_RU`) in the same change, or `tests/i18n_completeness.test.ts`
-(the always-on M16 check) reds even at PR tier; the maintainer normally adds those five at
-merge, and only brand/URL leaves may stay byte-identical. `tsc` and the `t()` untracked-key
+The PR is green at the PR-tier gate (no translations required), `tsc` and the `t()` untracked-key
 throw still guarantee English completeness.
 
 ## REST API errors (localize by code, not by English)

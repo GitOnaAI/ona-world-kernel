@@ -1,4 +1,4 @@
-// Deterministic SHA-256 of the resolved 14-locale translation table.
+// Deterministic SHA-256 of the resolved translation table (en + pt_BR).
 //
 // This is the byte-equivalence safety net for the i18n scaling refactor: every
 // behavior-preserving change must leave the resolved table byte-identical, proven
@@ -85,7 +85,7 @@ if (invokedDirectly) {
     if (baseline !== sha256) {
       console.error(`MISMATCH: resolved table hash ${sha256} != baseline ${baseline}`);
       console.error(
-        'The resolved 14-locale table changed. For a behavior-preserving change this is a bug, not a re-baseline.',
+        'The resolved translation table changed. For a behavior-preserving change this is a bug, not a re-baseline.',
       );
       process.exit(1);
     }

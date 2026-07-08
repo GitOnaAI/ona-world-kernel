@@ -115,12 +115,12 @@ describe('sim/server EXTRA localization tables (untracked by the registry)', () 
     expect(drift, `placeholder drift:\n${drift.join('\n')}`).toEqual([]);
   });
 
-  it('ships no copied-English value (en_CA excepted) for translatable strings', () => {
+  it('ships no copied-English value for translatable strings', () => {
     const leaks: string[] = [];
     for (const row of ALL) {
       if (!hasTranslatableText(row.en)) continue;
       for (const lang of supportedLanguages) {
-        if (lang === 'en' || lang === 'en_CA') continue;
+        if (lang === 'en') continue;
         const v = row.byLocale[lang];
         if (typeof v === 'string' && v === row.en)
           leaks.push(`${row.id} :: ${lang} = ${JSON.stringify(v)}`);
@@ -131,13 +131,9 @@ describe('sim/server EXTRA localization tables (untracked by the registry)', () 
 
   // Regression guard for the specific diacritic-stripping that shipped here: these exact
   // word-forms are NEVER orthographically correct in their language, so their presence in a
-  // Romance/German EXTRA value means accents were dropped again.
-  it('contains no diacritic-stripped Romance/German word-forms', () => {
+  // pt_BR EXTRA value means accents were dropped again.
+  it('contains no diacritic-stripped word-forms', () => {
     const STRIPPED: Record<string, RegExp> = {
-      de_DE: /\b(fur|uber|Konig|verlasst|verfugbar|wahrend|stort|Kryptenschlusselstein)\b/,
-      fr_FR: /\b(redemarr|Colisee|equipe|etes|deja|arene|etait|entree|scellee)\b/,
-      fr_CA: /\b(redemarr|Colisee|equipe|etes|deja|arene|etait|entree|scellee)\b/,
-      it_IT: /(\bgia\b|\bpuo\b|\bnon e\b|\bL ingresso\b|\bbrav uomo\b)/,
       pt_BR: /\b(voce|nao)\b/,
     };
     const hits: string[] = [];
