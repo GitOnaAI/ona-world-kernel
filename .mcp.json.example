@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ona-prod": {
+      "type": "http",
+      "url": "https://onaai.cloud/api/v1/mcp-server/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-ona-mcp-api-key>"
+      }
+    }
+  }
+}

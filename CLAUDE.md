@@ -240,6 +240,15 @@ correct.
   <file>`, `npm test`, `npm run build`, `tests/architecture.test.ts`, the S3 i18n guard
   `tests/localization_fixes.test.ts`), never on "looks done."
 
+## Connecting to Ona
+This template is driven as an AI Game Board project on Ona (board, GDDs, knowledge base).
+To connect a Claude Code session: copy `.mcp.json.example` to `.mcp.json` and replace the
+placeholder with your API key, generated in Ona under Settings, API/MCP keys (an env
+reference like `Bearer ${ONA_PROD_API_KEY}` also works if you prefer not to inline it).
+`.mcp.json` is gitignored; never commit it. The `dev-flow` skill (board orchestration) and
+the `onboarding-game` skill (knowledge-base ingestion) both require this connection: the
+`ona_*` MCP tools must be available in the session.
+
 ## Pointers
 `README.md` (host/develop/play + fidelity checklist) · `DEPLOY.md` (production) ·
 `CREDITS.md` (asset licenses) · `docs/design/` (design docs) · `docs/prd/` (feature specs).
