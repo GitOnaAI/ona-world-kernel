@@ -19,6 +19,7 @@ import { DELVES, DUNGEONS, MOBS, NPCS, QUESTS, ZONES } from '../sim/data';
 
 const MOB_IDS = [
   'forest_wolf',
+  'duskfang_prowler',
   'old_greyjaw',
   'wild_boar',
   'webwood_spider',

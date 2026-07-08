@@ -5083,6 +5083,9 @@ export const en: EnTranslations = {
       "sunpetal_sickle": {
         "name": "Sunpetal Sickle"
       },
+      "duskfang_pelt": {
+        "name": "Duskfang Pelt"
+      },
       "bristleback_maul": {
         "name": "Gallowglass Hammer"
       },
@@ -5657,6 +5660,9 @@ export const en: EnTranslations = {
     "mobs": {
       "forest_wolf": {
         "name": "Forest Wolf"
+      },
+      "duskfang_prowler": {
+        "name": "Duskfang Prowler"
       },
       "old_greyjaw": {
         "name": "Old Greyjaw"

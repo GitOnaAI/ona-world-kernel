@@ -5083,6 +5083,9 @@ export const en_XA: EnTranslations = {
       "sunpetal_sickle": {
         "name": "[Šúñþéţáļ Šíçķļé]"
       },
+      "duskfang_pelt": {
+        "name": "[Ðúšķƒáñĝ Þéļţ]"
+      },
       "bristleback_maul": {
         "name": "[Ĝáļļóŵĝļášš Ĥáɱɱéŕ]"
       },
@@ -5657,6 +5660,9 @@ export const en_XA: EnTranslations = {
     "mobs": {
       "forest_wolf": {
         "name": "[Ƒóŕéšţ Ŵóļƒ]"
+      },
+      "duskfang_prowler": {
+        "name": "[Ðúšķƒáñĝ Þŕóŵļéŕ]"
       },
       "old_greyjaw": {
         "name": "[Óļð Ĝŕéýĵáŵ]"

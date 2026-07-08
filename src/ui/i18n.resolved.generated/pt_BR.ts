@@ -5083,6 +5083,9 @@ export const pt_BR: EnTranslations = {
       "sunpetal_sickle": {
         "name": "Foice Pétala Solar"
       },
+      "duskfang_pelt": {
+        "name": "Pele do Espreitador"
+      },
       "bristleback_maul": {
         "name": "Martelo Gallowglass"
       },
@@ -5657,6 +5660,9 @@ export const pt_BR: EnTranslations = {
     "mobs": {
       "forest_wolf": {
         "name": "Lobo da floresta"
+      },
+      "duskfang_prowler": {
+        "name": "Espreitador do Crepúsculo"
       },
       "old_greyjaw": {
         "name": "Velho Greyjaw"
