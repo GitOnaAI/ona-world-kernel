@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
@@ -71,10 +71,6 @@ const supportHtml = readFileSync(
   new URL('../public/support.html', import.meta.url),
   'utf8',
 ).replace(/\r\n/g, '\n');
-const whitepaperUrl = new URL(
-  '../public/World-of-ClaudeCraft-Whitepaper-v1.0.pdf',
-  import.meta.url,
-);
 const viteConfig = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8').replace(
   /\r\n/g,
   '\n',
@@ -525,7 +521,6 @@ describe('client HTML shell', () => {
     // The dynamic per-character sitemap (served by the game server) is advertised too.
     expect(robotsTxt).toContain('Sitemap: https://onaworld.example/sitemap-characters.xml');
     expect(sitemapXml).toContain('<loc>https://onaworld.example/</loc>');
-    expect(sitemapXml).toContain('<loc>https://onaworld.example/links</loc>');
     expect(sitemapXml).toContain('<loc>https://onaworld.example/play</loc>');
     expect(playHtml).toContain(
       '<link rel="canonical" href="https://onaworld.example/play" />',
@@ -554,25 +549,14 @@ describe('client HTML shell', () => {
       '<link rel="canonical" href="https://onaworld.example/data-deletion" />',
     );
     expect(dataDeletionHtml).toContain('<h1>Data Deletion</h1>');
-    expect(dataDeletionHtml).toContain('href="mailto:woc@levystreet.com"');
-    expect(dataDeletionHtml).toContain('href="https://discord.gg/GjhnUsBtw"');
     expect(dataDeletionHtml).toContain('href="/support">Support</a>');
     expect(supportHtml).toContain(
       '<link rel="canonical" href="https://onaworld.example/support" />',
     );
     expect(supportHtml).toContain('<h1>Support</h1>');
-    expect(supportHtml).toContain('href="mailto:woc@levystreet.com"');
-    expect(supportHtml).toContain('href="https://discord.gg/GjhnUsBtw"');
+    expect(supportHtml).toContain('href="mailto:support@onaworld.example"');
     expect(supportHtml).toContain('href="/data-deletion">Data Deletion page</a>');
     expect(supportHtml).toContain('"@type": "ContactPage"');
-    expect(html).toContain(
-      'href="/World-of-ClaudeCraft-Whitepaper-v1.0.pdf" class="footer-link" data-i18n="footer.whitepaper"',
-    );
-    expect(html.indexOf('data-i18n="footer.whitepaper"')).toBeLessThan(
-      html.indexOf('data-i18n="footer.terms"'),
-    );
-    expect(existsSync(whitepaperUrl)).toBe(true);
-    expect(statSync(whitepaperUrl).size).toBeGreaterThan(0);
     expect(html).toContain('href="/terms" class="footer-link" data-i18n="footer.terms"');
     expect(html).toContain('href="/privacy" class="footer-link" data-i18n="footer.privacy"');
     expect(viteConfig).toContain("['/privacy', '/privacy.html']");
@@ -750,13 +734,10 @@ describe('client HTML shell', () => {
   });
 
   it('collapses in-game mobile community links behind one Community control', () => {
-    expect(html).toContain('<a class="donate-cta"');
     expect(html).toContain('<details id="community-menu">');
     expect(html).toContain('<summary class="community-toggle"');
     expect(html).toContain('<div class="community-tray">');
-    expect(html).toContain('<a class="community-link discord"');
     expect(html).toContain('<a class="community-link github"');
-    expect(html).toContain('<a class="community-link donate"');
     expect(hudMobileCss).toContain('body.mobile-touch.game-active #ui {\n    z-index: 80;\n  }');
     expect(hudMobileCss).toContain(
       'body.mobile-touch #community-hud {\n    right: max(8px, env(safe-area-inset-right));\n    top: calc(max(8px, env(safe-area-inset-top)) + 158px);',

@@ -161,11 +161,11 @@ function fillTextClamped(
 const TITLE_FONT = 'Cinzel, Georgia, serif';
 const BODY_FONT = '"Alegreya Sans", "Segoe UI", system-ui, sans-serif';
 
-// The full brand lockup (C-shield emblem + "ONA WORLD KERNEL" wordmark),
-// served from /public. Same-origin, so drawing it does not taint the canvas.
-// Loaded best-effort: if it's missing the footer falls back to a text wordmark
-// rather than failing the whole card.
-const LOGO_URL = '/woc-logo-hero.webp';
+// The neutral template wordmark ("ONA WORLD KERNEL"), served from /public.
+// Same-origin, so drawing it does not taint the canvas. Loaded best-effort: if
+// it's missing the footer falls back to a text wordmark rather than failing
+// the whole card. Replace with your game's own brand mark.
+const LOGO_URL = '/ona-world-logo.png';
 
 /** Format a realm percentile as a card chip label. */
 function formatTopPercent(pct: number): string {

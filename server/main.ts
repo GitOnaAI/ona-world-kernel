@@ -223,22 +223,12 @@ export function resetActiveConfigForTests(): void {
 const STATIC_DIR = path.join(__dirname, '..', 'dist');
 // Pretty URLs that serve standalone static HTML pages.
 const STATIC_PAGE_ALIASES = new Map([
-  ['/links', '/links.html'],
-  ['/links/', '/links.html'],
-  ['/social', '/links.html'],
-  ['/social/', '/links.html'],
-  ['/social-media-links', '/links.html'],
-  ['/social-media-links/', '/links.html'],
   ['/play', '/play.html'],
   ['/play/', '/play.html'],
   ['/privacy', '/privacy.html'],
   ['/privacy/', '/privacy.html'],
   ['/terms', '/terms.html'],
   ['/terms/', '/terms.html'],
-  ['/merch', '/merch.html'],
-  ['/merch/', '/merch.html'],
-  ['/press', '/press.html'],
-  ['/press/', '/press.html'],
   ['/data-deletion', '/data-deletion.html'],
   ['/data-deletion/', '/data-deletion.html'],
   ['/support', '/support.html'],

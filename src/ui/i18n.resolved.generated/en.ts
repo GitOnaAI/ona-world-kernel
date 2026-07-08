@@ -2800,7 +2800,7 @@ export const en: EnTranslations = {
     "applicationCategory": "Game",
     "operatingSystem": "Web browser",
     "officialLabel": "Official Ona World Kernel website",
-    "officialBody": "onaworld.example is the official free browser MMO for the Claudemoon world. Play online with a persistent character, explore solo offline, read the wiki, and follow verified community links from this site."
+    "officialBody": "This site is the sample home of Ona World Kernel, a free browser MMO template for the Claudemoon world. Play online with a persistent character or explore solo offline."
   },
   "a11y": {
     "goHome": "Go to homepage",

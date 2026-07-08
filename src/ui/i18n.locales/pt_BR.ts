@@ -418,7 +418,7 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unitFrame.targetLabel': 'Seu alvo',
   'seo.officialLabel': 'Site oficial de Ona World Kernel',
   'seo.officialBody':
-    'onaworld.example é o MMO de navegador gratuito oficial do mundo Claudemoon. Jogue online com um personagem persistente, explore solo offline, leia a wiki e siga os links verificados da comunidade a partir deste site.',
+    'Este site é a casa de exemplo do Ona World Kernel, um template de MMO de navegador gratuito para o mundo Claudemoon. Jogue online com um personagem persistente ou explore solo offline.',
   'hudChrome.questShare.notShareable': 'Esta missão não pode ser compartilhada.',
   'hudChrome.questShare.notInSharerParty':
     'Você precisa estar no grupo de {name} para aceitar essa missão.',
