@@ -214,7 +214,7 @@ export function isAuthError(err: unknown): boolean {
 }
 
 export class Api {
-  private static readonly SESSION_KEY = 'woc_session';
+  private static readonly SESSION_KEY = 'owk_session';
   token: string | null = null;
   username: string | null = null;
   // Whether the signed-in account still needs a recovery email (mandatory-email

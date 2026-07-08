@@ -6,11 +6,11 @@
 //   npm run db:up          # Postgres on :5433
 //   npm run server         # game server on :8787 (reads .env / DATABASE_URL)
 //   node scripts/player_card_e2e.mjs
-//   WOC_E2E_BASE=https://realm.example node scripts/player_card_e2e.mjs
+//   OWK_E2E_BASE=https://realm.example node scripts/player_card_e2e.mjs
 //
 // Exercises: publish a card → OG page + card.png → auth gate → register via
 // ?ref → referral count reflects it. Exits non-zero on any failure.
-const BASE = process.env.WOC_E2E_BASE ?? 'http://127.0.0.1:8787';
+const BASE = process.env.OWK_E2E_BASE ?? 'http://127.0.0.1:8787';
 const checks = [];
 const check = (name, cond) => {
   checks.push({ name, ok: !!cond });

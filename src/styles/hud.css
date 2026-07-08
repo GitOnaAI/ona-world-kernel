@@ -59,7 +59,7 @@
     filter: drop-shadow(0 1px 1px #000);
   }
   /* significant-contributor name outline: a steady glow layered over whatever
-     name color applies (Discord staff or default). The colour is supplied by the
+     name color applies (staff or default). The colour is supplied by the
      painter via --dev-outline (per-tier), so no hardcoded hue lives here. No
      animation, so it is reduced-motion safe. */
   .np-name.np-sig-dev {
@@ -1406,7 +1406,7 @@
     box-shadow: 0 0 8px #7fd1ff88;
   }
   /* micro-menu: bottom-right, stacked upward, sitting just above the
-     Discord/GitHub buttons (both right-aligned to the same edge). */
+     community buttons (right-aligned to the same edge). */
   #side-buttons {
     position: absolute;
     right: 16px;
@@ -2309,8 +2309,8 @@
   }
 
   /* ---------- community HUD ---------- */
-  /* Discord/GitHub: bottom-right, directly below the micro-menu, right-aligned with it. */
-  /* Discord/GitHub: standalone square buttons matching the micro-menu (no panel
+  /* Community buttons: bottom-right, directly below the micro-menu, right-aligned
+     with it; standalone square buttons matching the micro-menu (no panel
      container), only the hover border keeps each service's brand colour. */
   #community-hud {
     position: absolute;
@@ -2353,7 +2353,7 @@
   .community-link:hover {
     color: #fff;
     border-color: #7f8cff;
-  } /* Discord brand */
+  }
   .community-link.github:hover {
     color: #fff;
     border-color: #e4e4ea;

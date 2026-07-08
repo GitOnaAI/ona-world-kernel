@@ -404,7 +404,7 @@ describe('registry completeness: oauth + internal surfaces (server/oauth.ts, ser
   // parallel list. The oauth surface migrates ONLY its POST JSON rows: the two GET
   // consent/device HTML pages stay on the top-level ladder, off the route table,
   // served through the dispatcher's delegate. The internal migration moved EVERY
-  // handleInternalApi row (restart-countdown + the Discord-bot routes), so the
+  // handleInternalApi row (restart-countdown family), so the
   // internal derivation spans EVERY internal row.
   const oauthPostLadder = SURFACE_INVENTORY.filter(
     (r) => r.dispatcher === DISPATCH.oauth && r.method === 'POST',

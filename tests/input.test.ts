@@ -615,7 +615,7 @@ describe('Input attack move', () => {
 });
 
 describe('Input movement is not cancelled by a camera drag', () => {
-  // Discord regression: walking with W (or any held key) then right/left-drag to
+  // Player-reported regression: walking with W (or any held key) then right/left-drag to
   // look around and releasing the button stopped movement, because exiting
   // pointer lock cleared the held keyboard keys.
   function walkAndDrag(
@@ -807,7 +807,7 @@ describe('Input modifier combos', () => {
     // Defensive: bind() strips modifiers from held actions, but hand-edited or
     // corrupt storage could carry one. The per-frame poll must still match the
     // bare physical key so movement cannot silently wedge.
-    localStorage.setItem('woc_keybinds', JSON.stringify({ forward: ['Shift+KeyW', null] }));
+    localStorage.setItem('owk_keybinds', JSON.stringify({ forward: ['Shift+KeyW', null] }));
     const { input, windowListeners } = makeInput();
     windowListeners.get('keydown')!({ code: 'KeyW', repeat: false });
     expect(input.readMoveInput().forward).toBe(true);

@@ -350,7 +350,7 @@ export class PerfMonitor {
   constructor(private renderer: Renderer | null, private hud: { perfStats(): PerfSnapshot['hud'] } | null = null) {
     const params = new URLSearchParams(location.search);
     this.traceEnabled = localDevPerfTraceEnabled();
-    this.enabled = this.traceEnabled || params.has('perf') || localStorage.getItem('woc_perf') === '1';
+    this.enabled = this.traceEnabled || params.has('perf') || localStorage.getItem('owk_perf') === '1';
     if (this.enabled) {
       this.mountOverlay();
     }

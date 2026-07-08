@@ -30,8 +30,8 @@ page.on('console', (m) => { if (m.type() === 'error') console.log('CONSOLE:', m.
 // at startup; the Settings object is not exposed on window.__game).
 await page.evaluateOnNewDocument(() => {
   try {
-    const cur = JSON.parse(localStorage.getItem('woc_settings') ?? '{}');
-    localStorage.setItem('woc_settings', JSON.stringify({ ...cur, clickToMove: 1 }));
+    const cur = JSON.parse(localStorage.getItem('owk_settings') ?? '{}');
+    localStorage.setItem('owk_settings', JSON.stringify({ ...cur, clickToMove: 1 }));
   } catch { /* storage unavailable */ }
 });
 

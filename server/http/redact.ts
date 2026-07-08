@@ -10,12 +10,12 @@
 //   (e) OAuth secrets: the PKCE code_verifier and the access/refresh tokens (the
 //       authorization code and device code VALUES are 64-hex, caught by rule (b));
 //   (f) TOTP secrets (the base32 shared secret) and numeric one-time codes;
-//   (g) wallet private-key-shaped fields (private_key / mnemonic / seed_phrase);
+//   (g) private-key-shaped fields (private_key / mnemonic / seed_phrase);
 //   (h) raw byte values (Buffer / TypedArray / ArrayBuffer) collapse to the
 //       placeholder wholesale, so a secret held as bytes under a non-secret key
 //       name can never serialize into a line;
 //   (i) email addresses (local@domain.tld) anywhere in a string. Signup requires an
-//       email, so raw addresses flow through register / set-initial / Discord-capture
+//       email, so raw addresses flow through register / set-initial / OAuth-capture
 //       bodies and must never land in a swept log field.
 //
 // It is defensive by construction: it recurses into nested objects and arrays with
@@ -51,7 +51,7 @@ const SECRET_KEY_NEEDLES: readonly string[] = [
   'accesstoken',
   'refresh_token',
   'refreshtoken',
-  'private_key', // wallet private-key-shaped fields (never expected, redacted defensively)
+  'private_key', // private-key-shaped fields (never expected, redacted defensively)
   'privatekey',
   'privkey',
   'mnemonic',

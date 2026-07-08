@@ -1,3 +1,8 @@
+> **Historical audit (pre-trim snapshot).** This document audited the original
+> upstream desktop shell. Some flows it describes — notably Discord sign-in —
+> were removed from Ona World Kernel; identifiers were renamed mechanically.
+> Kept for reference; do not treat as a description of the current tree.
+
 # Electron desktop app: deep audit and upgrade plan
 
 Research date: 2026-07-01. Branch: `feature/electron-steam-desktop`.
@@ -13,7 +18,7 @@ finding and re-check its currency.
 These were locked with the maintainer during the audit:
 
 1. Distribution is two channels: the Steam store AND direct downloads from
-   worldofclaudecraft.com. One Electron bundle serves both; no separate native Steam build.
+   onaworld.example. One Electron bundle serves both; no separate native Steam build.
 2. Sign-in is Discord plus email only, exactly the web flow: email/password logs in
    inside the app, and Discord goes through the browser plus deep-link `desktop-login`
    handoff. There is no Steam sign-in (Discord is the community-growth funnel, and one
@@ -87,7 +92,7 @@ changes, each its own commit.
   flip for unsigned builds (loses the fused-binary test coverage locally).
 - Packaged-build DevTools affordance (N-new). setMenu(null) plus no DevTools left no way to
   inspect CSP, GPU, or errors in a shipped app. A before-input-event handler now toggles
-  DevTools on F12, Cmd+Option+I (macOS), or Ctrl+Shift+I (Windows/Linux); WOC_OPEN_DEVTOOLS=1
+  DevTools on F12, Cmd+Option+I (macOS), or Ctrl+Shift+I (Windows/Linux); OWK_OPEN_DEVTOOLS=1
   auto-opens it on launch. DevTools is read-only against the sandboxed, context-isolated
   renderer and confers no gameplay advantage. The chord predicate is pure
   (isDevToolsToggleShortcut in shell_guards.cjs, matched on the PHYSICAL key code because
@@ -120,12 +125,12 @@ changes, each its own commit.
   username/password logs in in place via api.login. Only "Continue with Discord" is routed to
   the external browser (#btn-login-discord calls the preload openBrowserLogin bridge in the
   desktop build), because its OAuth redirect is off-origin and the navigation guard blocks it
-  in-app; it returns via the worldofclaudecraft://desktop-login?code= deep link (unchanged).
+  in-app; it returns via the onaworld://desktop-login?code= deep link (unchanged).
 
 Known dependency, not a wrapper bug (server deploy): the packaged app is served from origin
-app://worldofclaudecraft and calls https://worldofclaudecraft.com, a cross-origin request that
+app://onaworld and calls https://onaworld.example, a cross-origin request that
 needs the server to reflect Access-Control-Allow-Origin for that origin. This branch's server
-already allows it (server/web_login_guard.ts DESKTOP_APP_ORIGINS includes app://worldofclaudecraft,
+already allows it (server/web_login_guard.ts DESKTOP_APP_ORIGINS includes app://onaworld,
 reflected by maybeCors), but a live probe of production returns no CORS header for that origin,
 so production has not been deployed with this support yet. Until it is, the desktop app cannot
 reach the REST API from production (login, realm list, and the landing-page player counts all
@@ -200,9 +205,9 @@ below), and zero node_modules in the asar with the vendor bundles loading.
 Still with the maintainer (accounts and infrastructure, not code; see the
 provisioning table in docs/desktop-release.md): the Developer ID certificate +
 notarytool API key, the Azure Artifact Signing account + service principal, the
-update host for https://updates.worldofclaudecraft.com/desktop, the Steam
+update host for https://updates.onaworld.example/desktop, the Steam
 partner app + depots, the optional crash-minidump endpoint, and deploying this
-branch's server so production reflects CORS for app://worldofclaudecraft.
+branch's server so production reflects CORS for app://onaworld.
 
 ### Independent re-verification passes (2026-07-01)
 
@@ -249,14 +254,14 @@ finding was applied (commits 8bae7110 and 3d4e49b8):
   `registerSchemesAsPrivileged`; `fileInside()` path-traversal guard; BrowserWindow with
   `contextIsolation:true`, `nodeIntegration:false`, `sandbox:true`; `setMenu(null)`;
   `setWindowOpenHandler` denies all and forwards http/https to `shell.openExternal`;
-  permission handlers use a deny-list; single-instance lock; `worldofclaudecraft://`
+  permission handlers use a deny-list; single-instance lock; `onaworld://`
   deep-link for `desktop-login`; plus the since-removed steamworks.js integration.
 - `electron/preload.cjs` (15 lines): `contextBridge.exposeInMainWorld('wocDesktop', ...)`
   exposing `openBrowserLogin`, `takeLoginCode`, `onLoginCode` (plus one since-removed
   Steam bridge method).
-- `build` block: appId `com.worldofclaudecraft.desktop`; targets mac dmg+zip, win nsis+zip,
+- `build` block: appId `com.onaworld.desktop`; targets mac dmg+zip, win nsis+zip,
   linux AppImage+deb; `asarUnpack` of `node_modules/steamworks.js/dist/**`; `protocols`
-  block for the `worldofclaudecraft` scheme. No signing, notarization, fuses, asarIntegrity,
+  block for the `onaworld` scheme. No signing, notarization, fuses, asarIntegrity,
   or publish/updater config.
 
 ---
@@ -315,10 +320,10 @@ Verified strengths, worth preserving through any refactor:
   route is discriminated correctly (extensionless miss falls back to index.html; a missing
   `.js`/`.css` 404s instead of serving wrong-MIME HTML).
 - Textbook single-instance plus deep-link: `requestSingleInstanceLock` with quit-on-loser,
-  an argv `find(startsWith('worldofclaudecraft://'))` scan robust to argv reordering, the
+  an argv `find(startsWith('onaworld://'))` scan robust to argv reordering, the
   dev-vs-packaged `setAsDefaultProtocolClient` branch, and a macOS `open-url` handler
   registered before ready. Cold-start codes are buffered in `pendingLoginCode`.
-- Tight deep-link validation: rejects anything whose protocol is not `worldofclaudecraft:`
+- Tight deep-link validation: rejects anything whose protocol is not `onaworld:`
   or hostname is not `desktop-login`, and requires a `code` param (`main.cjs:158-169`).
 - Preload is minimal and sandbox-compliant: requires only `electron`, exposes wrapped
   `ipcRenderer.invoke/on` helpers (never the raw module), type-guards its inputs
@@ -383,7 +388,7 @@ All pure code and config, no new dependency except electron-updater.
 - S4. IPC handlers do not validate the sender frame. `desktop-login-take-code` and
   `desktop-login-open-browser` (`main.cjs:171-181`) mint or return sensitive values with no
   sender check. Add one shared `isTrustedSender(frame)` helper (frame origin is
-  `app://worldofclaudecraft` or the dev URL) and apply it at the top of every handler,
+  `app://onaworld` or the dev URL) and apply it at the top of every handler,
   returning null/void otherwise. Risk is low today given sandbox plus contextIsolation plus
   no webviewTag, but it is cheap defense-in-depth and the documented pattern. Source:
   security checklist item 17. (A third, since-removed Steam handler was also covered at the
@@ -528,7 +533,7 @@ launched under Steam. That is additive and does not change distribution; gate it
 CI that verifies the prebuilt addon loads under the exact Electron version.
 
 The desktop login surface (used by BOTH email and Discord) is: `openDesktopLogin()`, the
-`worldofclaudecraft://desktop-login?code=` deep link, `deliverLoginCode()` /
+`onaworld://desktop-login?code=` deep link, `deliverLoginCode()` /
 `pendingLoginCode`, and the `openBrowserLogin` / `takeLoginCode` / `onLoginCode` bridges.
 
 ---

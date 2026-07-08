@@ -134,7 +134,7 @@ beforeEach(() => {
   fakeDocument.body = new FakeEl();
 });
 
-const KEY = 'woc_test_frame_pos';
+const KEY = 'owk_test_frame_pos';
 
 function makeFrame(opts: { mobile?: boolean; positioned?: Array<boolean> } = {}) {
   const frame = new FakeEl();

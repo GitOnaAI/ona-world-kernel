@@ -91,7 +91,7 @@ describe('userFacingApiError parametric codes', () => {
 
   it('falls through to prose when rate_limit.exceeded carries no numeric seconds', () => {
     const err = new ApiError('rate limited', 429, 'rate_limit.exceeded', {});
-    // The prose arm for the Discord bare "rate limited" maps to tooManyAttempts.
+    // The prose arm for a bare "rate limited" maps to tooManyAttempts.
     expect(userFacingApiError(err)).toBe(t('errors.api.tooManyAttempts'));
   });
 });

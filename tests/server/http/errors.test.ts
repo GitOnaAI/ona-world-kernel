@@ -106,13 +106,13 @@ describe('code-implied headers', () => {
 describe('rateLimit429Headers (draft-11 structured fields)', () => {
   it('builds Retry-After + RateLimit + RateLimit-Policy from the policy and outcome', () => {
     const headers = rateLimit429Headers(
-      { name: 'woc_balance', limit: 20, windowSeconds: 60 },
+      { name: 'example_policy', limit: 20, windowSeconds: 60 },
       { remaining: 3, resetSeconds: 17 },
     );
     expect(headers).toEqual({
       'Retry-After': '17',
-      RateLimit: '"woc_balance";r=3;t=17',
-      'RateLimit-Policy': '"woc_balance";q=20;w=60',
+      RateLimit: '"example_policy";r=3;t=17',
+      'RateLimit-Policy': '"example_policy";q=20;w=60',
     });
     // The legacy X-RateLimit-* trio is deliberately never emitted.
     expect(Object.keys(headers)).not.toContain('X-RateLimit-Limit');

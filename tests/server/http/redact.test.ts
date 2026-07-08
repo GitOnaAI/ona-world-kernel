@@ -75,7 +75,7 @@ describe('redact: named secret classes', () => {
     expect(out.code).toBe(REDACTED);
   });
 
-  it('(g) scrubs wallet private-key-shaped fields by key', () => {
+  it('(g) scrubs private-key-shaped fields by key', () => {
     const out = redact({
       private_key: 'skeleton',
       privateKey: 'skeleton',

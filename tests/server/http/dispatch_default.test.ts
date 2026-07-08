@@ -58,10 +58,9 @@ const MIN_ENV: NodeJS.ProcessEnv = { DATABASE_URL: 'postgres://x' };
 
 // routeHttpRequest is synchronous fire-and-forget, so a dispatch polls writableEnded.
 const MAX_POLL_TICKS = 5000;
-// The two secret-gate env vars that must be UNSET for the internal restart-countdown
+// The secret-gate env var that must be UNSET for the internal restart-countdown
 // route to answer its feature-off 404 (matching parity.test.ts's feature-off case).
 const RESTART_SECRET_ENV = 'RESTART_COUNTDOWN_SECRET';
-const DISCORD_SECRET_ENV = 'DISCORD_BOT_SECRET';
 
 type MainModule = typeof import('../../../server/main');
 let main: MainModule;
@@ -80,20 +79,16 @@ const drive: Dispatch = async (req, res) => {
   }
 };
 
-// Run `fn` with both internal secret env vars UNSET (restored after), so the
+// Run `fn` with the internal secret env var UNSET (restored after), so the
 // restart-countdown gate deterministically answers the feature-off 404.
 async function withInternalSecretsUnset<T>(fn: () => Promise<T>): Promise<T> {
   const savedRestart = process.env[RESTART_SECRET_ENV];
-  const savedDiscord = process.env[DISCORD_SECRET_ENV];
   delete process.env[RESTART_SECRET_ENV];
-  delete process.env[DISCORD_SECRET_ENV];
   try {
     return await fn();
   } finally {
     if (savedRestart === undefined) delete process.env[RESTART_SECRET_ENV];
     else process.env[RESTART_SECRET_ENV] = savedRestart;
-    if (savedDiscord === undefined) delete process.env[DISCORD_SECRET_ENV];
-    else process.env[DISCORD_SECRET_ENV] = savedDiscord;
   }
 }
 

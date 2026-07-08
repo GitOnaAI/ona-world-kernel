@@ -818,7 +818,7 @@ export async function handleAdminApi(
 // shared server/http/ pipeline the registry dispatcher serves under API_DISPATCH
 // 'new' (server/main.ts routes /admin/api through its own flag-gated dispatcher
 // whose delegate is the legacy handleAdminApi, kept as the flag-off rollback path
-// until the ladder-deletion PR, next release). This follows the server/discord.ts +
+// until the ladder-deletion PR, next release). This follows the shared route-layer +
 // server/reports.ts template:
 //
 //  - PARITY-FIRST bodies + envelope. Every migrated handler reproduces its legacy

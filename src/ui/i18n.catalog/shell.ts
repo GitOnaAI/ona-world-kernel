@@ -27,7 +27,6 @@ export const shellStrings = {
       languageSelection: 'Language selection',
       characterActions: 'Character actions',
       githubProject: 'Open the Ona World Kernel GitHub project',
-      discordCommunity: 'Join the Ona World Kernel Discord community',
       donateProject: 'Donate to support Ona World Kernel',
     },
     loading: {
@@ -276,7 +275,6 @@ export const shellStrings = {
       languageSelection: 'Selección de idioma',
       characterActions: 'Acciones de personaje',
       githubProject: 'Abrir el proyecto de Ona World Kernel en GitHub',
-      discordCommunity: 'Unirse a la comunidad de Ona World Kernel en Discord',
       donateProject: 'Donar para apoyar Ona World Kernel',
     },
     loading: {
@@ -479,7 +477,6 @@ export const shellStrings = {
       languageSelection: 'Selección de idioma',
       characterActions: 'Acciones del personaje',
       githubProject: 'Abrir el proyecto Ona World Kernel en GitHub',
-      discordCommunity: 'Unirse a la comunidad de Ona World Kernel en Discord',
       donateProject: 'Donar para apoyar Ona World Kernel',
     },
     loading: {
@@ -682,7 +679,6 @@ export const shellStrings = {
       languageSelection: 'Sélection de la langue',
       characterActions: 'Actions de personnage',
       githubProject: 'Ouvrir le projet Ona World Kernel sur GitHub',
-      discordCommunity: 'Rejoindre la communauté Ona World Kernel sur Discord',
       donateProject: 'Faire un don pour soutenir Ona World Kernel',
     },
     loading: {
@@ -886,7 +882,6 @@ export const shellStrings = {
       languageSelection: 'Sélection de la langue',
       characterActions: 'Actions de personnage',
       githubProject: 'Ouvrir le projet Ona World Kernel sur GitHub',
-      discordCommunity: 'Rejoindre la communauté Ona World Kernel sur Discord',
       donateProject: 'Faire un don pour soutenir Ona World Kernel',
     },
     loading: {
@@ -1090,7 +1085,6 @@ export const shellStrings = {
       languageSelection: 'Language selection',
       characterActions: 'Character actions',
       githubProject: 'Open the Ona World Kernel GitHub project',
-      discordCommunity: 'Join the Ona World Kernel Discord community',
       donateProject: 'Donate to support Ona World Kernel',
     },
     loading: {
@@ -1303,7 +1297,6 @@ export const shellStrings = {
       languageSelection: 'Selezione lingua',
       characterActions: 'Azioni personaggio',
       githubProject: 'Apri il progetto Ona World Kernel su GitHub',
-      discordCommunity: 'Entra nella community Discord di Ona World Kernel',
       donateProject: 'Fai una donazione per sostenere Ona World Kernel',
     },
     loading: {
@@ -1508,7 +1501,6 @@ export const shellStrings = {
       languageSelection: 'Sprachauswahl',
       characterActions: 'Charakteraktionen',
       githubProject: 'Ona World Kernel-Projekt auf GitHub öffnen',
-      discordCommunity: 'Der Ona World Kernel-Community auf Discord beitreten',
       donateProject: 'Spenden, um Ona World Kernel zu unterstützen',
     },
     loading: {
@@ -1711,7 +1703,6 @@ export const shellStrings = {
       languageSelection: '语言选择',
       characterActions: '角色操作',
       githubProject: '打开 Ona World Kernel 的 GitHub 项目',
-      discordCommunity: '加入 Ona World Kernel 的 Discord 社区',
       donateProject: '捐赠支持 Ona World Kernel',
     },
     loading: {
@@ -1899,7 +1890,6 @@ export const shellStrings = {
       languageSelection: '語言選擇',
       characterActions: '角色操作',
       githubProject: '開啟 Ona World Kernel 的 GitHub 專案',
-      discordCommunity: '加入 Ona World Kernel 的 Discord 社群',
       donateProject: '捐贈支持 Ona World Kernel',
     },
     loading: {
@@ -2087,7 +2077,6 @@ export const shellStrings = {
       languageSelection: '언어 선택',
       characterActions: '캐릭터 작업',
       githubProject: 'GitHub에서 Ona World Kernel 프로젝트 열기',
-      discordCommunity: 'Ona World Kernel Discord 커뮤니티 참여',
       donateProject: 'Ona World Kernel 후원하기',
     },
     loading: {
@@ -2287,7 +2276,6 @@ export const shellStrings = {
       languageSelection: '言語選択',
       characterActions: 'キャラクター操作',
       githubProject: 'GitHubでOna World Kernelプロジェクトを開く',
-      discordCommunity: 'Ona World KernelのDiscordコミュニティに参加',
       donateProject: 'Ona World Kernelを支援するために寄付',
     },
     loading: {
@@ -2485,7 +2473,6 @@ export const shellStrings = {
       languageSelection: 'Seleção de idioma',
       characterActions: 'Ações de personagem',
       githubProject: 'Abrir o projeto Ona World Kernel no GitHub',
-      discordCommunity: 'Entrar na comunidade Ona World Kernel no Discord',
       donateProject: 'Doar para apoiar Ona World Kernel',
     },
     loading: {
@@ -2688,7 +2675,6 @@ export const shellStrings = {
       languageSelection: 'Выбор языка',
       characterActions: 'Действия персонажа',
       githubProject: 'Открыть проект Ona World Kernel на GitHub',
-      discordCommunity: 'Присоединиться к Discord-сообществу Ona World Kernel',
       donateProject: 'Пожертвовать на поддержку Ona World Kernel',
     },
     loading: {

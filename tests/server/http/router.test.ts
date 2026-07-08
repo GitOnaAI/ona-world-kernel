@@ -205,18 +205,18 @@ describe('createRouter: registration guards', () => {
 });
 
 describe('createRouter: real multi-method paths (OPTIONS/405 Allow synthesis)', () => {
-  // Mirrors the surface inventory: the paths registered under more than
-  // one method. The Allow set is sorted by the canonical method order.
+  // Example multi-method paths (router fixtures only; not the live surface).
+  // The Allow set is sorted by the canonical method order.
   const r = createRouter([
     route('GET', '/api/characters'),
     route('POST', '/api/characters'),
     route('POST', '/api/account/companion-token'),
     route('GET', '/api/account/companion-token'),
     route('DELETE', '/api/account/companion-token'),
-    route('POST', '/api/wallet/link'),
-    route('DELETE', '/api/wallet/link'),
-    route('GET', '/api/discord'),
-    route('DELETE', '/api/discord'),
+    route('POST', '/api/profile/link'),
+    route('DELETE', '/api/profile/link'),
+    route('GET', '/api/example'),
+    route('DELETE', '/api/example'),
   ]);
 
   it('synthesizes OPTIONS for a three-method path', () => {
@@ -228,13 +228,13 @@ describe('createRouter: real multi-method paths (OPTIONS/405 Allow synthesis)', 
   });
 
   it('405s a wrong method on a POST+DELETE path with the right Allow set', () => {
-    const m = r.match('GET', '/api/wallet/link');
+    const m = r.match('GET', '/api/profile/link');
     expect(m.kind).toBe('methodNotAllowed');
     if (m.kind === 'methodNotAllowed') expect(m.allow).toEqual(['POST', 'DELETE', 'OPTIONS']);
   });
 
   it('synthesizes HEAD on a GET+DELETE path', () => {
-    const m = r.match('OPTIONS', '/api/discord');
+    const m = r.match('OPTIONS', '/api/example');
     expect(m.kind).toBe('options');
     if (m.kind === 'options') expect(m.allow).toEqual(['GET', 'HEAD', 'DELETE', 'OPTIONS']);
   });

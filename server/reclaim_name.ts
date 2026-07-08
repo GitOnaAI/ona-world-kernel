@@ -5,7 +5,7 @@
 // stays valid without holding the original name hostage. The suffix scheme
 // mirrors the per-realm case-insensitive dedupe in SOCIAL_SCHEMA (server/social_db.ts).
 //
-// Kept here as a standalone module (like wallet_link.ts vs wallet.ts) so the
+// Kept here as a standalone module so the
 // suffixing logic is unit-testable without a Postgres connection; server/db.ts
 // is the DB-touching shell that applies it inside a transaction.
 

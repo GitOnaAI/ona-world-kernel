@@ -233,7 +233,7 @@ export const CHARACTER_TAKEOVER_POLICY: RateLimitPolicy = characterMutationPolic
 // BEHIND the route's auth guard) running the SAME fused mapMutationRateLimited
 // bucket the legacy /api/maps arms check, so both dispatch paths share one window.
 // The legacy arm answers a prose 429 { error: 'rate_limited' }; this policy's 429
-// is the coded rate_limit.exceeded problem (the wallet-family coded-vs-prose 429
+// is the coded rate_limit.exceeded problem (the legacy coded-vs-prose 429
 // deviation class, recorded in known_deviations.ts).
 export const MAP_MUTATION_POLICY: RateLimitPolicy = {
   name: 'map_mutation',

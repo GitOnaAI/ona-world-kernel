@@ -531,7 +531,7 @@ describe('username censorship', () => {
   it('can load banned username terms from a configured file', () => {
     const file = join(
       tmpdir(),
-      `woc-banlist-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`,
+      `owk-banlist-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`,
     );
     writeFileSync(file, 'forbidden\n');
     try {
@@ -544,7 +544,7 @@ describe('username censorship', () => {
   });
 
   it('caches file-backed banned terms until banlist env changes', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'woc-banlist-'));
+    const dir = mkdtempSync(join(tmpdir(), 'owk-banlist-'));
     const firstFile = join(dir, 'first.txt');
     const secondFile = join(dir, 'second.txt');
     writeFileSync(firstFile, 'fileterm\n');
@@ -570,7 +570,7 @@ describe('username censorship', () => {
   });
 
   it('retries file-backed banned terms after a failed read', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'woc-banlist-missing-'));
+    const dir = mkdtempSync(join(tmpdir(), 'owk-banlist-missing-'));
     const missingFile = join(dir, 'missing.txt');
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 

@@ -1,9 +1,9 @@
 // Tier-2, pg-backed GLOBAL rate-limit backstop for the multi-realm deployment
 // (SQL only). The DDL (RATELIMIT_SCHEMA) is appended to ensureSchema() in db.ts
-// like DISCORD_SCHEMA / GITHUB_SCHEMA; the store takes the shared `pool` by
+// like GITHUB_SCHEMA; the store takes the shared `pool` by
 // INJECTION (factory arg) and imports `pg` only as `import type { Pool }` so this
 // module never imports db.ts, keeping db.ts <-> ratelimit_db.ts cycle-free (mirrors
-// discord_db.ts / github_db.ts, both of which db.ts imports for their schema).
+// github_db.ts, which db.ts imports for its schema).
 //
 // Why tier-2 exists: each realm process keeps its own in-memory tier-1 limiter
 // maps (server/ratelimit.ts), so N realms means N times the intended budget.

@@ -24,44 +24,22 @@
   }
 }
 
-/* ── Discord integration ───────────────────────────────────────────────────── */
-/* "or use email" divider under the first-class Continue with Discord button. */
-.auth-or {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 14px;
-  color: var(--color-text-muted, #9a8f70);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.auth-or[hidden] {
-  display: none;
-}
-.auth-or::before,
-.auth-or::after {
-  content: "";
-  flex: 1 1 auto;
-  height: 1px;
-  background: #463a1c;
-}
 .inspect-dev-login {
   color: #9fe6c2;
 }
 
 /* Badge line under the target frame healthbar (developer-badge chip). */
-.uf-discord {
+.uf-badges {
   display: none;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   margin-top: 3px;
 }
-.uf-discord.show {
+.uf-badges.show {
   display: flex;
 }
-.uf-dc-chip {
+.uf-badge-chip {
   font-size: 9.5px;
   line-height: 1.4;
   padding: 0 5px;
@@ -71,6 +49,6 @@
   border: 1px solid #463a1c;
 }
 /* developer-badge chip on the target frame */
-.uf-dc-chip.dev {
+.uf-badge-chip.dev {
   color: #d7ffe9;
 }

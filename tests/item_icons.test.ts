@@ -7,7 +7,7 @@ import { ITEM_IMAGE_IDS, itemImageUrl } from '../src/ui/icons';
 
 // Gate for the committed WebP item icons (mirror of tests/skill_icons.test.ts). Art under
 // public/ui/items/<id>.webp is the source of truth (WebP only), served by itemImageUrl for
-// kind 'item' (bags, tooltips, loot, vendor, the /wiki guide). The guard is a bijection plus
+// kind 'item' (bags, tooltips, loot, vendor). The guard is a bijection plus
 // a scope check (wired ids are real, non-equipment items):
 //   A) every id in ITEM_IMAGE_IDS resolves to a committed, VALID .webp;
 //   B) only .webp art (+ mapping.json) is committed under public/ui/items;

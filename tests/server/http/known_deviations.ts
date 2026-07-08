@@ -562,7 +562,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'problem+json instead of the legacy outer-catch 500 { error }. Same 500 STATUS, ' +
       'different body shape; there is no status remap because these handlers self-read ' +
       'without withBody. Exact sibling to accountBodyValidationRemap / ' +
-      'walletBodyValidationRemap. These framework-error paths are NOT exercised by the ' +
+      'the removed integrations\' body-validation remaps. These framework-error paths are NOT exercised by the ' +
       'db-free parity corpus (which replays valid bodies only), so the divergence is ' +
       'documented here rather than harness-caught. Adding /api/reports and ' +
       '/api/site-presence here also masks them in the path-scoped parity filter, so ' +
@@ -583,7 +583,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       '60s window) mounted AFTER activeGuard, throwing HttpError(429, ' +
       '"rate_limit.exceeded", { retryAfterSeconds }) serialized as RFC 9457 ' +
       'application/problem+json. The code already exists (harvested with the error-code ' +
-      'catalog, reused by the character-mutation and wallet/card ' +
+      'catalog, reused by the character-mutation and card ' +
       'limiters), so no catalog append is needed. The legacy arm stays unlimited ' +
       'for the flag-off rollback until the legacy ladder is removed.',
     introducedInPhase: 15,
@@ -720,7 +720,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'admin serializer, selected by meta.envelope "admin") instead of the legacy ' +
       'outer-catch 500 { ...error: "internal error" }. Same status + envelope shape, ' +
       'different error string. Exact sibling to accountBodyValidationRemap / ' +
-      'walletBodyValidationRemap / reportsBodyValidationRemap. ' +
+      'reportsBodyValidationRemap. ' +
       'The listed routes are representative (the remap applies to every admin route); the ' +
       'framework-error path is not exercised by the db-free parity corpus, documented here.',
   },
@@ -759,7 +759,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'The migrated OAuth POST handlers surface an unexpected throw through the shared ' +
       'error-model boundary (the RFC 6749 serializer) instead of the legacy ' +
       'module-local catch. Same status + error code, an additive description field. ' +
-      'Sibling to accountBodyValidationRemap / walletBodyValidationRemap / ' +
+      'Sibling to accountBodyValidationRemap / ' +
       'reportsBodyValidationRemap / adminBodyValidationRemap. ' +
       'Not exercised by the db-free parity corpus (a real throw needs a DB failure or an ' +
       'over-cap stream), documented here and pinned with fakes in tests/server/oauth.test.ts.',
@@ -923,7 +923,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
     currentBehavior:
       'Before the two-tier limiter rework, a coded 429 from a rateLimit(policy) middleware ' +
       '(the migrated ' +
-      'wallet/woc/card, character-mutation, and reports.create limiters) is thrown as ' +
+      'card, character-mutation, and reports.create limiters) is thrown as ' +
       'HttpError(429, "rate_limit.exceeded", { retryAfterSeconds: 60 }) where 60 is the ' +
       'static shared-window constant, and the ONLY response header is Retry-After: 60 ' +
       '(applyImpliedHeaders derives it from params.retryAfterSeconds). No RateLimit or ' +
@@ -956,7 +956,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'retry value). NOT exercised by the db-free parity corpus: runParity resets every ' +
       'limiter bucket before each pass, so a bucket is never drained and no coded 429 ' +
       'fires, and every route listed here is ALREADY path-masked in the parity filter by ' +
-      'rateLimitedBodyToCode (wallet/woc/card), newLimiterCharacterMutations (the four ' +
+      'rateLimitedBodyToCode (card), newLimiterCharacterMutations (the four ' +
       'character routes), or newLimiterReportsCreate (/api/reports), so this entry adds no ' +
       'new masking and needs no new captureBothModes re-pin. Documented here and pinned ' +
       'directly on the thrown HttpError in tests/server/http/rate_limit.test.ts.',
@@ -1044,7 +1044,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'completeness of the family.',
     introducedInPhase: 24,
     reason:
-      'Sibling to rateLimitedBodyToCode (the wallet/card entry): the same coded-' +
+      'Sibling to rateLimitedBodyToCode (the card entry): the same coded-' +
       '429 body-shape change, applied to the v0.20.0 map editor family at its in-merge ' +
       'migration. The 429 divergence is NOT exercised by the db-free parity corpus ' +
       '(runParity resets every limiter bucket before each pass), so it is documented here ' +

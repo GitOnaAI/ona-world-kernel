@@ -257,7 +257,7 @@ describe('requireInternalSecret: real exported (header, env) pairs', () => {
 
 describe('requireInternalSecret: exported constants (single source of truth)', () => {
   it('pins the header and env names the route tables consume', () => {
-    expect(DEPLOY_SECRET_HEADER).toBe('x-woc-deploy-secret');
+    expect(DEPLOY_SECRET_HEADER).toBe('x-owk-deploy-secret');
     expect(DEPLOY_SECRET_ENV).toBe('RESTART_COUNTDOWN_SECRET');
   });
 });

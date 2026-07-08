@@ -19,8 +19,8 @@
 //     whose string begins with one of the four dispatched API prefixes
 //     (/api/, /admin/api/, /internal/, /oauth/). This naturally excludes the
 //     static/SSR prefix comparisons ('/', '/admin', '/p/', '/avatar/',
-//     '/sitemap-characters.xml') and the `startsWith('/internal/discord/')`
-//     prefix delegation (it is a prefix test, not an `=== '<path>'`).
+//     '/sitemap-characters.xml') and legacy `startsWith(...)` prefix
+//     delegations (prefix tests, not `=== '<path>'`).
 //   * PARAM routes: every `const <name>Match = /<regex>/.exec(...)` whose regex
 //     source begins with `^/<api-prefix>/`. This excludes the `^Bearer ...`
 //     auth regexes.

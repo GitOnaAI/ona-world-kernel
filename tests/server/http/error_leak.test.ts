@@ -8,7 +8,7 @@
 // per-surface envelopes (using BOTH the EnvelopeKind spellings and the
 // ErrorSurface aliases, so normalizeSurface is exercised) and asserts, for each:
 //   1. status === 500 with the generic 'internal.error' identity, on every surface
-//      except 'redirect' (the locked Discord-callback design bounces 302 to
+//      except 'redirect' (the locked OAuth-callback design bounces 302 to
 //      /error?code=internal.error; still the unexpected path, still leak-free).
 //   2. NONE of the seeded secret substrings appear anywhere in the serialized
 //      body, contentType, or header values.
@@ -144,7 +144,7 @@ const FIXTURES: readonly Fixture[] = [
 /**
  * Assert the per-surface unexpected-error shape. Status is 500 on every surface
  * EXCEPT 'redirect', which by the locked design maps an unexpected error to a 302
- * bounce to /error?code=internal.error (the Discord-callback case); the original
+ * bounce to /error?code=internal.error (the OAuth-callback case); the original
  * still flows to onUnexpected and the generic code rides the Location, so it stays
  * leak-free. For JSON envelopes the generic identity is checked (oauth maps the
  * internal code to the RFC token 'server_error'; admin/problem carry

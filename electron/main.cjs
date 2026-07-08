@@ -41,7 +41,7 @@ const APP_ORIGIN = 'app://onaworld';
 // The Vite dev server URL is a DEV-ONLY seam (electron-dev.mjs sets it): its
 // origin joins the trusted set for BOTH navigation and IPC-sender trust, and it
 // is loaded as the UI, so a packaged build must never honor it from runtime
-// env. Gate it on isPackaged, mirroring the WOC_DISTRIBUTION / WOC_CRASH_SUBMIT_URL
+// env. Gate it on isPackaged, mirroring the OWK_DISTRIBUTION / OWK_CRASH_SUBMIT_URL
 // hatch closures in electron/desktop_config.cjs.
 const devServerUrl = app.isPackaged ? undefined : process.env.VITE_DEV_SERVER_URL;
 // Origins the main frame may navigate to (app origin, plus the dev server in dev).
@@ -76,7 +76,7 @@ const desktopConfig = resolveDesktopConfig({
 // desktop_config.cjs from the build-time wocDesktop stamp (apiOrigin matches
 // what the Vite client bundle was baked with; loginOrigin is main-process-only);
 // the VITE_DESKTOP_* env pair is honored on unpackaged checkouts only,
-// mirroring the WOC_DISTRIBUTION hatch closure.
+// mirroring the OWK_DISTRIBUTION hatch closure.
 const apiOrigin = deriveOrigin(desktopConfig.apiOrigin) || 'https://onaworld.example';
 const desktopLoginOrigin = desktopConfig.loginOrigin.replace(/\/+$/, '');
 
@@ -318,9 +318,9 @@ function createMainWindow() {
   } else {
     mainWindow.loadURL(`${APP_ORIGIN}/index.html`);
     // Opt-in auto-open for a packaged build, so the inspector is up from the first frame
-    // when diagnosing a shipped app (WOC_OPEN_DEVTOOLS=1). The keyboard chord above works
+    // when diagnosing a shipped app (OWK_OPEN_DEVTOOLS=1). The keyboard chord above works
     // regardless; this just saves a keystroke during a debug launch.
-    if (process.env.WOC_OPEN_DEVTOOLS === '1') {
+    if (process.env.OWK_OPEN_DEVTOOLS === '1') {
       mainWindow.webContents.openDevTools({ mode: 'detach' });
     }
   }

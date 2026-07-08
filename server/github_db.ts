@@ -1,5 +1,5 @@
 // GitHub identity link + OAuth state persistence for the developer badge. The
-// DDL is appended to ensureSchema() in db.ts (like DISCORD_SCHEMA / OAUTH_SCHEMA);
+// DDL is appended to ensureSchema() in db.ts (like OAUTH_SCHEMA);
 // every query lives here so the logic modules carry no raw SQL.
 //
 // Two tables:
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS github_oauth_states (
 CREATE INDEX IF NOT EXISTS github_oauth_states_expires ON github_oauth_states(expires_at);
 `;
 
-// ── GitHub identity link (mirrors discord_links / wallet_links) ────────────────
+// ── GitHub identity link ───────────────────────────────────────────────────────
 
 export interface GitHubLinkRow {
   account_id: number;
@@ -99,7 +99,7 @@ export async function unlinkGitHub(pool: Pool, accountId: number): Promise<void>
   await pool.query('DELETE FROM github_links WHERE account_id = $1', [accountId]);
 }
 
-// ── OAuth state (mirrors discord_oauth_states) ─────────────────────────────────
+// ── OAuth state ────────────────────────────────────────────────────────────────
 
 export interface GitHubOAuthStateRow {
   state: string;

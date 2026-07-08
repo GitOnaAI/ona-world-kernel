@@ -7,7 +7,7 @@ import { ABILITY_IMAGE_IDS, abilityImageUrl } from '../src/ui/icons';
 // Gate for the committed WebP class ability icons. The art under
 // public/ui/skills/<class>/<id>.webp is the source of truth (WebP only, no PNG/JPG in the
 // tree), and abilityImageUrl serves it for the action bar (kind 'ability'), aura/debuff
-// frames (kind 'aura'), and the /wiki guide class pages. The guard is a bijection:
+// frames (kind 'aura'). The guard is a bijection:
 //   A) every id wired into ABILITY_IMAGE_IDS resolves to a committed, VALID .webp (a wired
 //      id without art, a deleted/renamed file, or a zero-byte/renamed-PNG file fails here
 //      instead of rendering a blank or broken icon);

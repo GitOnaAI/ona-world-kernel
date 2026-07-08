@@ -16,13 +16,13 @@
 // simply means "the response is application/json".
 export const PROBLEM_JSON = 'problem-json' as const;
 
-// text/html bodies. Server-rendered pages and the Discord OAuth bounce page
+// text/html bodies. Server-rendered pages and the OAuth bounce page
 // (which writes text/html with a client-side location.replace, not a 302).
 export const HTML = 'html' as const;
 
 // A true HTTP 3xx redirect (Location header, empty/!html body). Defined for
 // completeness of the taxonomy. NOTE: this class currently maps to ZERO routes.
-// No dispatcher emits a real 302 today (the OAuth consent POST and the Discord
+// No dispatcher emits a real 302 today (the OAuth consent POST and the
 // callback both answer with a body, JSON and HTML respectively, not a redirect),
 // so REDIRECT exists only so a future redirect route has a home to slot into.
 export const REDIRECT = 'redirect' as const;

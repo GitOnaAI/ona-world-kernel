@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Guards that ensureSchema() actually APPLIES every schema module, not just the
-// core one. The Discord integration wiring regressed once (DISCORD_SCHEMA was
+// core one. An integration schema's wiring regressed once (its DDL constant was
 // defined but never run, so its tables were never created at boot and every
-// Discord query would throw "relation does not exist"); this pins it. Mock pg so
+// query on them would throw "relation does not exist"); this pins it. Mock pg so
 // ensureSchema runs against a recording client with no live database.
 const h = vi.hoisted(() => {
   process.env.DATABASE_URL ??= 'postgres://test/test';
@@ -101,7 +101,7 @@ describe('ensureSchema wires every schema module at boot', () => {
   it('applies the tier-2 rate-limit schema under the advisory lock', async () => {
     // The multi-realm tier-2 backstop depends on the rate_limits table being
     // created at boot (RATELIMIT_SCHEMA in server/ratelimit_db.ts). Pin that it is
-    // wired, so it never regresses to defined-but-unwired like DISCORD_SCHEMA once did.
+    // wired, so it never regresses to defined-but-unwired like an integration schema once did.
     await ensureSchema();
     const applied = h.calls.join('\n');
     expect(applied).toContain('pg_advisory_xact_lock');

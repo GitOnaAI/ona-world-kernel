@@ -3,7 +3,7 @@ export type HotbarAction =
   | { type: 'item'; id: string }
   | null;
 
-export const HOTBAR_ACTION_MIME = 'application/x-woc-hotbar-action';
+export const HOTBAR_ACTION_MIME = 'application/x-owk-hotbar-action';
 
 export function encodeHotbarAction(action: Exclude<HotbarAction, null>): string {
   return JSON.stringify(action);

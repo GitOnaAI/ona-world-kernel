@@ -91,7 +91,7 @@ describe('PerfOverlayConfigStore', () => {
   });
 
   it('survives corrupt stored JSON', () => {
-    localStorage.setItem('woc_perf_overlay', '{not valid');
+    localStorage.setItem('owk_perf_overlay', '{not valid');
     const s = new PerfOverlayConfigStore();
     expect(s.get()).toEqual(defaultPerfOverlayConfig());
   });

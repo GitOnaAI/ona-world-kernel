@@ -10,7 +10,7 @@ import {
 } from '../server/github_db';
 
 // github_db functions take the pg `pool` as an argument, so a fake pool (no
-// vi.mock needed) drives every branch for real, mirroring discord_db.test.ts.
+// vi.mock needed) drives every branch for real.
 // The fake routes by normalized SQL and lets each test script row results.
 type Result = { rows: any[]; rowCount: number };
 type Handler = (sql: string, params: any[]) => Result;

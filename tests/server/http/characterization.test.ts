@@ -12,7 +12,7 @@
 //   - It NEVER captures a 500 produced by the pool-less db (a test artifact). Every
 //     captured case returns BEFORE touching Postgres, or returns an empty payload
 //     because the leaderboard cache swallows the db error. Db-dependent success
-//     paths (project-stats, arena ladder, populated leaderboards, the OAuth/Discord
+//     paths (project-stats, arena ladder, populated leaderboards, the OAuth
 //     success bounces) are DEFERRED, see the trailing comment block.
 //   - The harness normalizer masks the dynamic fields (challengeId/nonce) by key, so
 //     the native-attestation challenge golden is byte-stable across runs.
@@ -383,11 +383,10 @@ afterAll(() => {
 // here would either bless a pool-less 500 or record a non-deterministic body):
 //   - GET  /api/project-stats          getAccountsCount() hits the db -> pool-less 500.
 //   - GET  /api/arena/leaderboard      topArenaRatings() hits the db per request -> 500.
-//   - GET  /api/woc/balance            live Solana RPC fetch -> non-deterministic.
 //   - GET  /api/email/unsubscribe?token=<non-empty>   accountByUnsubscribeToken() -> db 500.
 //   - GET  /api/search?q=<term> WITH a valid bearer    searchCharacters() -> db.
 //   - the populated leaderboard / character / account success bodies (need seeded db rows).
-//   - GET  /api/auth/discord/callback SUCCESS bounce   embeds a real session token VERBATIM
+//   - OAuth callback SUCCESS bounces   embed a real session token VERBATIM
 //     inside inlined <script> JSON the normalizer returns as-is (HTML), so it is both a
 //     determinism break and a privacy-coverage flag for the reviewer. Only the error bounce
 //     is captured here.

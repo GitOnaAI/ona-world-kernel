@@ -375,7 +375,7 @@ export function forcedTierFromSearch(search: string): GfxTier | null {
 function storedNumericSetting(key: string): number | undefined {
   if (typeof localStorage === 'undefined') return undefined;
   try {
-    const raw = JSON.parse(localStorage.getItem('woc_settings') ?? 'null') as Record<
+    const raw = JSON.parse(localStorage.getItem('owk_settings') ?? 'null') as Record<
       string,
       unknown
     > | null;

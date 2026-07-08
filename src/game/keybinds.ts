@@ -227,7 +227,7 @@ export const BIND_CATEGORIES = [...new Set(BIND_ACTIONS.map((a) => a.category))]
 // online characterId, or `offline:<class>:<name>` offline). A fresh character
 // with no stored profile seeds from the legacy blob once, then diverges on its
 // first rebind. The legacy blob is read-only here and never overwritten.
-const KEY_PREFIX = 'woc_keybinds';
+const KEY_PREFIX = 'owk_keybinds';
 const SLOTS_PER_ACTION = 2; // primary + secondary
 
 export function actionKind(id: string): BindKind | null {

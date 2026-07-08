@@ -19,7 +19,7 @@
 import puppeteer from '../node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
 import { BROWSER_PATH } from './browser_path.mjs';
 
-const BASE = process.env.WOC_DEV_BASE ?? 'http://localhost:5173';
+const BASE = process.env.OWK_DEV_BASE ?? 'http://localhost:5173';
 const CLASSES = ['warrior', 'paladin', 'hunter', 'mage', 'rogue', 'priest'];
 // The figure must occupy at least this fraction of the capture height/width, or
 // the camera is pulled back too far (figure renders tiny + lost on the card).

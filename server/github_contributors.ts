@@ -2,8 +2,8 @@
 // per GitHub login" that backs the developer badge. We fetch GitHub's closed
 // pull requests server-side, filter to merged, tally per author, and cache the
 // result process-locally, the same compute-once / serve-from-memory pattern as
-// the GitHub Releases proxy in server/main.ts (and the holder-tier cache in
-// woc_balance.ts): one shared server IP, an optional GITHUB_TOKEN to lift the
+// the GitHub Releases proxy in server/main.ts: one shared server IP, an
+// optional GITHUB_TOKEN to lift the
 // rate limit, and a graceful fall back to the last good snapshot on a transient
 // failure.
 //

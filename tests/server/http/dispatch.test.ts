@@ -207,9 +207,9 @@ describe('createApiDispatcher', () => {
   it("threads a route's meta.envelope into withErrors: an html route's throw serializes as HTML, never problem+json", async () => {
     const errLog = vi.spyOn(logger, 'error').mockImplementation(() => {});
     // Pins the dispatcher's `withErrors({ surface: route.meta?.envelope })` line, the
-    // only production consumer of meta.envelope. The Discord OAuth callback rides on
+    // only production consumer of meta.envelope. The OAuth callback rides on
     // exactly this: its RouteDef carries meta.envelope 'html' (pinned in
-    // tests/server/discord.test.ts), so if the dispatcher ever dropped the threading an
+    // sibling server suites), so if the dispatcher ever dropped the threading an
     // escaping callback throw would flip to problem+json and break
     // window.opener.postMessage in the OAuth popup. The problem+json test above is the
     // un-enveloped control, proving the surface is per-route, not a global default.

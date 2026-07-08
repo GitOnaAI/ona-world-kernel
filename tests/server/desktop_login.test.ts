@@ -52,7 +52,7 @@ const TTL_MS = 5 * 60 * 1000;
 type DbOverrides = Parameters<typeof setDesktopLoginRoutesDbForTests>[0];
 
 // ---------------------------------------------------------------------------
-// Local builders (redefined per-file, mirroring tests/server/discord.test.ts).
+// Local builders (redefined per-file, mirroring the sibling server suites).
 // ---------------------------------------------------------------------------
 
 /** A fake accountAndScopeForToken resolving to account 7 with the given scope. */

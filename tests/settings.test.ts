@@ -26,7 +26,7 @@ describe('Settings', () => {
   it('defaults fresh sessions and initial logins to the medium graphics preset', () => {
     const s = new Settings();
 
-    expect(localStorage.getItem('woc_settings')).toBeNull();
+    expect(localStorage.getItem('owk_settings')).toBeNull();
     // def is MEDIUM (the Reset target + the pre-probe value); first-run device detection in
     // main.ts persists a device-appropriate preset over it (see resolveDefaultGraphicsPreset).
     expect(SETTING_RANGES.graphicsPreset.def).toBe(2);
@@ -177,7 +177,7 @@ describe('Settings', () => {
   });
 
   it('falls back to defaults for missing/corrupt keys', () => {
-    localStorage.setItem('woc_settings', JSON.stringify({ cameraSpeed: 0.5 }));
+    localStorage.setItem('owk_settings', JSON.stringify({ cameraSpeed: 0.5 }));
     const s = new Settings();
     expect(s.get('cameraSpeed')).toBe(0.5);
     expect(s.get('brightness')).toBe(SETTING_RANGES.brightness.def); // missing -> default

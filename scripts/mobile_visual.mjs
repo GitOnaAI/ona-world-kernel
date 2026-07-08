@@ -75,7 +75,7 @@ const after = await page.evaluate(() => {
   return {
     pressed: b?.getAttribute('aria-pressed'),
     label: b?.querySelector('.mobile-label')?.textContent,
-    persisted: localStorage.getItem('woc_haptics_on'),
+    persisted: localStorage.getItem('owk_haptics_on'),
   };
 });
 console.log('haptics button (after toggle):', JSON.stringify(after));

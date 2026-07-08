@@ -76,7 +76,7 @@ async function characterize(
 }
 
 // The shared-secret gate env var (named so the secret-gate contract is not
-// an inline literal). The matching request header (x-woc-deploy-secret) is
+// an inline literal). The matching request header (x-owk-deploy-secret) is
 // deliberately OMITTED from every request below: the not-authenticated
 // contract is exactly the absent-header path.
 const SECRET_ENV = {
@@ -289,7 +289,7 @@ describe('characterization: internal handleInternalApi', () => {
     });
   });
 
-  // RESTART_COUNTDOWN_SECRET set but the x-woc-deploy-secret request header is
+  // RESTART_COUNTDOWN_SECRET set but the x-owk-deploy-secret request header is
   // absent: the timing-safe compare fails and the route answers 401 not
   // authenticated, before startRestartCountdown / the db.
   it('POST /internal/restart-countdown (secret set, no header) -> 401 not authenticated', async () => {
@@ -341,7 +341,7 @@ afterAll(() => {
 //  - POST /admin/api/login 403 ("no admin access") and the authenticated admin
 //    GET reads (overview/online/accounts/...): all require a real account/admin
 //    lookup against the db; pool-less here. Deferred (needs a mocked db).
-//  - Every /internal secret-PASS path (correct x-woc-deploy-secret): reaches the
+//  - Every /internal secret-PASS path (correct x-owk-deploy-secret): reaches the
 //    pool-less db and (no try/catch) hangs the poller. Never captured; the
 //    gate-contract paths above are the safe surface.
 // -----------------------------------------------------------------------------

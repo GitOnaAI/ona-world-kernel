@@ -1,7 +1,7 @@
 // Account self-service portal: the exported handleAccount* domain handlers plus the
 // RouteDef layer that serves them (see the block above `export const routes`).
 //
-// The domain handlers mirror server/wallet.ts: each is an exported, account-scoped
+// Each domain handler is an exported, account-scoped
 // function with a real http (req, res) signature, so tests/account_server.test.ts can
 // drive every branch through the mock-pg harness with no live database. A thin
 // RouteDef layer of 16 routes rides below, served by the shared
@@ -182,9 +182,9 @@ export async function handleAccountSetEmail(
 
 // POST /api/account/email/set-initial: set the recovery email on an account that
 // has NONE yet. This is the mandatory-email backfill for accounts created before
-// email was required (and the fallback when a Discord login returned no address).
+// email was required (and the fallback when an OAuth login returned no address).
 // The bearer session IS the authorization: the caller just proved the password
-// (or a Discord grant) at login and there is no existing recovery address to
+// (or an OAuth grant) at login and there is no existing recovery address to
 // protect, so unlike the verified change flow it needs no password re-check. Once
 // an address exists it is a security address and can only move through
 // /api/account/email/change; calling this then is a 409.
@@ -204,7 +204,7 @@ export async function handleAccountSetInitialEmail(
   if (!email)
     return json(res, 400, { error: 'enter a valid email address', code: 'email.invalid' });
   // Atomic fill (the guard lives in the UPDATE's WHERE), so two concurrent
-  // set-initial calls, or one racing a Discord capture, cannot both write past the
+  // set-initial calls, or one racing an OAuth capture, cannot both write past the
   // empty-email check above. The address is self-asserted here, so it is stored
   // UNVERIFIED (verified=false). A false return means a concurrent writer already
   // set an address: treat it exactly like the already-set case.
@@ -312,7 +312,7 @@ export async function handleAccountExport(
   if (acct) emailDataExport(acct);
   res.writeHead(200, {
     'content-type': 'application/json',
-    'content-disposition': 'attachment; filename="woc-account-export.json"',
+    'content-disposition': 'attachment; filename="owk-account-export.json"',
   });
   return void res.end(JSON.stringify(bundle, null, 2));
 }

@@ -137,12 +137,7 @@ For off-box safety, sync the directory to S3 occasionally:
     environment (dev vs prod). If the origin's nginx (in the `ansible-scripts` repo)
     sets a Content-Security-Policy, it must allow `script-src`/`frame-src
     https://challenges.cloudflare.com` or the widget won't load.
-- **Wallet linking**: the wallet UI uses injected Solana browser wallets and no
-  third-party wallet-connect project id. $WOC balance reads are server-side
-  only: set `SOLANA_RPC_URL` to a production Solana RPC endpoint and leave it
-  unprefixed so API keys are not bundled into the client. `WOC_MINT` defaults to
-  the canonical token mint and should only be overridden if that mint changes.
-  Set `PUBLIC_ORIGIN` in single-realm production so shared player-card pages
+- Set `PUBLIC_ORIGIN` in single-realm production so shared player-card pages
   emit stable absolute Open Graph URLs.
 - **Never** set `ALLOW_DEV_COMMANDS=1` in production: it enables the
   level/teleport cheats used by the test bots.

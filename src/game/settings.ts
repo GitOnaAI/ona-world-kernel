@@ -197,7 +197,7 @@ export const BOOL_SETTINGS = {
   showDevBadges: { def: true },
   // off by default (the classic self-view keeps no plate over your head): when
   // on, render your OWN overhead nameplate (name, level, guild, hp, dev badge,
-  // linked-Discord PFP) exactly as other players see it, so you
+  // linked-account PFP) exactly as other players see it, so you
   // can see how your character presents. Purely a local display preference.
   showOwnNameplate: { def: false },
   // off by default: invert the vertical axis of mouselook (push mouse forward
@@ -256,7 +256,7 @@ interface Range {
   def: number;
 }
 
-const STORE_KEY = 'woc_settings';
+const STORE_KEY = 'owk_settings';
 const NUMERIC_KEYS = Object.keys(SETTING_RANGES) as NumericSettingKey[];
 const BOOL_KEYS = Object.keys(BOOL_SETTINGS) as BoolSettingKey[];
 

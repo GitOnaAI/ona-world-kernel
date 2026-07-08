@@ -93,13 +93,13 @@ describe('challengeResponse server dispatch', () => {
   });
 });
 
-describe('getClientSeed (woc_seed)', () => {
+describe('getClientSeed (owk_seed)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.resetModules();
   });
 
-  it('mints once, persists to woc_seed, and reuses it on reload', async () => {
+  it('mints once, persists to owk_seed, and reuses it on reload', async () => {
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => store.get(k) ?? null,
@@ -111,7 +111,7 @@ describe('getClientSeed (woc_seed)', () => {
     vi.resetModules();
     const first = (await import('../src/game/client_seed')).getClientSeed();
     expect(first).toBeTruthy();
-    expect(store.get('woc_seed')).toBe(first);
+    expect(store.get('owk_seed')).toBe(first);
 
     // a fresh module load (new tab/session) reads the stored value, not a new mint
     vi.resetModules();

@@ -94,7 +94,7 @@ production.
   `src/main.ts` / the client entry ships to the browser). Server secrets stay in `server/`.
 - Treat as secret material (env-sourced, never logged, never bundled into the client): TOTP
   secrets and recovery codes, OAuth client secrets, email verification / reset tokens, and the
-  ops shared secrets (`x-woc-deploy-secret` / `RESTART_COUNTDOWN_SECRET`).
+  ops shared secrets (`x-owk-deploy-secret` / `RESTART_COUNTDOWN_SECRET`).
 
 ### 4. Authentication & Sessions (CRITICAL)
 

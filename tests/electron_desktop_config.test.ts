@@ -16,16 +16,16 @@ describe('resolveDistribution', () => {
     expect(resolveDistribution({ packagedMetadata: websiteStamp })).toBe('website');
   });
 
-  it('lets WOC_DISTRIBUTION override the stamp on UNPACKAGED checkouts only', () => {
+  it('lets OWK_DISTRIBUTION override the stamp on UNPACKAGED checkouts only', () => {
     expect(
       resolveDistribution({
         packagedMetadata: websiteStamp,
-        env: { WOC_DISTRIBUTION: 'steam' },
+        env: { OWK_DISTRIBUTION: 'steam' },
         isPackaged: false,
       }),
     ).toBe('steam');
     expect(
-      resolveDistribution({ packagedMetadata: steamStamp, env: { WOC_DISTRIBUTION: 'website' } }),
+      resolveDistribution({ packagedMetadata: steamStamp, env: { OWK_DISTRIBUTION: 'website' } }),
     ).toBe('website');
   });
 
@@ -33,13 +33,13 @@ describe('resolveDistribution', () => {
     expect(
       resolveDistribution({
         packagedMetadata: steamStamp,
-        env: { WOC_DISTRIBUTION: 'website' },
+        env: { OWK_DISTRIBUTION: 'website' },
         isPackaged: true,
       }),
     ).toBe('steam');
     const config = resolveDesktopConfig({
       packagedMetadata: steamStamp,
-      env: { WOC_DISTRIBUTION: 'website' },
+      env: { OWK_DISTRIBUTION: 'website' },
       isPackaged: true,
     });
     expect(config.distribution).toBe('steam');
@@ -53,7 +53,7 @@ describe('resolveDistribution', () => {
       resolveDistribution({ packagedMetadata: { wocDesktop: { distribution: 'beta' } } }),
     ).toBe('website');
     expect(
-      resolveDistribution({ packagedMetadata: steamStamp, env: { WOC_DISTRIBUTION: 'nonsense' } }),
+      resolveDistribution({ packagedMetadata: steamStamp, env: { OWK_DISTRIBUTION: 'nonsense' } }),
     ).toBe('steam');
     expect(resolveDistribution({ packagedMetadata: { wocDesktop: { distribution: 42 } } })).toBe(
       'website',
@@ -87,7 +87,7 @@ describe('resolveCrashSubmitUrl', () => {
     expect(
       resolveCrashSubmitUrl({
         packagedMetadata: { wocDesktop: { crashSubmitUrl: 'https://stamped.example.com' } },
-        env: { WOC_CRASH_SUBMIT_URL: 'https://env.example.com' },
+        env: { OWK_CRASH_SUBMIT_URL: 'https://env.example.com' },
         isPackaged: false,
       }),
     ).toBe('https://env.example.com');
@@ -97,13 +97,13 @@ describe('resolveCrashSubmitUrl', () => {
     expect(
       resolveCrashSubmitUrl({
         packagedMetadata: { wocDesktop: { crashSubmitUrl: 'https://stamped.example.com' } },
-        env: { WOC_CRASH_SUBMIT_URL: 'https://evil.example.com' },
+        env: { OWK_CRASH_SUBMIT_URL: 'https://evil.example.com' },
         isPackaged: true,
       }),
     ).toBe('https://stamped.example.com');
     expect(
       resolveCrashSubmitUrl({
-        env: { WOC_CRASH_SUBMIT_URL: 'https://evil.example.com' },
+        env: { OWK_CRASH_SUBMIT_URL: 'https://evil.example.com' },
         isPackaged: true,
       }),
     ).toBe('');
@@ -115,7 +115,7 @@ describe('resolveCrashSubmitUrl', () => {
         packagedMetadata: { wocDesktop: { crashSubmitUrl: 'http://crash.example.com' } },
       }),
     ).toBe('');
-    expect(resolveCrashSubmitUrl({ env: { WOC_CRASH_SUBMIT_URL: 'not a url' } })).toBe('');
+    expect(resolveCrashSubmitUrl({ env: { OWK_CRASH_SUBMIT_URL: 'not a url' } })).toBe('');
     expect(resolveCrashSubmitUrl({})).toBe('');
     expect(resolveCrashSubmitUrl()).toBe('');
   });
@@ -124,7 +124,7 @@ describe('resolveCrashSubmitUrl', () => {
     expect(
       resolveCrashSubmitUrl({
         packagedMetadata: { wocDesktop: { crashSubmitUrl: 'https://stamped.example.com' } },
-        env: { WOC_CRASH_SUBMIT_URL: 'ftp://nope' },
+        env: { OWK_CRASH_SUBMIT_URL: 'ftp://nope' },
       }),
     ).toBe('https://stamped.example.com');
   });

@@ -127,7 +127,7 @@ export function validPassword(p: unknown): p is string {
 }
 
 // Canonical email validator, shared by the register handler, the account portal,
-// and the Discord capture path so all three agree on shape and bound. Deliberately
+// and the OAuth capture path so all three agree on shape and bound. Deliberately
 // permissive (a single "x@y.z" check): we capture a recovery address, we do not
 // try to out-validate a real mailbox, and RFC 5321 caps the whole address at 254.
 export const MAX_EMAIL_LENGTH = 254;

@@ -13,7 +13,7 @@ const MIN_REPORT_SECONDS = 20;
 const MIN_DEV_TRACE_REPORT_SECONDS = 5;
 const MIN_REPORT_FRAMES = 30;
 const FETCH_KEEPALIVE_MAX_BYTES = 60 * 1024;
-const SESSION_KEY = 'woc_perf_session_id';
+const SESSION_KEY = 'owk_perf_session_id';
 
 export interface PerfReporterOptions {
   perf: PerfMonitor;

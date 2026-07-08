@@ -50,7 +50,7 @@ import { iconDataUrl, QUALITY_COLOR } from './icons';
 import type { PainterHostPresentation } from './painter_host';
 import { svgIcon } from './ui_icons';
 
-const BAG_FILTER_KEY = 'woc_bag_filter';
+const BAG_FILTER_KEY = 'owk_bag_filter';
 
 // Monotonic id source for the ad-hoc prompt dialogs' aria-labelledby target, so the
 // id never couples to class ordering (was prompt.classList[last]).
@@ -89,7 +89,7 @@ const BAG_SORT_LABEL_KEYS: Record<BagSort, TranslationKey> = {
  * PainterHostPresentation bag (Hud builds it once and hands it to every window that
  * renders item rows); this composes that base and adds the inventory-cluster
  * surface: the world reads, the cross-window mode flags + commands, the pet-feed /
- * drag / wallet plumbing, and the close/teardown chrome. The module never reaches
+ * drag plumbing, and the close/teardown chrome. The module never reaches
  * into Hud directly.
  */
 export interface BagsWindowDeps extends PainterHostPresentation {

@@ -25,7 +25,7 @@ page.on('console', (m) => { if (m.type() === 'error') console.log('CONSOLE:', m.
 // Seed MAX graphics before the app boots so the renderer inits at preset 5.
 await page.evaluateOnNewDocument(() => {
   try {
-    localStorage.setItem('woc_settings', JSON.stringify({
+    localStorage.setItem('owk_settings', JSON.stringify({
       graphicsPreset: 5, terrainDetail: 1, effectsQuality: 1, shadowQuality: 1,
     }));
   } catch { /* ignore */ }
@@ -42,7 +42,7 @@ await page.waitForFunction(() => window.__game && window.__game.sim && window.__
 await sleep(1500);
 
 const preset = await page.evaluate(() => {
-  try { return JSON.parse(localStorage.getItem('woc_settings')).graphicsPreset; } catch { return null; }
+  try { return JSON.parse(localStorage.getItem('owk_settings')).graphicsPreset; } catch { return null; }
 });
 console.log('graphicsPreset =', preset, '(5 = advanced / max)');
 

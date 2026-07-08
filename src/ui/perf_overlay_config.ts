@@ -37,7 +37,7 @@ export interface PerfOverlayConfig {
 export type PerfOverlayPatch =
   Partial<Omit<PerfOverlayConfig, 'metrics'>> & { metrics?: Partial<Record<PerfMetricKey, boolean>> };
 
-const STORE_KEY = 'woc_perf_overlay';
+const STORE_KEY = 'owk_perf_overlay';
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 export const FONT_SCALE_MIN = 0.85;

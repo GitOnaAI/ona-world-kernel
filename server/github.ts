@@ -1,7 +1,7 @@
 // GitHub OAuth link shell (DB + HTTP) for the developer badge: the IO side of the
-// pure server/github_oauth.ts helpers, mirroring server/discord.ts. Linking is
+// pure server/github_oauth.ts helpers. Linking is
 // the only mode (the player is already authenticated when they link), so this is
-// simpler than the Discord flow: no first-time-login chooser, no account
+// a simple flow: no first-time-login chooser, no account
 // provisioning, no password-keep dance on unlink.
 //
 // The verified GitHub login is stored in github_links; the developer-badge tier is
@@ -100,8 +100,8 @@ export async function handleGitHubCallback(
   if (!cfg) return bouncePage(res, 503, { ok: false, error: 'not_configured' });
   // No bearer token has been resolved yet (this is a github.com redirect, not an
   // authenticated request), so key the bucket on IP alone, mirroring how the
-  // Discord first-time-login chooser endpoints rate-limit their own
-  // also-unauthenticated entry points (handleDiscordLoginNew/handleDiscordLoginLink).
+  // (Login-capable OAuth flows would need to rate-limit their unauthenticated
+  // entry points too.)
   if (!githubRateLimited(req, 0).allowed) {
     recordUsageMetric('github.link.rate_limited');
     return bouncePage(res, 429, { ok: false, error: 'rate_limited' });
@@ -245,7 +245,7 @@ interface BouncePayload {
 }
 
 // Render an HTML page that posts the result to the opener window (the SPA listens
-// for { source: 'woc-github' } to refresh link status) and closes the popup. The
+// for { source: 'owk-github' } to refresh link status) and closes the popup. The
 // inlined JSON is escaped so a value can never break out of the <script>.
 function bouncePage(res: http.ServerResponse, status: number, payload: BouncePayload): void {
   const data = JSON.stringify(payload)
@@ -259,7 +259,7 @@ function bouncePage(res: http.ServerResponse, status: number, payload: BouncePay
 </head><body><main><p id="m">Connecting GitHub...</p></main><script>
 (function(){
   var p = ${data};
-  var msg = { source: 'woc-github', ok: p.ok, login: p.login || null, error: p.error || null };
+  var msg = { source: 'owk-github', ok: p.ok, login: p.login || null, error: p.error || null };
   if (window.opener) {
     try { window.opener.postMessage(msg, location.origin); } catch (e) {}
     setTimeout(function(){ try { window.close(); } catch (e) {} location.replace('/'); }, 200);
@@ -274,7 +274,7 @@ function bouncePage(res: http.ServerResponse, status: number, payload: BouncePay
 
 // ── Route layer ──────────────────────────────
 // The four GitHub-link endpoints as RouteDefs for the shared dispatcher,
-// mirroring the Discord family template (server/discord.ts):
+// mirroring the removed OAuth family template:
 //   POST   /api/auth/github/start      OAuth start (JSON { url }; full session)
 //   GET    /api/auth/github/callback   OAuth callback (HTML bounce; NON-JSON)
 //   GET    /api/github                 link status (JSON; full session)
@@ -290,7 +290,7 @@ function bouncePage(res: http.ServerResponse, status: number, payload: BouncePay
 // and the callback self-limits inside handleGitHubCallback (IP-keyed).
 //
 // GROUND TRUTH, deliberately preserved: the legacy github family carries NO
-// isIpBlocked gate anywhere (unlike Discord, whose login-mode callback can mint
+// isIpBlocked gate anywhere (unlike a login-mode OAuth callback, which can mint
 // a session; github is link-only, the account is already authenticated), so
 // none is added here. Adding one would be a security-posture change, a
 // maintainer fork, not a silent port.

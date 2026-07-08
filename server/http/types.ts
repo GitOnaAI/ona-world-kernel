@@ -40,7 +40,7 @@ export type EnvelopeKind =
   | 'oauth' // /oauth errors: RFC 6749 { error, error_description }
   | 'admin' // /admin/api: { success, data, error }
   | 'html' // an HTML error page (e.g. the email-unsubscribe page)
-  | 'redirect' // a 302 redirect (e.g. the Discord OAuth callback)
+  | 'redirect' // a 302 redirect (e.g. an OAuth callback)
   | 'binary' // a binary body (e.g. the shareable player-card PNG)
   | 'legacy405'; // the legacy { ok: false } 405 envelope
 

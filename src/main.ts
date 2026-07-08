@@ -193,7 +193,7 @@ const ATTACK_MOVE_ACQUIRE_RANGE = 12; // yards; an attack-move toward open groun
 // marker shows a "held" state instead of looking like a stuck game.
 const IMMOBILE_AURA_KINDS = new Set(['stun', 'root', 'incapacitate', 'polymorph']);
 const IMMOBILE_NOTE_THROTTLE_MS = 1200; // min gap between "Can't move!" floats while held
-const HOMEPAGE_MUSIC_MUTED_KEY = 'woc_homepage_music_muted';
+const HOMEPAGE_MUSIC_MUTED_KEY = 'owk_homepage_music_muted';
 const HOMEPAGE_MUSIC_VOLUME = 0.225;
 const GRAPHICS_PRESET_HIGH = 3;
 const GRAPHICS_PRESET_ULTRA = 4;
@@ -2366,7 +2366,7 @@ async function startGame(
   // has no Escape key) skips straight to the end; other input is swallowed
   // while it runs. Seen-state persists per character so it plays exactly once;
   // reduce-motion players go straight to gameplay.
-  const INTRO_SEEN_KEY = `woc_spawn_intro_seen:${keybindScope}`;
+  const INTRO_SEEN_KEY = `owk_spawn_intro_seen:${keybindScope}`;
   let introSeen = true;
   try {
     introSeen = localStorage.getItem(INTRO_SEEN_KEY) === '1';
@@ -2997,7 +2997,7 @@ function loginError(text: string): void {
   el.textContent = text;
 }
 
-const LAST_REALM_KEY = 'woc_last_realm';
+const LAST_REALM_KEY = 'owk_last_realm';
 
 // Classic-MMO population bands, derived from the realm's current online count
 // (the classic MMO's own labels are relative to peak; current count is a fair
@@ -3396,7 +3396,7 @@ function setupSecuritySection(): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'woc-recovery-codes.txt';
+    a.download = 'owk-recovery-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -3427,7 +3427,7 @@ function setupSecuritySection(): void {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'woc-account-export.json';
+      a.download = 'owk-account-export.json';
       a.click();
       URL.revokeObjectURL(url);
       setAccountFieldMsg('#account-export-msg', t('hudChrome.account.exportDone'), true);
@@ -4271,7 +4271,7 @@ function renderClassDetails(
   }
 }
 
-const STATS_CACHE_KEY = 'woc_cached_stats';
+const STATS_CACHE_KEY = 'owk_cached_stats';
 const STATS_CACHE_TTL_MS = 30000; // 30 seconds
 
 function readTranslationKey(value: string | null): TranslationKey | null {
@@ -4308,7 +4308,7 @@ function updateSeoMetadata(lang: SupportedLanguage): void {
             '@id': 'https://onaworld.example/#organization',
             name: 'Ona World Kernel',
             url: 'https://onaworld.example/',
-            logo: 'https://onaworld.example/woc_logo_square.webp',
+            logo: 'https://onaworld.example/ona-world-logo.png',
             sameAs,
           },
           {
@@ -4321,7 +4321,7 @@ function updateSeoMetadata(lang: SupportedLanguage): void {
             applicationCategory: t('seo.applicationCategory'),
             operatingSystem: t('seo.operatingSystem'),
             url: canonicalHref,
-            image: 'https://onaworld.example/woc_logo_square.webp',
+            image: 'https://onaworld.example/ona-world-logo.png',
             description: t('seo.description'),
             inLanguage: languageTag(lang),
             publisher: { '@id': 'https://onaworld.example/#organization' },
@@ -4711,13 +4711,13 @@ function wireHomepageMusicToggle(): void {
 }
 
 // ── GitHub link (developer badge) on the character-select screen ───────────────
-// Link-only OAuth (the player is already logged in), mirroring the wallet link
+// Link-only OAuth (the player is already logged in), mirroring the account-link
 // that sits beside it. The group is hidden until the feature is configured
 // server-side and the player is logged in; the status fetch drives the visibility.
 let githubPopup: Window | null = null;
 
 // Flash an error into the dedicated GitHub status line for 4s, then restore
-// whatever it was showing before (mirrors flashWalletError's temporary-flash +
+// whatever it was showing before (a temporary-flash +
 // auto-revert, but targets #github-status rather than overwriting the button
 // label, since that line already exists to show the linked @login/tier).
 function flashGithubError(message: string): void {
@@ -4736,7 +4736,7 @@ function flashGithubError(message: string): void {
 
 function startGithubOAuth(): void {
   if (!api.token) return;
-  const popup = window.open('about:blank', 'woc-github', 'width=600,height=760');
+  const popup = window.open('about:blank', 'owk-github', 'width=600,height=760');
   githubPopup = popup;
   if (!popup) {
     // Popup blocked: there is nothing to navigate, so fail loudly instead of
@@ -4758,7 +4758,7 @@ function startGithubOAuth(): void {
 }
 
 // Popup bounce-page result. Same-origin only; the callback posts { source:
-// 'woc-github', ok, error? } when the link completes (ok or not). A failure
+// 'owk-github', ok, error? } when the link completes (ok or not). A failure
 // (bad/expired state, GitHub error, already linked to another account, server
 // error) flashes the reason instead of silently refreshing as if nothing
 // happened; the user's own "Cancel" on GitHub's consent screen also reports
@@ -4767,7 +4767,7 @@ function startGithubOAuth(): void {
 window.addEventListener('message', (e: MessageEvent) => {
   if (e.origin !== location.origin) return;
   const d = e.data as { source?: string; ok?: boolean; error?: string | null } | null;
-  if (d?.source !== 'woc-github') return;
+  if (d?.source !== 'owk-github') return;
   githubPopup?.close();
   githubPopup = null;
   if (d.ok === false && d.error && d.error !== 'cancelled') {

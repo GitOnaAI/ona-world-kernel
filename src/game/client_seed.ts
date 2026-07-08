@@ -1,4 +1,4 @@
-const SEED_KEY = 'woc_seed';
+const SEED_KEY = 'owk_seed';
 
 let cached: string | null = null;
 

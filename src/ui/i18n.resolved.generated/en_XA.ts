@@ -182,59 +182,6 @@ export const en_XA: EnTranslations = {
       "title": "[Éɱóţéš]",
       "done": "[Ðóñé]"
     },
-    "dailyRewards": {
-      "title": "[Ðáíļý Ŕéŵáŕðš]",
-      "close": "[Çļóšé ðáíļý ŕéŵáŕðš]",
-      "loading": "[Ļóáðíñĝ ðáíļý ŕéŵáŕðš...]",
-      "error": "[Çóúļð ñóţ ļóáð ðáíļý ŕéŵáŕðš.]",
-      "intro": "[Ĥóļð éñóúĝĥ ŴÓÇ íñ ýóúŕ ʋéŕíƒíéð ŵáļļéţ ţó úñļóçķ ðáíļý ŕéŵáŕðš. Éáŕñ þóíñţš ŵíţĥ óñé ðáíļý šþíñ áñð ŕóţáţíñĝ ţášķš, ţĥéñ çļíɱƀ ţĥé ðáíļý ļéáðéŕƀóáŕð ƒóŕ á šĥáŕé óƒ ţĥé þŕížé þóóļ.]",
-      "disclaimer": "[ŴÓÇ þŕíçé çáñ ɱóʋé ɋúíçķļý. Ŵé ŕéçóɱɱéñð ĥóļðíñĝ ɱóŕé ţĥáñ ţĥé $20 ÚŠÐ ɱíñíɱúɱ šó ñóŕɱáļ þŕíçé šŵíñĝš ðó ñóţ ļóçķ ýóú óúţ. Ţĥíš íš ñóţ ƒíñáñçíáļ áðʋíçé.]",
-      "prize": "[Þŕížé Þóóļ]",
-      "reset": "[Ŕéšéţ]",
-      "endsIn": "[Éñðš íñ {time}]",
-      "remainingLessThanMinute": "[<1ɱ]",
-      "remainingMinutes": "[{minutes}ɱ]",
-      "remainingHoursMinutes": "[{hours}ĥ {minutes}ɱ]",
-      "score": "[Šçóŕé]",
-      "walletValue": "[Ŵáļļéţ Ʋáļúé (ŴÓÇ)]",
-      "usd": "[{amount} ÚŠÐ]",
-      "sol": "[{amount} ŠÓĻ]",
-      "unknown": "[Úñķñóŵñ]",
-      "spinTitle": "[Ðáíļý Šþíñ]",
-      "spinDialogTitle": "[Ðáíļý Ŕéŵáŕð Šþíñ]",
-      "spinClose": "[Çļóšé ðáíļý šþíñ]",
-      "spinReady": "[Óñé šþíñ íš ŕéáðý.]",
-      "spinClaimed": "[Çļáíɱéð: +{points} þóíñţš.]",
-      "spinResult": "[+{points} þóíñţš]",
-      "spinButton": "[Šþíñ]",
-      "tasks": "[Ţášķš]",
-      "taskMultiplier": "[ẋ{multiplier} ɱúļţíþļíéŕ]",
-      "pointsGained": "[{points} ðáíļý ŕéŵáŕðš þóíñţš ĝáíñéð.]",
-      "showChestButton": "[Šĥóŵ Çĥéšţ]",
-      "hideChestButton": "[Ĥíðé Çĥéšţ]",
-      "hideChestConfirmTitle": "[Ĥíðé Ðáíļý Ŕéŵáŕðš Çĥéšţ?]",
-      "hideChestConfirmBody": "[Ţĥíš ŕéɱóʋéš ţĥé çĥéšţ šĥóŕţçúţ ƒŕóɱ ýóúŕ ĤÚÐ. Ŕéŵáŕðš, éļíĝíƀíļíţý, áñð ţĥíš þáñéļ šţáý áʋáíļáƀļé; ýóú çáñ ƀŕíñĝ ţĥé šĥóŕţçúţ ƀáçķ ƒŕóɱ Óþţíóñš.]",
-      "hideChestConfirmOk": "[Ĥíðé Çĥéšţ]",
-      "hideChestConfirmCancel": "[Çáñçéļ]",
-      "leaderboard": "[Ðáíļý Ļéáðéŕƀóáŕð]",
-      "totalPlayer": "[{count} þļáýéŕ ţóðáý]",
-      "totalPlayers": "[{count} þļáýéŕš ţóðáý]",
-      "history": "[Þášţ Ŵíññéŕš]",
-      "noLeaders": "[Ñó þóíñţš ýéţ.]",
-      "noHistory": "[Ñó þáýóúţš ýéţ.]",
-      "walletConnectTitle": "[Ʋéŕíƒý Ŵáļļéţ]",
-      "walletConnectBody": "[Ʋéŕíƒý á Šóļáñá ŵáļļéţ ŵíţĥ ŴÓÇ ţó úñļóçķ ðáíļý ŕéŵáŕðš.]",
-      "walletConnectButton": "[Ʋéŕíƒý Ŵáļļéţ]",
-      "walletHoldTitle": "[Ĥóļð ŴÓÇ]",
-      "walletHoldBody": "[Ĥóļð áţ ļéášţ {amount} ÚŠÐ íñ ŴÓÇ ţó úñļóçķ ðáíļý ŕéŵáŕðš.]",
-      "walletPriceBody": "[ŴÓÇ þŕíçíñĝ íš úñáʋáíļáƀļé ŕíĝĥţ ñóŵ. Çĥéçķ ƀáçķ šĥóŕţļý.]",
-      "reason": {
-        "eligible": "[Ŕéŵáŕðš úñļóçķéð.]",
-        "no_wallet": "[Çóññéçţ á ŵáļļéţ ŵíţĥ áţ ļéášţ $20 ÚŠÐ íñ ŴÓÇ.]",
-        "under_minimum": "[Ŵáļļéţ íš ƀéļóŵ ţĥé $20 ÚŠÐ ŴÓÇ ɱíñíɱúɱ.]",
-        "price_unavailable": "[ŴÓÇ þŕíçé íš úñáʋáíļáƀļé, ŕéŵáŕðš áŕé ţéɱþóŕáŕíļý ļóçķéð.]"
-      }
-    },
     "theme": {
       "preset": "[ÚÍ Ţĥéɱé]",
       "customColors": "[Çúšţóɱ Çóļóŕš]",
@@ -381,8 +328,7 @@ export const en_XA: EnTranslations = {
     "keybinds": {
       "emoteWheel": "[Éɱóţé Ŵĥééļ]",
       "targetFriendly": "[Ţáŕĝéţ Ñéáŕéšţ Ƒŕíéñðļý]",
-      "targetFriendlyNext": "[Çýçļé Ƒŕíéñðļý Ţáŕĝéţ]",
-      "discord": "[Ðíšçóŕð]"
+      "targetFriendlyNext": "[Çýçļé Ƒŕíéñðļý Ţáŕĝéţ]"
     },
     "options": {
       "clickMoveLeft": "[Ļéƒţ Çļíçķ]",
@@ -402,8 +348,6 @@ export const en_XA: EnTranslations = {
       "clickFeedback": "[Çļíçķ Ɱáŕķéŕ]",
       "lockCursorOnRotate": "[Ļóçķ Çúŕšóŕ Ŵĥíļé Ŕóţáţíñĝ]",
       "keybindHelpLockCursorOnRotate": "[Ķééþš ţĥé ɱóúšé çúŕšóŕ íñšíðé ţĥé ŵíñðóŵ ŵĥíļé ýóú ðŕáĝ ţó ŕóţáţé ţĥé çáɱéŕá, šó íţ çáññóţ ŕéáçĥ ţĥé šçŕééñ éðĝé óŕ ɱóʋé ţó áñóţĥéŕ ɱóñíţóŕ. Ţúŕñ óƒƒ íƒ ýóú þŕéƒéŕ á ƒŕéé çúŕšóŕ.]",
-      "showWalletOnCharacterScreen": "[Šĥóŵ Ŵáļļéţ óñ Çĥáŕáçţéŕ Šçŕééñ]",
-      "showWalletOnPlayerCard": "[Šĥóŵ Ŵáļļéţ óñ Þļáýéŕ Çáŕð]",
       "showDevBadges": "[Šĥóŵ Ðéʋéļóþéŕ Ɓáðĝéš]",
       "showOwnNameplate": "[Šĥóŵ Ɱý Ñáɱéþļáţé]",
       "uiScale": "[ÚÍ Šçáļé]",
@@ -417,8 +361,7 @@ export const en_XA: EnTranslations = {
       "showItemLevel": "[Šĥóŵ Íţéɱ Ļéʋéļ]",
       "itemLevelLine": "[Íţéɱ Ļéʋéļ {level}]",
       "itemScoreLine": "[Šçóŕé {score}]",
-      "showSecondaryActionBar": "[Šĥóŵ Šéçóñðáŕý Áçţíóñ Ɓáŕ]",
-      "showDailyRewardsChest": "[Šĥóŵ Ðáíļý Ŕéŵáŕðš Çĥéšţ]"
+      "showSecondaryActionBar": "[Šĥóŵ Šéçóñðáŕý Áçţíóñ Ɓáŕ]"
     },
     "controller": {
       "title": "[Çóñţŕóļļéŕ]",
@@ -502,9 +445,7 @@ export const en_XA: EnTranslations = {
         "offline": "[Óƒƒļíñé]"
       }
     },
-    "playerCard": {
-      "showWalletBadge": "[Šĥóŵ ŵáļļéţ ƀáðĝé]"
-    },
+    "playerCard": {},
     "landing": {
       "highContrast": "[Ĥíĝĥ Çóñţŕášţ]",
       "highContrastAria": "[Ţóĝĝļé ĥíĝĥ-çóñţŕášţ ƀáçķĝŕóúñð: ðíšáƀļéš ţĥé ɱóʋíñĝ ţŕáíļéŕ šó šţáŕţ-šçŕééñ ţéẋţ šţáýš ļéĝíƀļé]"
@@ -640,7 +581,6 @@ export const en_XA: EnTranslations = {
       "loggedOutPrompt": "[Ļóĝ íñ ţó ɱáñáĝé ýóúŕ áççóúñţ.]",
       "memberSince": "[Ɱéɱƀéŕ šíñçé {date}]",
       "sectionSettings": "[Áççóúñţ Šéţţíñĝš]",
-      "sectionWallet": "[$ŴÓÇ Ŵáļļéţ]",
       "sectionCharacters": "[Çĥáŕáçţéŕš]",
       "sectionDanger": "[Ðáñĝéŕ Žóñé]",
       "changePassword": "[Çĥáñĝé Þáššŵóŕð]",
@@ -667,8 +607,6 @@ export const en_XA: EnTranslations = {
       "charactersSummary": "[Ɱáñáĝé ýóúŕ çĥáŕáçţéŕš áñð éñţéŕ ţĥé ŵóŕļð.]",
       "charactersCount": "[Çĥáŕáçţéŕš: {count}]",
       "goToCharacters": "[Ʋíéŵ Çĥáŕáçţéŕš]",
-      "walletSummary": "[Ʋéŕíƒý á Šóļáñá ŵáļļéţ ţó šĥóŵ ĥóļðéŕ ƒļáíŕ óñ ýóúŕ þļáýéŕ çáŕð.]",
-      "manageWallet": "[Ɱáñáĝé Ŵáļļéţ]",
       "deactivate": "[Ðéáçţíʋáţé Áççóúñţ]",
       "deactivateWarning": "[Ðéáçţíʋáţíóñ ļóçķš ýóúŕ áççóúñţ áñð šíĝñš ýóú óúţ éʋéŕýŵĥéŕé. Çóñţáçţ áñ áðɱíñ ţó ŕéšţóŕé íţ. Çóñƒíŕɱ ƀý ŕé-éñţéŕíñĝ ýóúŕ úšéŕñáɱé áñð þáššŵóŕð.]",
       "confirmUsername": "[Ţýþé ýóúŕ úšéŕñáɱé ţó çóñƒíŕɱ]",
@@ -2085,8 +2023,7 @@ export const en_XA: EnTranslations = {
     "githubLabel": "[Óþéñ Šóúŕçé Þŕóĵéçţ]",
     "whitepaper": "[Ŵĥíţéþáþéŕ]",
     "terms": "[Ţéŕɱš óƒ Šéŕʋíçé]",
-    "privacy": "[Þŕíʋáçý Þóļíçý]",
-    "discordLabel": "[Ĵóíñ ţĥé Ðíšçóŕð]"
+    "privacy": "[Þŕíʋáçý Þóļíçý]"
   },
   "settings": {
     "languageLoading": "[Ļóáðíñĝ ļáñĝúáĝé...]",
@@ -2138,10 +2075,7 @@ export const en_XA: EnTranslations = {
     "playAria": "[Þļáý Óñá Ŵóŕļð Ķéŕñéļ]",
     "serverLabel": "[Çĥóóšé ýóúŕ ŵóŕļð]",
     "serverAria": "[Šéļéçţ ŵóŕļð: Óñļíñé óŕ Óƒƒļíñé]",
-    "serverOfflineSub": "[Íñšţáñţ ļóçáļ ŵóŕļð]",
-    "caLabel": "[$ŴÓÇ Çóñţŕáçţ Áððŕéšš]",
-    "caCopyAria": "[Çóþý çóñţŕáçţ áððŕéšš]",
-    "caNote": "[ŴÓÇ íš óúŕ çóɱɱúñíţý ţóķéñ. Íţ íš ñóţ ñééðéð ţó þļáý. Ĵóíñ Ðíšçóŕð ţó ðíšçúšš ţĥé ŴÓÇ úţíļíţý áñð ƒļýŵĥééļ.]"
+    "serverOfflineSub": "[Íñšţáñţ ļóçáļ ŵóŕļð]"
   },
   "auth": {
     "enterRealm": "[Éñţéŕ ţĥé Ŵóŕļð]",
@@ -2212,7 +2146,6 @@ export const en_XA: EnTranslations = {
     "footerHandleWithRecruits": "[@{handle} - {recruited}]",
     "footerCta": "[Ƒóŕĝé ýóúŕ ļéĝéñð: {siteUrl}]",
     "arenaStat": "[Áŕéñá]",
-    "shareTierBit": "[, {tier}-ŕáñķ $ŴÓÇ ĥóļðéŕ]",
     "shareText": "[Í'ɱ ƒóŕĝíñĝ ɱý ļéĝéñð íñ Óñá Ŵóŕļð Ķéŕñéļ: Ļéʋéļ {level} {className}{tierBit}. Ĵóíñ ɱý ŵóŕļð:]",
     "nativeShareTitle": "[Óñá Ŵóŕļð Ķéŕñéļ]",
     "fileNameFallback": "[þļáýéŕ]",
@@ -2809,7 +2742,6 @@ export const en_XA: EnTranslations = {
     "languageSelection": "[Ļáñĝúáĝé šéļéçţíóñ]",
     "characterActions": "[Çĥáŕáçţéŕ áçţíóñš]",
     "githubProject": "[Óþéñ ţĥé Óñá Ŵóŕļð Ķéŕñéļ ĜíţĤúƀ þŕóĵéçţ]",
-    "discordCommunity": "[Ĵóíñ ţĥé Óñá Ŵóŕļð Ķéŕñéļ Ðíšçóŕð çóɱɱúñíţý]",
     "donateProject": "[Ðóñáţé ţó šúþþóŕţ Óñá Ŵóŕļð Ķéŕñéļ]"
   },
   "loading": {

@@ -9,7 +9,7 @@
 // scale, or it misplaces whenever uiScale !== 1. Routing every such write site
 // through one helper keeps that correction from silently regressing.
 
-const STORE_KEY = 'woc_settings';
+const STORE_KEY = 'owk_settings';
 
 // Mirrors SETTING_RANGES.uiScale in src/game/settings.ts. Kept local so this
 // module stays a tiny, dependency-free, host-agnostic reader.

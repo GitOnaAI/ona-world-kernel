@@ -42,7 +42,7 @@ import { type FakeRes, fakeCtx } from './helpers';
 // The shared secret and its matching header. The gate reads the env var
 // PER REQUEST, so each test sets it as needed and passes the header.
 const DEPLOY_SECRET = 'deploy-secret';
-const DEPLOY_HEADERS = { 'x-woc-deploy-secret': DEPLOY_SECRET };
+const DEPLOY_HEADERS = { 'x-owk-deploy-secret': DEPLOY_SECRET };
 
 // The routes as [method, path], the legacy handleInternalApi ladder order.
 const EXPECTED_ROUTES: ReadonlyArray<readonly [Method, string]> = [

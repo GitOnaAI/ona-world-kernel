@@ -801,7 +801,7 @@ describe('/oauth dispatch parity (legacy flag vs new flag)', () => {
 
 describe('/internal dispatch parity (legacy flag vs new flag)', () => {
   const DEPLOY_ENV = 'RESTART_COUNTDOWN_SECRET';
-  const DEPLOY_HEADER = 'x-woc-deploy-secret';
+  const DEPLOY_HEADER = 'x-owk-deploy-secret';
   const PARITY_SECRET = 'parity-internal-secret';
 
   it('POST /internal/restart-countdown with the env secret unset is the feature-off 404, identical old-vs-new', async () => {

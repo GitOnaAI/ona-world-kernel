@@ -17,7 +17,7 @@ import { json } from '../../http_util';
 import type { Middleware } from '../types';
 
 /** Header + env pair for the deploy gate (POST /internal/restart-countdown). */
-export const DEPLOY_SECRET_HEADER = 'x-woc-deploy-secret';
+export const DEPLOY_SECRET_HEADER = 'x-owk-deploy-secret';
 export const DEPLOY_SECRET_ENV = 'RESTART_COUNTDOWN_SECRET';
 
 /** The legacy fail() bodies from server/internal.ts, frozen for byte parity. */

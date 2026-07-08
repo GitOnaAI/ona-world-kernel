@@ -213,7 +213,7 @@ describe('persistence', () => {
     // couple of bindings. Every other action must keep its default, not load
     // unbound.
     localStorage.setItem(
-      'woc_keybinds',
+      'owk_keybinds',
       JSON.stringify({
         slot0: ['KeyR', null],
         jump: ['KeyJ', null],
@@ -236,7 +236,7 @@ describe('persistence', () => {
     // action), which is absent from the blob. The new action must not also keep
     // KeyH.
     localStorage.setItem(
-      'woc_keybinds',
+      'owk_keybinds',
       JSON.stringify({
         jump: ['KeyH', null],
       }),
@@ -249,7 +249,7 @@ describe('persistence', () => {
   it('drops duplicate codes when loading corrupt storage', () => {
     // two actions claim KeyR — the later one must lose it on load
     localStorage.setItem(
-      'woc_keybinds',
+      'owk_keybinds',
       JSON.stringify({
         slot0: ['KeyR', null],
         slot1: ['KeyR', null],
@@ -262,7 +262,7 @@ describe('persistence', () => {
 
   it('does not let stored Space action-bar bindings also keep default Jump', () => {
     localStorage.setItem(
-      'woc_keybinds',
+      'owk_keybinds',
       JSON.stringify({
         slot1: ['Space', null],
       }),
@@ -291,14 +291,14 @@ describe('per-character scope', () => {
   it('writes to a namespaced key, not the legacy global key', () => {
     const kb = new Keybinds('char:alice');
     kb.bind('jump', 0, 'KeyJ');
-    expect(localStorage.getItem('woc_keybinds:char:alice')).not.toBeNull();
-    expect(localStorage.getItem('woc_keybinds')).toBeNull();
+    expect(localStorage.getItem('owk_keybinds:char:alice')).not.toBeNull();
+    expect(localStorage.getItem('owk_keybinds')).toBeNull();
   });
 
   it('seeds a fresh character from the legacy account-wide blob', () => {
     // An existing player has account-wide binds under the bare key.
     localStorage.setItem(
-      'woc_keybinds',
+      'owk_keybinds',
       JSON.stringify({
         jump: ['KeyJ', null],
         slot0: ['KeyR', null],
@@ -314,11 +314,11 @@ describe('per-character scope', () => {
   });
 
   it('diverges from the legacy seed without overwriting it', () => {
-    localStorage.setItem('woc_keybinds', JSON.stringify({ jump: ['KeyJ', null] }));
+    localStorage.setItem('owk_keybinds', JSON.stringify({ jump: ['KeyJ', null] }));
     const alice = new Keybinds('char:alice');
     alice.bind('jump', 0, 'KeyK'); // diverge: persists Alice's scoped profile
     // Legacy blob is untouched, so another fresh character still seeds from it.
-    expect(JSON.parse(localStorage.getItem('woc_keybinds')!).jump).toEqual(['KeyJ', null]);
+    expect(JSON.parse(localStorage.getItem('owk_keybinds')!).jump).toEqual(['KeyJ', null]);
     expect(new Keybinds('char:bob').actionForCode('KeyJ')).toBe('jump');
     // Alice now reads her own diverged profile, not the seed. KeyJ is
     // targetFriendlyNext's default, but seeding gave it to jump (the sweep
@@ -331,7 +331,7 @@ describe('per-character scope', () => {
   it('an empty scope keeps using the legacy global key', () => {
     const kb = new Keybinds('');
     kb.bind('jump', 0, 'KeyJ');
-    expect(localStorage.getItem('woc_keybinds')).not.toBeNull();
+    expect(localStorage.getItem('owk_keybinds')).not.toBeNull();
     expect(new Keybinds().actionForCode('KeyJ')).toBe('jump');
   });
 
@@ -339,7 +339,7 @@ describe('per-character scope', () => {
     // Online scope is `char:${c.id}` where c.id is the numeric DB character id.
     const kb = new Keybinds('char:1729');
     kb.bind('jump', 0, 'KeyZ');
-    expect(localStorage.getItem('woc_keybinds:char:1729')).not.toBeNull();
+    expect(localStorage.getItem('owk_keybinds:char:1729')).not.toBeNull();
     expect(new Keybinds('char:1729').actionForCode('KeyZ')).toBe('jump');
   });
 
@@ -347,8 +347,8 @@ describe('per-character scope', () => {
     // Offline scope is `offline:${playerClass}:${name}` (the only stable handle).
     const aldric = new Keybinds('offline:warrior:Aldric');
     aldric.bind('jump', 0, 'KeyZ');
-    expect(localStorage.getItem('woc_keybinds:offline:warrior:Aldric')).not.toBeNull();
-    expect(localStorage.getItem('woc_keybinds')).toBeNull();
+    expect(localStorage.getItem('owk_keybinds:offline:warrior:Aldric')).not.toBeNull();
+    expect(localStorage.getItem('owk_keybinds')).toBeNull();
     // A different offline character starts from defaults, not Aldric's binding.
     expect(new Keybinds('offline:mage:Brenna').actionForCode('KeyZ')).toBe(null);
     expect(new Keybinds('offline:mage:Brenna').codeAt('jump', 0)).toBe('Space');
@@ -366,25 +366,25 @@ describe('per-character scope', () => {
   });
 
   it('seeds from the legacy blob when the scoped value is corrupt JSON', () => {
-    localStorage.setItem('woc_keybinds', JSON.stringify({ jump: ['KeyZ', null] }));
-    localStorage.setItem('woc_keybinds:char:alice', '{not valid json');
+    localStorage.setItem('owk_keybinds', JSON.stringify({ jump: ['KeyZ', null] }));
+    localStorage.setItem('owk_keybinds:char:alice', '{not valid json');
     // A corrupt scoped value behaves like an absent one: still seed from legacy,
     // do not drop to bare defaults.
     expect(new Keybinds('char:alice').actionForCode('KeyZ')).toBe('jump');
   });
 
   it('seeds from the legacy blob when the scoped value is not a plain object', () => {
-    localStorage.setItem('woc_keybinds', JSON.stringify({ jump: ['KeyZ', null] }));
+    localStorage.setItem('owk_keybinds', JSON.stringify({ jump: ['KeyZ', null] }));
     // A JSON array is typeof 'object' but is not a valid profile; it must seed.
-    localStorage.setItem('woc_keybinds:char:alice', JSON.stringify(['garbage']));
+    localStorage.setItem('owk_keybinds:char:alice', JSON.stringify(['garbage']));
     expect(new Keybinds('char:alice').actionForCode('KeyZ')).toBe('jump');
     // A JSON scalar likewise.
-    localStorage.setItem('woc_keybinds:char:bob', JSON.stringify(42));
+    localStorage.setItem('owk_keybinds:char:bob', JSON.stringify(42));
     expect(new Keybinds('char:bob').actionForCode('KeyZ')).toBe('jump');
   });
 
   it('reset() persists to the scoped key and leaves the legacy blob untouched', () => {
-    localStorage.setItem('woc_keybinds', JSON.stringify({ jump: ['KeyJ', null] }));
+    localStorage.setItem('owk_keybinds', JSON.stringify({ jump: ['KeyJ', null] }));
     const alice = new Keybinds('char:alice');
     alice.bind('jump', 0, 'KeyZ'); // KeyZ is unbound by default
     alice.reset();
@@ -392,7 +392,7 @@ describe('per-character scope', () => {
     expect(new Keybinds('char:alice').codeAt('jump', 0)).toBe('Space');
     expect(new Keybinds('char:alice').actionForCode('KeyZ')).toBe(null);
     // ...and reset never wrote the legacy key.
-    expect(JSON.parse(localStorage.getItem('woc_keybinds')!).jump).toEqual(['KeyJ', null]);
+    expect(JSON.parse(localStorage.getItem('owk_keybinds')!).jump).toEqual(['KeyJ', null]);
   });
 });
 

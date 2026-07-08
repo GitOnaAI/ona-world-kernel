@@ -141,7 +141,6 @@ export const en = {
     whitepaper: 'Whitepaper',
     terms: 'Terms of Service',
     privacy: 'Privacy Policy',
-    discordLabel: 'Join the Discord',
   },
   settings: {
     languageLoading: 'Loading language...',
@@ -197,10 +196,6 @@ export const en = {
     serverLabel: 'Choose your world',
     serverAria: 'Select world: Online or Offline',
     serverOfflineSub: 'Instant local world',
-    caLabel: '$WOC Contract Address',
-    caCopyAria: 'Copy contract address',
-    caNote:
-      'WOC is our community token. It is not needed to play. Join Discord to discuss the WOC utility and flywheel.',
   },
   auth: {
     enterRealm: 'Enter the World',
@@ -271,7 +266,6 @@ export const en = {
     footerHandleWithRecruits: '@{handle} - {recruited}',
     footerCta: 'Forge your legend: {siteUrl}',
     arenaStat: 'Arena',
-    shareTierBit: ', {tier}-rank $WOC holder',
     shareText:
       "I'm forging my legend in Ona World Kernel: Level {level} {className}{tierBit}. Join my world:",
     nativeShareTitle: 'Ona World Kernel',

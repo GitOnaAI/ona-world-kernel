@@ -27,7 +27,7 @@ const PINCH_ZOOM_SCALE = 0.04;
 // Haptic feedback: short Vibration-API buzzes so touch actions feel physical.
 // On by default (own localStorage key, like music's ev_music_on); try/catch +
 // feature-detect guarded so it no-ops on desktop and under Vitest/jsdom.
-export const HAPTICS_STORE_KEY = 'woc_haptics_on';
+export const HAPTICS_STORE_KEY = 'owk_haptics_on';
 export const HAPTIC_TAP = 10; // a button press
 export const HAPTIC_JOYSTICK = 6; // grabbing a joystick
 export const HAPTIC_CONFIRM = [12, 40, 12]; // haptics toggled back on

@@ -481,7 +481,6 @@ function mobileCallbacks() {
     onChat: noop,
     onMenu: noop,
     onSocial: noop,
-    onDiscord: noop,
     onEmotes: noop,
     onArena: noop,
     onQuestLog: noop,

@@ -10,8 +10,8 @@ import { mkdirSync } from 'node:fs';
 const CHROME = process.env.CHROME_BIN || '/usr/bin/chromium';
 const BASE = process.env.BASE || 'http://localhost:8799/';
 const OUT = process.env.OUT || 'pr-assets-2fa';
-const user = process.env.WOC_USER || 'Aelwyn';
-const pass = process.env.WOC_PASS || 'correct-horse';
+const user = process.env.OWK_USER || 'Aelwyn';
+const pass = process.env.OWK_PASS || 'correct-horse';
 mkdirSync(OUT, { recursive: true });
 
 const browser = await puppeteer.launch({

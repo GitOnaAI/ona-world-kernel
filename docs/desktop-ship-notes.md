@@ -16,7 +16,7 @@ re-verification fix commits `8bae7110` + `3d4e49b8`).
   into the packaged `package.json` (the `distribution` channel, the web
   origins the bundle was baked with, the optional crash-submit URL), resolved
   at runtime by `electron/desktop_config.cjs`. Dev env overrides
-  (`WOC_DISTRIBUTION`, `WOC_CRASH_SUBMIT_URL`, `VITE_DESKTOP_API_ORIGIN`,
+  (`OWK_DISTRIBUTION`, `OWK_CRASH_SUBMIT_URL`, `VITE_DESKTOP_API_ORIGIN`,
   `VITE_DESKTOP_LOGIN_ORIGIN`) apply ONLY to unpackaged checkouts; an
   installed build's stamp is final.
 - **The app stopped shipping the repo's server/web node_modules.** electron-
@@ -238,12 +238,12 @@ bump the version, rebuild, upload, and watch the toast + install cycle.
   the log path itself. Ask players to attach it to bug reports.
 - **Crash minidumps** accumulate under the Crashpad dir printed in the banner
   (`app.getPath('crashDumps')`). Local-only by default. To enable uploads,
-  stamp `WOC_CRASH_SUBMIT_URL` (https) at build time; any multipart minidump
+  stamp `OWK_CRASH_SUBMIT_URL` (https) at build time; any multipart minidump
   receiver works, including a Sentry project's `/minidump/` ingest URL, no SDK
   needed. Minidumps contain process memory: access-control the endpoint,
   set retention, and disclose in the privacy policy first.
 - **DevTools in a shipped build**: F12, Cmd+Option+I, or Ctrl+Shift+I toggles
-  a detached inspector; `WOC_OPEN_DEVTOOLS=1` opens it at launch.
+  a detached inspector; `OWK_OPEN_DEVTOOLS=1` opens it at launch.
 - **Sign-in**: email and Discord only, exactly the web flow (email/password
   in-app; Discord via the default browser and the deep link below). There is
   no Steam sign-in on any channel.
@@ -254,7 +254,7 @@ bump the version, rebuild, upload, and watch the toast + install cycle.
   `package.json` to the cwd) and read `wocDesktop`.
 - **Dev loops**: `npm run electron:dev` (Vite + live shell);
   `npm run electron:pack` / `electron:pack:steam` for fast host-arch `--dir`
-  verification builds. `WOC_DISTRIBUTION=steam npm run electron:dev` exercises
+  verification builds. `OWK_DISTRIBUTION=steam npm run electron:dev` exercises
   the steam runtime path unpackaged.
 - **Production server dependency**: the packaged app calls
   `https://worldofclaudecraft.com` from origin `app://worldofclaudecraft`;

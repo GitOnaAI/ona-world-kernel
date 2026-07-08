@@ -11,21 +11,21 @@
 // The channel is stamped into the PACKAGED package.json by scripts/electron-build.mjs
 // (electron-builder extraMetadata writes a `wocDesktop` object), because a shipped
 // app has no build-time env: the Steam depot and the website installer are the same
-// code and differ only by this stamp. WOC_DISTRIBUTION overrides it for local
+// code and differ only by this stamp. OWK_DISTRIBUTION overrides it for local
 // testing of either path in `electron .` / electron:dev.
 
 const DISTRIBUTIONS = new Set(['website', 'steam']);
 
-// Resolve the distribution channel. The WOC_DISTRIBUTION env override applies
+// Resolve the distribution channel. The OWK_DISTRIBUTION env override applies
 // ONLY to unpackaged checkouts (`electron .` / electron:dev): a PACKAGED
 // build's channel is its stamp, period. Honoring env on a packaged build
 // would be exactly the escape hatch updaterAllowed promises not to have
-// (WOC_DISTRIBUTION=website on a Steam install would flip the updater back
+// (OWK_DISTRIBUTION=website on a Steam install would flip the updater back
 // on). Unknown values collapse to the default rather than throwing: a
 // half-stamped build must still launch, and 'website' is the safe channel
 // (its only extra behavior, the updater, is additionally gated on isPackaged).
 function resolveDistribution({ packagedMetadata, env, isPackaged } = {}) {
-  const fromEnv = env?.WOC_DISTRIBUTION;
+  const fromEnv = env?.OWK_DISTRIBUTION;
   if (isPackaged !== true && typeof fromEnv === 'string' && DISTRIBUTIONS.has(fromEnv)) {
     return fromEnv;
   }
@@ -35,7 +35,7 @@ function resolveDistribution({ packagedMetadata, env, isPackaged } = {}) {
 }
 
 // The crash-minidump submit URL, if the maintainer provisioned one at build
-// time (stamped like the distribution). WOC_CRASH_SUBMIT_URL is a DEV-ONLY
+// time (stamped like the distribution). OWK_CRASH_SUBMIT_URL is a DEV-ONLY
 // override, ignored on packaged builds for the same reason as the channel:
 // minidumps carry process memory, so a local env var must not be able to
 // redirect where an installed app uploads them. Only https: is accepted;
@@ -44,7 +44,7 @@ function resolveCrashSubmitUrl({ packagedMetadata, env, isPackaged } = {}) {
   const candidates =
     isPackaged === true
       ? [packagedMetadata?.wocDesktop?.crashSubmitUrl]
-      : [env?.WOC_CRASH_SUBMIT_URL, packagedMetadata?.wocDesktop?.crashSubmitUrl];
+      : [env?.OWK_CRASH_SUBMIT_URL, packagedMetadata?.wocDesktop?.crashSubmitUrl];
   for (const candidate of candidates) {
     if (typeof candidate !== 'string' || candidate === '') continue;
     let parsed;
@@ -86,7 +86,7 @@ function resolveDesktopOrigins({ packagedMetadata, env, isPackaged } = {}) {
 // (SteamPipe owns updates; Valve's guidance is explicit), and an unpackaged
 // checkout has nothing to update, so the updater runs only for a packaged
 // website build. There is deliberately no env escape hatch to force it ON in
-// a Steam build; WOC_DISTRIBUTION=website on a dev checkout still stays off
+// a Steam build; OWK_DISTRIBUTION=website on a dev checkout still stays off
 // via isPackaged.
 function updaterAllowed({ distribution, isPackaged }) {
   return isPackaged === true && distribution === 'website';

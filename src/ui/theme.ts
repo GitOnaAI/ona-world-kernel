@@ -300,10 +300,10 @@ export function serializeTheme(state: ThemeState): string {
 
 // --- Persistence ----------------------------------------------------------
 // Dedicated localStorage store, mirroring the Keybinds pattern, so the
-// numeric/bool `woc_settings` schema stays clean. Browser-only; the pure
+// numeric/bool `owk_settings` schema stays clean. Browser-only; the pure
 // functions above carry all the logic and are what the unit tests cover.
 
-const THEME_STORE_KEY = 'woc_theme';
+const THEME_STORE_KEY = 'owk_theme';
 
 export class ThemeStore {
   private state: ThemeState;

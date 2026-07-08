@@ -35,10 +35,10 @@ command calls**. DOM/WebAudio-only; runs in `main.ts`.
 - **`AudioContext` needs a user gesture**: `audio.init()`/`music.init()`/`sfx.init()`
   are called from `enterWorld` in `main.ts`, not at module load. `setVolume` is safe
   before init. (`voice.ts` uses a plain `Audio` element, so it has no gated init.)
-- **Each module owns its `localStorage` key:** keybinds `woc_keybinds` (namespaced
-  per character: `woc_keybinds:char:<id>` online, `woc_keybinds:offline:<class>:<name>`
+- **Each module owns its `localStorage` key:** keybinds `owk_keybinds` (namespaced
+  per character: `owk_keybinds:char:<id>` online, `owk_keybinds:offline:<class>:<name>`
   offline, with the bare key kept as a read-only legacy seed for fresh characters),
-  settings `woc_settings`, music on/off `ev_music_on`. All reads are try/catch-guarded
+  settings `owk_settings`, music on/off `ev_music_on`. All reads are try/catch-guarded
   (private mode / corrupt JSON fall back to defaults).
 - **Keybinds:** `Escape` is reserved (`isReservedCode`) and never bindable, it
   always toggles the game menu. A code lives on at most one action (rebinding
@@ -49,7 +49,7 @@ command calls**. DOM/WebAudio-only; runs in `main.ts`.
   the mobile haptics toggle, is keyed (`t('hudChrome.mobile.haptics'/'…hapticsOff')` in
   `mobile_controls.ts`); the **static** mobile button labels (move/camera/attack/autorun/
   jump…) live in `index.html` via `data-i18n`, not here; the perf overlay/doctor/reporter
-  (`perf.ts`/`perf_doctor.ts`/`perf_reporter.ts`) stays English, a `?perf`/`woc_perf`-gated
+  (`perf.ts`/`perf_doctor.ts`/`perf_reporter.ts`) stays English, a `?perf`/`owk_perf`-gated
   dev diagnostic like `console.*`.
 
 ## Adding things

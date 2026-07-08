@@ -66,8 +66,8 @@ const after = await rect('#chatlog-wrap');
 console.log('AFTER wrap:', after);
 
 // confirm persistence: the geometry survives a reload
-const stored = await page.evaluate(() => localStorage.getItem('woc_chat_geometry'));
-console.log('persisted woc_chat_geometry:', stored);
+const stored = await page.evaluate(() => localStorage.getItem('owk_chat_geometry'));
+console.log('persisted owk_chat_geometry:', stored);
 
 console.log(errors.length ? 'ERRORS:\n' + errors.join('\n') : 'no console/page errors');
 await browser.close();

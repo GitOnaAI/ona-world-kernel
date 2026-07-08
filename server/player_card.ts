@@ -4,7 +4,7 @@
 //   POST /api/card?character=<id>   (authed) - store/replace this character's
 //                                    client-composited PNG, return its slug+URL.
 //   GET  /p/<slug>                  - an Open-Graph HTML page that unfurls on X /
-//                                    Discord and links into the game with ?ref.
+//                                    social apps and links into the game with ?ref.
 //   GET  /p/<slug>/card.png         - the stored PNG (the og:image).
 //
 // Cards are stored as bytes in Postgres (shared by every realm process), so a

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Follow the repo's DB-test pattern (see arena_db.test.ts / wallet_server.test.ts):
+// Follow the repo's DB-test pattern (see arena_db.test.ts):
 // stub DATABASE_URL + mock the pg Pool so db.ts loads and every pool.query is a
 // spy we control. This drives the REAL slug/referral helpers through every branch
 // with no live database; only pg is mocked, never the functions under test.

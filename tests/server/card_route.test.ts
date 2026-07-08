@@ -56,7 +56,7 @@ vi.mock('../../server/player_card', async (importActual) => {
   };
 });
 
-// A well-formed bearer header (64 lowercase-hex, matching wallet.ts BEARER_PATTERN).
+// A well-formed bearer header (64 lowercase-hex, matching the shared BEARER_PATTERN).
 const BEARER = `Bearer ${'a'.repeat(64)}`;
 
 // A declared Content-Length far above MAX_CARD_BYTES (4 MiB); cardUploadContentLengthTooLarge

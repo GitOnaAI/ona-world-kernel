@@ -182,59 +182,6 @@ export const pt_BR: EnTranslations = {
       "title": "Emotes",
       "done": "Concluído"
     },
-    "dailyRewards": {
-      "title": "Recompensas Diárias",
-      "close": "Fechar recompensas diárias",
-      "loading": "Carregando recompensas diárias...",
-      "error": "Não foi possível carregar as recompensas diárias.",
-      "intro": "Mantenha WOC suficiente na sua carteira verificada para desbloquear as recompensas diárias. Ganhe pontos com um giro diário e tarefas rotativas, depois suba na classificação diária para ganhar uma parte da premiação.",
-      "disclaimer": "O preço do WOC pode variar rapidamente. Recomendamos manter mais do que o mínimo de $20 USD para que oscilações normais de preço não bloqueiem seu acesso. Isto não é aconselhamento financeiro.",
-      "prize": "Premiação",
-      "reset": "Reinício",
-      "endsIn": "Termina em {time}",
-      "remainingLessThanMinute": "<1min",
-      "remainingMinutes": "{minutes}min",
-      "remainingHoursMinutes": "{hours}h {minutes}min",
-      "score": "Pontuação",
-      "walletValue": "Valor da carteira (WOC)",
-      "usd": "{amount} USD",
-      "sol": "{amount} SOL",
-      "unknown": "Desconhecido",
-      "spinTitle": "Giro Diário",
-      "spinDialogTitle": "Giro de Recompensa Diária",
-      "spinClose": "Fechar giro diário",
-      "spinReady": "Um giro está disponível.",
-      "spinClaimed": "Resgatado: +{points} pontos.",
-      "spinResult": "+{points} pontos",
-      "spinButton": "Girar",
-      "tasks": "Tarefas",
-      "taskMultiplier": "Multiplicador x{multiplier}",
-      "pointsGained": "{points} pontos de recompensas diárias ganhos.",
-      "showChestButton": "Mostrar Baú",
-      "hideChestButton": "Ocultar Baú",
-      "hideChestConfirmTitle": "Ocultar o Baú de Recompensas Diárias?",
-      "hideChestConfirmBody": "Isto remove o atalho do baú do seu HUD. As recompensas, a elegibilidade e este painel continuam disponíveis; você pode trazer o atalho de volta nas Opções.",
-      "hideChestConfirmOk": "Ocultar Baú",
-      "hideChestConfirmCancel": "Cancelar",
-      "leaderboard": "Classificação Diária",
-      "totalPlayer": "{count} jogador hoje",
-      "totalPlayers": "{count} jogadores hoje",
-      "history": "Vencedores anteriores",
-      "noLeaders": "Nenhum ponto ainda.",
-      "noHistory": "Nenhum pagamento ainda.",
-      "walletConnectTitle": "Verificar carteira",
-      "walletConnectBody": "Verifique uma carteira Solana com WOC para desbloquear as recompensas diárias.",
-      "walletConnectButton": "Verificar carteira",
-      "walletHoldTitle": "Mantenha WOC",
-      "walletHoldBody": "Mantenha pelo menos {amount} USD em WOC para desbloquear as recompensas diárias.",
-      "walletPriceBody": "O preço do WOC está indisponível no momento. Volte em instantes.",
-      "reason": {
-        "eligible": "Recompensas desbloqueadas.",
-        "no_wallet": "Conecte uma carteira com pelo menos $20 USD em WOC.",
-        "under_minimum": "A carteira está abaixo do mínimo de $20 USD em WOC.",
-        "price_unavailable": "O preço do WOC está indisponível; as recompensas estão temporariamente bloqueadas."
-      }
-    },
     "theme": {
       "preset": "Tema da interface",
       "customColors": "Cores personalizadas",
@@ -381,8 +328,7 @@ export const pt_BR: EnTranslations = {
     "keybinds": {
       "emoteWheel": "Roda de emotes",
       "targetFriendly": "Selecionar aliado mais próximo",
-      "targetFriendlyNext": "Alternar alvo aliado",
-      "discord": "Discord"
+      "targetFriendlyNext": "Alternar alvo aliado"
     },
     "options": {
       "clickMoveLeft": "Clique esquerdo",
@@ -402,8 +348,6 @@ export const pt_BR: EnTranslations = {
       "clickFeedback": "Marcador de clique",
       "lockCursorOnRotate": "Bloquear cursor ao girar",
       "keybindHelpLockCursorOnRotate": "Mantém o cursor do mouse dentro da janela enquanto você arrasta para girar a câmera, para que ele não alcance a borda da tela nem passe para outro monitor. Desative se preferir um cursor livre.",
-      "showWalletOnCharacterScreen": "Mostrar carteira na tela de personagens",
-      "showWalletOnPlayerCard": "Mostrar carteira no cartão de jogador",
       "showDevBadges": "Exibir Insígnias de Desenvolvedor",
       "showOwnNameplate": "Mostrar Minha Placa de Nome",
       "uiScale": "Escala da interface",
@@ -417,8 +361,7 @@ export const pt_BR: EnTranslations = {
       "showItemLevel": "Mostrar nível do item",
       "itemLevelLine": "Nível do item {level}",
       "itemScoreLine": "Pontuação {score}",
-      "showSecondaryActionBar": "Mostrar Barra de Ação Secundária",
-      "showDailyRewardsChest": "Mostrar Baú de Recompensas Diárias"
+      "showSecondaryActionBar": "Mostrar Barra de Ação Secundária"
     },
     "controller": {
       "title": "Controle",
@@ -502,9 +445,7 @@ export const pt_BR: EnTranslations = {
         "offline": "Offline"
       }
     },
-    "playerCard": {
-      "showWalletBadge": "Mostrar selo da carteira"
-    },
+    "playerCard": {},
     "landing": {
       "highContrast": "Alto contraste",
       "highContrastAria": "Alternar o fundo de alto contraste: desativa o trailer em movimento para que o texto da tela inicial permaneça legível"
@@ -640,7 +581,6 @@ export const pt_BR: EnTranslations = {
       "loggedOutPrompt": "Entre para gerenciar sua conta.",
       "memberSince": "Membro desde {date}",
       "sectionSettings": "Configurações da conta",
-      "sectionWallet": "Carteira $WOC",
       "sectionCharacters": "Personagens",
       "sectionDanger": "Zona de perigo",
       "changePassword": "Alterar senha",
@@ -667,8 +607,6 @@ export const pt_BR: EnTranslations = {
       "charactersSummary": "Gerencie seus personagens e entre no mundo.",
       "charactersCount": "Personagens: {count}",
       "goToCharacters": "Ver personagens",
-      "walletSummary": "Verifique uma carteira Solana para exibir o destaque de titular no seu cartão de jogador.",
-      "manageWallet": "Gerenciar carteira",
       "deactivate": "Desativar conta",
       "deactivateWarning": "A desativação bloqueia sua conta e desconecta você em todos os lugares. Contate um administrador para restaurá-la. Confirme digitando novamente seu nome de usuário e senha.",
       "confirmUsername": "Digite seu nome de usuário para confirmar",
@@ -2085,8 +2023,7 @@ export const pt_BR: EnTranslations = {
     "githubLabel": "Projeto de código aberto",
     "whitepaper": "Whitepaper",
     "terms": "Termos de serviço",
-    "privacy": "Política de privacidade",
-    "discordLabel": "Juntar-se ao Discord"
+    "privacy": "Política de privacidade"
   },
   "settings": {
     "languageLoading": "Carregando idioma...",
@@ -2138,10 +2075,7 @@ export const pt_BR: EnTranslations = {
     "playAria": "Jogar Ona World Kernel",
     "serverLabel": "Escolha seu mundo",
     "serverAria": "Escolher mundo: Online ou Offline",
-    "serverOfflineSub": "Mundo local instantâneo",
-    "caLabel": "Endereço do contrato $WOC",
-    "caCopyAria": "Copiar endereço do contrato",
-    "caNote": "WOC é o token da nossa comunidade. Não é necessário para jogar. Entre no Discord para discutir a utilidade e o flywheel do WOC."
+    "serverOfflineSub": "Mundo local instantâneo"
   },
   "auth": {
     "enterRealm": "Entrar no mundo",
@@ -2212,7 +2146,6 @@ export const pt_BR: EnTranslations = {
     "footerHandleWithRecruits": "@{handle} - {recruited}",
     "footerCta": "Forje sua lenda: {siteUrl}",
     "arenaStat": "Arena",
-    "shareTierBit": ", titular de $WOC de nível {tier}",
     "shareText": "Estou forjando minha lenda em Ona World Kernel: nível {level} {className}{tierBit}. Entre no meu mundo:",
     "nativeShareTitle": "Ona World Kernel",
     "fileNameFallback": "jogador",
@@ -2809,7 +2742,6 @@ export const pt_BR: EnTranslations = {
     "languageSelection": "Seleção de idioma",
     "characterActions": "Ações de personagem",
     "githubProject": "Abrir o projeto Ona World Kernel no GitHub",
-    "discordCommunity": "Entrar na comunidade Ona World Kernel no Discord",
     "donateProject": "Doar para apoiar Ona World Kernel"
   },
   "loading": {

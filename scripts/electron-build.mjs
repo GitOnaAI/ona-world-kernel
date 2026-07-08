@@ -93,7 +93,7 @@ const config = desktopBuilderConfig({
   mode,
   apiOrigin,
   loginOrigin,
-  crashSubmitUrl: process.env.WOC_CRASH_SUBMIT_URL ?? '',
+  crashSubmitUrl: process.env.OWK_CRASH_SUBMIT_URL ?? '',
   azureSign: process.platform === 'win32' ? azureSignOptionsFromEnv(process.env) : null,
 });
 const configDir = mkdtempSync(path.join(tmpdir(), 'woc-eb-'));

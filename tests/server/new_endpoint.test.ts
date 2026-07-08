@@ -337,12 +337,12 @@ describe('append-only insertion helpers (synthetic sources)', () => {
 
   it('registers a domain import + spread, each above its registry anchor', () => {
     const src = [
-      "import { routes as walletRoutes } from '../wallet';",
+      "import { routes as reportRoutes } from '../reports';",
       REGISTRY_IMPORT_ANCHOR,
       "import { createRouter } from './router';",
       '',
       'export const apiRoutes = [',
-      '  ...walletRoutes,',
+      '  ...reportRoutes,',
       REGISTRY_SPREAD_ANCHOR,
       '];',
       '',

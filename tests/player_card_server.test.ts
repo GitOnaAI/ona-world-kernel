@@ -2,7 +2,7 @@ import { Readable } from 'node:stream';
 import { deflateSync } from 'node:zlib';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Same DB-test pattern as wallet_server.test.ts: stub DATABASE_URL + mock pg so
+// Same DB-test pattern as the other server suites: stub DATABASE_URL + mock pg so
 // db.ts loads and every pool.query is a spy we route by SQL. Drives the REAL
 // card/referral handlers through every branch with no live database.
 const dbMock = vi.hoisted(() => {
@@ -625,7 +625,7 @@ describe('GET /p/<slug>', () => {
   });
 
   it('cache-busts the og:image with the card updated_at so a re-published card is re-fetched', async () => {
-    // Without a version query, X/Discord/browsers keep serving the cached PNG for
+    // Without a version query, social apps/browsers keep serving the cached PNG for
     // the stable /p/<slug>/card.png URL even after a level-up re-publish.
     const updatedAt = '2026-06-23T19:33:14.000Z';
     const v = Date.parse(updatedAt);

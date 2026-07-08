@@ -20,7 +20,7 @@ import { mkdirSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import puppeteer from 'puppeteer-core';
 
-const PORT = Number(process.env.WOC_SHOT_PORT ?? 8801);
+const PORT = Number(process.env.OWK_SHOT_PORT ?? 8801);
 const BASE = `http://127.0.0.1:${PORT}`;
 const OUT = 'docs/superpowers/shots';
 const CHROME = process.env.CHROME_BIN ?? '/usr/bin/chromium';

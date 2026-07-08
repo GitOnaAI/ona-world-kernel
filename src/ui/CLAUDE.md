@@ -277,7 +277,7 @@ tint with vector `PRIMITIVES` and optional `FX`. Unknown ids fall back via
   visuals need a new `PRIMITIVES` painter (centered at 0,0, ~100×100 space, r≤36, light top-left).
 - **The exception, real painted art (WebP):** the curated `ABILITY_IMAGE_IDS` set ships image
   files instead of a recipe. `abilityImageUrl(id)` returns `/ui/skills/<class>/<id>.webp`, served
-  for `kind:'ability'` (action bar), `kind:'aura'` (buff/debuff frames), and the `/wiki` guide
+  for `kind:'ability'` (action bar) and `kind:'aura'` (buff/debuff frames)
   class pages (weapons use `WEAPON_ICON_DIR` JPGs the same way). **The committed tree is WebP only
   and WebP is the source of truth: no PNGs.** To add one, drop the art into
   `public/ui/skills/<class>/` in any common raster format and run `npm run assets:skills`

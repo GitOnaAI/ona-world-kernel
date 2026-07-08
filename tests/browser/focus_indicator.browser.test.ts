@@ -14,7 +14,7 @@
 // The eight controls the focus_visible_guard header named do NOT all use a box-shadow:
 //   - six draw a box-shadow glow (asserted: box-shadow !== 'none');
 //   - .header-logo-btn draws an OUTLINE ring (already Node-guard-covered; asserted here too);
-//   - .wallet-mini carries a border-color shift only (outline:none, no box-shadow), which
+//   - .link-mini carries a border-color shift only (outline:none, no box-shadow), which
 //     neither the Node guard nor a box-shadow check sees, so it is asserted by its border.
 // Each is asserted by its ACTUAL indicator type, so a real missing-indicator regression fails
 // loudly rather than passing a vacuous or wrong-typed check.
@@ -49,7 +49,7 @@ const BOX_SHADOW_CONTROLS = [
   'lang-select-dropdown',
   'homepage-music-btn',
   'donate-cta',
-  'wallet-cta',
+  'link-cta',
 ];
 
 describe('pre-game shell focus indicators are present and steady (the box-shadow gap)', () => {
@@ -74,21 +74,21 @@ describe('pre-game shell focus indicators are present and steady (the box-shadow
     ).toBeGreaterThan(0);
   });
 
-  it('.wallet-mini shows a border-color focus indicator distinct from its resting border', async () => {
-    // .wallet-mini uses neither box-shadow nor outline; its indicator is a border-color (and
+  it('.link-mini shows a border-color focus indicator distinct from its resting border', async () => {
+    // .link-mini uses neither box-shadow nor outline; its indicator is a border-color (and
     // text-color) shift, transitioned in. Capture the resting border, then assert the focused
     // border differs (a present, distinct focus indicator the other two checks cannot see).
     const node = document.createElement('button');
-    node.className = 'wallet-mini';
-    node.textContent = 'wallet';
+    node.className = 'link-mini';
+    node.textContent = 'link';
     document.body.appendChild(node);
     const restingBorderColor = getComputedStyle(node).borderColor;
     await userEvent.tab();
     if (document.activeElement !== node) {
-      throw new Error('keyboard Tab did not focus .wallet-mini');
+      throw new Error('keyboard Tab did not focus .link-mini');
     }
     await vi.waitFor(() =>
-      expect(getComputedStyle(node).borderColor, '.wallet-mini focus border-color').not.toBe(
+      expect(getComputedStyle(node).borderColor, '.link-mini focus border-color').not.toBe(
         restingBorderColor,
       ),
     );

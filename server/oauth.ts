@@ -5,8 +5,8 @@
 // on /sheet and is rejected on every mutating route (bearerActiveAccount). Scope
 // is character:read.
 //
-// The consent + device pages reuse the in-browser WoCC web session (the bearer
-// token in localStorage 'woc_session'): the page POSTs that token to approve, so
+// The consent + device pages reuse the in-browser web session (the bearer
+// token in localStorage 'owk_session'): the page POSTs that token to approve, so
 // the flow rides the existing browser auth and passes the anti-bot login gates
 // without this code touching them. The approval POST requires a FULL session
 // token (a read token cannot authorize new read tokens, no escalation).
@@ -451,7 +451,7 @@ function authorizeHtml(o: {
 </main>
 <script>
   var REQ = ${data};
-  function token(){ try { return JSON.parse(localStorage.getItem('woc_session')||'{}').token || ''; } catch(e){ return ''; } }
+  function token(){ try { return JSON.parse(localStorage.getItem('owk_session')||'{}').token || ''; } catch(e){ return ''; } }
   function denyUrl(){ var u=new URL(REQ.redirect_uri); u.searchParams.set('error','access_denied'); if(REQ.state)u.searchParams.set('state',REQ.state); return u.toString(); }
   document.getElementById('deny').onclick=function(){ location.href=denyUrl(); };
   document.getElementById('allow').onclick=function(){
@@ -481,7 +481,7 @@ function renderDevicePage(res: http.ServerResponse): void {
 </main>
 <script>
   var params=new URLSearchParams(location.search); var pre=params.get('user_code'); if(pre)document.getElementById('code').value=pre;
-  function token(){ try { return JSON.parse(localStorage.getItem('woc_session')||'{}').token || ''; } catch(e){ return ''; } }
+  function token(){ try { return JSON.parse(localStorage.getItem('owk_session')||'{}').token || ''; } catch(e){ return ''; } }
   document.getElementById('ok').onclick=function(){
     var t=token(); if(!t){ document.getElementById('msg').textContent='Please log in to Ona World Kernel first.'; return; }
     var code=document.getElementById('code').value;

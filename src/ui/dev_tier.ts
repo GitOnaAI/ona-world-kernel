@@ -1,6 +1,6 @@
 // Presentation layer for the developer-badge tier ladder.
 //
-// Mirrors src/ui/holder_tier.ts and src/ui/discord_tier.ts: the pure thresholds
+// The pure thresholds
 // live in src/sim/dev_tier.ts; this module adds the localized display name, the
 // flavor line, the accent colors, and the procedural SVG badge art the HUD,
 // nameplate, and player card render. It is DOM-free apart from building an SVG
@@ -8,8 +8,7 @@
 // through t() against the English-only hudChrome.devBadge.* keys.
 //
 // The SVG glyph is a procedural "merge graph" device (a trunk of merge nodes
-// with branch lanes folding back in, growing richer per rung), deliberately
-// distinct from the holder coins/gems and the Discord numerals; a reskin with
+// with branch lanes folding back in, growing richer per rung); a reskin with
 // bespoke art can swap the glyphs later without touching the ladder. The visual
 // doubles as an apt metaphor for the unit it represents (merged pull requests).
 import {
@@ -162,8 +161,7 @@ export function devTierFlavorText(tier: DevTier): string {
   return t(DEV_TIER_TEXT_KEYS[tier.key].flavor);
 }
 
-// No devTierForMergedPrs() here (unlike holderTierForBalance(), which the
-// player card derives client-side from a raw $WOC balance): the server always
+// No devTierForMergedPrs() here: the server always
 // resolves and broadcasts the tier INDEX (the wire `dvt` field), never a raw
 // merged-PR count for the client to re-derive a tier from, so every consumer
 // looks the rung up by index. Add a count-based lookup only if a client-side
@@ -179,8 +177,8 @@ export function devTierByIndex(index: number): DevTier | undefined {
 /**
  * The glowing nameplate-outline colour for a 1-based rung index, or null when the
  * rung is not a "significant contributor" (or out of range). Drives the distinct
- * name outline that composes on top of the existing name colour (Discord
- * staff/default) for Architect and Worldwright.
+ * name outline that composes on top of the existing name colour (staff or
+ * default) for Architect and Worldwright.
  */
 export function devTierNameOutlineColor(index: number): string | null {
   const tier = devTierByIndex(index);

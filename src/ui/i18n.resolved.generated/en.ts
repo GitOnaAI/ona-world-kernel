@@ -182,59 +182,6 @@ export const en: EnTranslations = {
       "title": "Emotes",
       "done": "Done"
     },
-    "dailyRewards": {
-      "title": "Daily Rewards",
-      "close": "Close daily rewards",
-      "loading": "Loading daily rewards...",
-      "error": "Could not load daily rewards.",
-      "intro": "Hold enough WOC in your verified wallet to unlock daily rewards. Earn points with one daily spin and rotating tasks, then climb the daily leaderboard for a share of the prize pool.",
-      "disclaimer": "WOC price can move quickly. We recommend holding more than the $20 USD minimum so normal price swings do not lock you out. This is not financial advice.",
-      "prize": "Prize Pool",
-      "reset": "Reset",
-      "endsIn": "Ends in {time}",
-      "remainingLessThanMinute": "<1m",
-      "remainingMinutes": "{minutes}m",
-      "remainingHoursMinutes": "{hours}h {minutes}m",
-      "score": "Score",
-      "walletValue": "Wallet Value (WOC)",
-      "usd": "{amount} USD",
-      "sol": "{amount} SOL",
-      "unknown": "Unknown",
-      "spinTitle": "Daily Spin",
-      "spinDialogTitle": "Daily Reward Spin",
-      "spinClose": "Close daily spin",
-      "spinReady": "One spin is ready.",
-      "spinClaimed": "Claimed: +{points} points.",
-      "spinResult": "+{points} points",
-      "spinButton": "Spin",
-      "tasks": "Tasks",
-      "taskMultiplier": "x{multiplier} multiplier",
-      "pointsGained": "{points} daily rewards points gained.",
-      "showChestButton": "Show Chest",
-      "hideChestButton": "Hide Chest",
-      "hideChestConfirmTitle": "Hide Daily Rewards Chest?",
-      "hideChestConfirmBody": "This removes the chest shortcut from your HUD. Rewards, eligibility, and this panel stay available; you can bring the shortcut back from Options.",
-      "hideChestConfirmOk": "Hide Chest",
-      "hideChestConfirmCancel": "Cancel",
-      "leaderboard": "Daily Leaderboard",
-      "totalPlayer": "{count} player today",
-      "totalPlayers": "{count} players today",
-      "history": "Past Winners",
-      "noLeaders": "No points yet.",
-      "noHistory": "No payouts yet.",
-      "walletConnectTitle": "Verify Wallet",
-      "walletConnectBody": "Verify a Solana wallet with WOC to unlock daily rewards.",
-      "walletConnectButton": "Verify Wallet",
-      "walletHoldTitle": "Hold WOC",
-      "walletHoldBody": "Hold at least {amount} USD in WOC to unlock daily rewards.",
-      "walletPriceBody": "WOC pricing is unavailable right now. Check back shortly.",
-      "reason": {
-        "eligible": "Rewards unlocked.",
-        "no_wallet": "Connect a wallet with at least $20 USD in WOC.",
-        "under_minimum": "Wallet is below the $20 USD WOC minimum.",
-        "price_unavailable": "WOC price is unavailable, rewards are temporarily locked."
-      }
-    },
     "theme": {
       "preset": "UI Theme",
       "customColors": "Custom Colors",
@@ -381,8 +328,7 @@ export const en: EnTranslations = {
     "keybinds": {
       "emoteWheel": "Emote Wheel",
       "targetFriendly": "Target Nearest Friendly",
-      "targetFriendlyNext": "Cycle Friendly Target",
-      "discord": "Discord"
+      "targetFriendlyNext": "Cycle Friendly Target"
     },
     "options": {
       "clickMoveLeft": "Left Click",
@@ -402,8 +348,6 @@ export const en: EnTranslations = {
       "clickFeedback": "Click Marker",
       "lockCursorOnRotate": "Lock Cursor While Rotating",
       "keybindHelpLockCursorOnRotate": "Keeps the mouse cursor inside the window while you drag to rotate the camera, so it cannot reach the screen edge or move to another monitor. Turn off if you prefer a free cursor.",
-      "showWalletOnCharacterScreen": "Show Wallet on Character Screen",
-      "showWalletOnPlayerCard": "Show Wallet on Player Card",
       "showDevBadges": "Show Developer Badges",
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "UI Scale",
@@ -417,8 +361,7 @@ export const en: EnTranslations = {
       "showItemLevel": "Show Item Level",
       "itemLevelLine": "Item Level {level}",
       "itemScoreLine": "Score {score}",
-      "showSecondaryActionBar": "Show Secondary Action Bar",
-      "showDailyRewardsChest": "Show Daily Rewards Chest"
+      "showSecondaryActionBar": "Show Secondary Action Bar"
     },
     "controller": {
       "title": "Controller",
@@ -502,9 +445,7 @@ export const en: EnTranslations = {
         "offline": "Offline"
       }
     },
-    "playerCard": {
-      "showWalletBadge": "Show wallet badge"
-    },
+    "playerCard": {},
     "landing": {
       "highContrast": "High Contrast",
       "highContrastAria": "Toggle high-contrast background: disables the moving trailer so start-screen text stays legible"
@@ -640,7 +581,6 @@ export const en: EnTranslations = {
       "loggedOutPrompt": "Log in to manage your account.",
       "memberSince": "Member since {date}",
       "sectionSettings": "Account Settings",
-      "sectionWallet": "$WOC Wallet",
       "sectionCharacters": "Characters",
       "sectionDanger": "Danger Zone",
       "changePassword": "Change Password",
@@ -667,8 +607,6 @@ export const en: EnTranslations = {
       "charactersSummary": "Manage your characters and enter the world.",
       "charactersCount": "Characters: {count}",
       "goToCharacters": "View Characters",
-      "walletSummary": "Verify a Solana wallet to show holder flair on your player card.",
-      "manageWallet": "Manage Wallet",
       "deactivate": "Deactivate Account",
       "deactivateWarning": "Deactivation locks your account and signs you out everywhere. Contact an admin to restore it. Confirm by re-entering your username and password.",
       "confirmUsername": "Type your username to confirm",
@@ -2085,8 +2023,7 @@ export const en: EnTranslations = {
     "githubLabel": "Open Source Project",
     "whitepaper": "Whitepaper",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy",
-    "discordLabel": "Join the Discord"
+    "privacy": "Privacy Policy"
   },
   "settings": {
     "languageLoading": "Loading language...",
@@ -2138,10 +2075,7 @@ export const en: EnTranslations = {
     "playAria": "Play Ona World Kernel",
     "serverLabel": "Choose your world",
     "serverAria": "Select world: Online or Offline",
-    "serverOfflineSub": "Instant local world",
-    "caLabel": "$WOC Contract Address",
-    "caCopyAria": "Copy contract address",
-    "caNote": "WOC is our community token. It is not needed to play. Join Discord to discuss the WOC utility and flywheel."
+    "serverOfflineSub": "Instant local world"
   },
   "auth": {
     "enterRealm": "Enter the World",
@@ -2212,7 +2146,6 @@ export const en: EnTranslations = {
     "footerHandleWithRecruits": "@{handle} - {recruited}",
     "footerCta": "Forge your legend: {siteUrl}",
     "arenaStat": "Arena",
-    "shareTierBit": ", {tier}-rank $WOC holder",
     "shareText": "I'm forging my legend in Ona World Kernel: Level {level} {className}{tierBit}. Join my world:",
     "nativeShareTitle": "Ona World Kernel",
     "fileNameFallback": "player",
@@ -2809,7 +2742,6 @@ export const en: EnTranslations = {
     "languageSelection": "Language selection",
     "characterActions": "Character actions",
     "githubProject": "Open the Ona World Kernel GitHub project",
-    "discordCommunity": "Join the Ona World Kernel Discord community",
     "donateProject": "Donate to support Ona World Kernel"
   },
   "loading": {

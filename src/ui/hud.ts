@@ -565,18 +565,18 @@ const DEFAULT_EMOTE_WHEEL: OverheadEmoteId[] = [
 
 // yards past a zone boundary before the crossing banner/welcome commits
 const ZONE_BANNER_DEADBAND = 5;
-const IGNORED_CHAT_NAMES_KEY = 'woc_ignored_chat_names';
+const IGNORED_CHAT_NAMES_KEY = 'owk_ignored_chat_names';
 // Classic-style chat tabs: the ordered channel tabs the player has opened, and the
 // tab that was active last session. The built-in `all`/`combat` views are
 // implicit and never stored.
-const CHAT_TABS_KEY = 'woc_chat_tabs';
-const CHAT_ACTIVE_TAB_KEY = 'woc_chat_active_tab';
+const CHAT_TABS_KEY = 'owk_chat_tabs';
+const CHAT_ACTIVE_TAB_KEY = 'owk_chat_active_tab';
 // Persisted chat-window geometry (drag position + resize size). Desktop only —
 // the mobile layout owns its own placement and ignores this.
-const CHAT_GEOMETRY_KEY = 'woc_chat_geometry';
+const CHAT_GEOMETRY_KEY = 'owk_chat_geometry';
 // Persisted top-left for each movable unit frame (MovableFrame in movable_frame.ts).
-const TARGET_FRAME_POS_KEY = 'woc_target_frame_pos';
-const PLAYER_FRAME_POS_KEY = 'woc_player_frame_pos';
+const TARGET_FRAME_POS_KEY = 'owk_target_frame_pos';
+const PLAYER_FRAME_POS_KEY = 'owk_player_frame_pos';
 const CHAT_TEMPLATE_KEYS = {
   party: 'hud.chat.templates.party',
   yell: 'hud.chat.templates.yell',
@@ -834,10 +834,10 @@ export class Hud {
   private targetEliteTagEl = $('#tf-elite-tag');
   private targetNameEl = $('#tf-name');
   private targetLevelEl = $('#tf-level');
-  private targetDiscordEl = $('#tf-discord');
+  private targetBadgeEl = $('#tf-badges');
   // Diff key for the target-frame badge line, so its per-frame update only rebuilds
   // innerHTML when the badge content changes.
-  private targetDiscordSig = '';
+  private targetBadgeSig = '';
   private targetHpEl = $('#tf-hp');
   private targetHpTextEl = $('#tf-hp-text');
   private targetPortraitEl = $('#tf-portrait') as unknown as HTMLCanvasElement;
@@ -2554,7 +2554,7 @@ export class Hud {
   // -------------------------------------------------------------------------
 
   private emoteWheelKey(): string {
-    return `woc_emote_wheel_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
+    return `owk_emote_wheel_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
   }
 
   private emoteWheelVersionKey(): string {
@@ -3904,7 +3904,7 @@ export class Hud {
   // level-up, so indices would not survive). Persisted per class+character,
   // with separate form/stealth layouts because each state has a different kit.
   private slotMapKey(form: HotbarForm = this.activeHotbarForm): string {
-    const base = `woc_hotbar_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
+    const base = `owk_hotbar_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
     return form === 'normal' ? base : `${base}_${form}`;
   }
 
@@ -6635,7 +6635,7 @@ export class Hud {
   // ---- the map's numbered quest side list (track/untrack the blue areas) ----
 
   private mapUntrackedKey(): string {
-    return `woc_map_untracked_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
+    return `owk_map_untracked_${this.sim.cfg.playerClass}_${this.sim.player.name}`;
   }
 
   private untrackedQuestSet(): Set<string> {
@@ -7879,12 +7879,12 @@ export class Hud {
       const rect = sender.getBoundingClientRect();
       this.openChatPlayerContextMenu(name, rect.left, rect.bottom);
     });
-    const nameToken = '__WOC_CHAT_NAME__';
-    const messageToken = '__WOC_CHAT_MESSAGE__';
+    const nameToken = '__OWK_CHAT_NAME__';
+    const messageToken = '__OWK_CHAT_MESSAGE__';
     const rendered = t(templateKey, { name: nameToken, message: messageToken });
     let senderAppended = false;
     let messageAppended = false;
-    for (const part of rendered.split(/(__WOC_CHAT_NAME__|__WOC_CHAT_MESSAGE__)/)) {
+    for (const part of rendered.split(/(__OWK_CHAT_NAME__|__OWK_CHAT_MESSAGE__)/)) {
       if (part === nameToken) {
         div.append(sender);
         senderAppended = true;
@@ -10333,7 +10333,7 @@ export class Hud {
     const linkRow = back.querySelector('.pc-link') as HTMLElement;
     const linkInput = back.querySelector('.pc-link-input') as HTMLInputElement;
     const fileName = () =>
-      `${(state.data?.referralHandle || t('playerCard.fileNameFallback')).replace(/[^a-z0-9-]/g, '')}-woc-card.png`;
+      `${(state.data?.referralHandle || t('playerCard.fileNameFallback')).replace(/[^a-z0-9-]/g, '')}-owk-card.png`;
     const mkBtn = (label: string, cls = ''): HTMLButtonElement => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -10528,9 +10528,9 @@ export class Hud {
     if (sim.prestigeRank > 0)
       combatStats.push({ label: t('game.prestige.rank'), value: num(sim.prestigeRank) });
 
-    // Developer badge: a global display preference (no per-card modal toggle
-    // like the wallet flair has, since "hide dev badges" is meant to apply
-    // everywhere at once, not be re-decided per export).
+    // Developer badge: a global display preference (no per-card modal toggle,
+    // since "hide dev badges" is meant to apply everywhere at once, not be
+    // re-decided per export).
     const showDevBadges = this.optionsHooks?.settings.get('showDevBadges') ?? true;
 
     const slots: EquipSlot[] = ['mainhand', 'chest', 'legs', 'feet'];
@@ -11157,12 +11157,12 @@ export class Hud {
   // Fill the target frame's badge line: a linked player's developer badge.
   // Hidden for mobs and players with no badge at all.
   private updateTargetBadgeLine(target: Entity): void {
-    const el = this.targetDiscordEl;
+    const el = this.targetBadgeEl;
     const showDevBadges = this.optionsHooks?.settings.get('showDevBadges') ?? true;
     const devIdx = showDevBadges ? (target.devTier ?? 0) : 0;
     if (target.kind !== 'player' || !devIdx) {
-      if (this.targetDiscordSig !== '') {
-        this.targetDiscordSig = '';
+      if (this.targetBadgeSig !== '') {
+        this.targetBadgeSig = '';
         el.classList.remove('show');
         el.replaceChildren();
       }
@@ -11171,12 +11171,12 @@ export class Hud {
     // This runs every frame the target frame updates; only rebuild when the badge
     // content actually changes.
     const sig = `${devIdx}`;
-    if (sig === this.targetDiscordSig) return;
-    this.targetDiscordSig = sig;
+    if (sig === this.targetBadgeSig) return;
+    this.targetBadgeSig = sig;
     const parts: string[] = [];
     const devDef = devTierByIndex(devIdx);
     if (devDef) {
-      parts.push(`<span class="uf-dc-chip dev">${esc(devTierDisplayName(devDef))}</span>`);
+      parts.push(`<span class="uf-badge-chip dev">${esc(devTierDisplayName(devDef))}</span>`);
     }
     el.innerHTML = parts.join('');
     el.classList.add('show');

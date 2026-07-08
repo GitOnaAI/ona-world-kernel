@@ -57,7 +57,7 @@ export type HttpMethod = (typeof HTTP_METHODS)[number];
 //   full          a full active session, read tokens rejected
 //                 (bearerActiveAccount in main, fullSessionAccount in oauth)
 //   admin         an admin account (isAdminAccount)
-//   secret-deploy the x-woc-deploy-secret shared secret (RESTART_COUNTDOWN_SECRET)
+//   secret-deploy the x-owk-deploy-secret shared secret (RESTART_COUNTDOWN_SECRET)
 //   dev-gated     guarded by ALLOW_DEV_COMMANDS=1
 export const AUTH_SCOPE = {
   public: 'public',
@@ -614,9 +614,9 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     requireOwnedExpected: null,
   },
   // mode=login is unauthenticated; mode=link requires a full session.
-  // GitHub OAuth link (developer badge), mirroring the Discord link flow. Start
+  // GitHub OAuth link (developer badge). Start
   // is link-only (it resolves the caller's account first, so it needs a full
-  // session, unlike the Discord login-or-link start); the callback carries no
+  // session, unlike a login-or-link start); the callback carries no
   // bearer and answers with an HTML page (a github.com redirect).
   {
     dispatcher: DISPATCH.mainApi,

@@ -11,7 +11,7 @@
 
 import type { PlayerClass, WorldContent } from '../sim/types';
 
-export const EDITOR_PLAYTEST_KEY = 'woc_editor_playtest';
+export const EDITOR_PLAYTEST_KEY = 'owk_editor_playtest';
 
 export interface EditorPlaytestRequest {
   content: WorldContent;

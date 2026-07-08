@@ -36,9 +36,7 @@ try {
 }
 try {
   // Local-dev convenience: also load .env.local so the server can reuse the
-  // client's VITE_* values (e.g. the Solana RPC + $WOC mint) for the in-world
-  // holder-tier reads. Existing keys from .env are not overwritten. In
-  // production these come from real env vars (SOLANA_RPC_URL / WOC_MINT).
+  // client's VITE_* values. Existing keys from .env are not overwritten.
   process.loadEnvFile?.('.env.local');
 } catch {
   // .env.local is optional.
@@ -148,10 +146,10 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMPTZ;
 -- Whether the account has a password the OWNER set (and therefore can log in with
 -- via username + password). Defaults TRUE so every existing account keeps its
--- usable password. Discord-provisioned accounts are created with FALSE: they have
+-- usable password. OAuth-provisioned accounts are created with FALSE: they have
 -- only a random unguessable placeholder hash, so they are reachable ONLY through
--- Discord until a real password is set (which flips this back to TRUE). The unlink
--- path reads this to avoid stranding a Discord-only account with no way back in.
+-- the provider until a real password is set (which flips this back to TRUE). The unlink
+-- path reads this to avoid stranding an OAuth-only account with no way back in.
 ALTER TABLE accounts ADD COLUMN IF NOT EXISTS password_set BOOLEAN NOT NULL DEFAULT TRUE;
 -- Transactional + marketing email support. locale picks the language the server
 -- renders outbound mail in (emails have no client in the loop, so they are
@@ -458,7 +456,7 @@ CREATE INDEX IF NOT EXISTS client_perf_reports_created ON client_perf_reports(cr
 CREATE INDEX IF NOT EXISTS client_perf_reports_release_created ON client_perf_reports(release_version, created_at DESC);
 CREATE INDEX IF NOT EXISTS client_perf_reports_gpu_created ON client_perf_reports(gl_renderer_bucket, created_at DESC);
 CREATE INDEX IF NOT EXISTS client_perf_reports_session_created ON client_perf_reports(session_id, created_at DESC);
--- Shareable player cards (docs/prd/woc/player-card.md). One card per character;
+-- Shareable player cards. One card per character;
 -- the PNG is composited client-side and stored here as bytes so any realm
 -- process (all share this database) can serve /p/<slug> and the OG image. slug
 -- is globally unique and is the public, referral-friendly handle.
@@ -512,7 +510,7 @@ export async function ensureSchema(): Promise<void> {
     await client.query(RATELIMIT_SCHEMA);
     // Fail-fast at boot if rate_limits did not materialize: the tier-2 limiter
     // depends on it, and a defined-but-unwired schema shipped once before
-    // (DISCORD_SCHEMA, PR #1044). to_regclass sees the uncommitted DDL on this
+    // (a since-removed integration schema, PR #1044). to_regclass sees the uncommitted DDL on this
     // same client inside the transaction. Scoped to this one table on purpose
     // (the other schemas stay test-guarded).
     const rateLimitsReg = await client.query("SELECT to_regclass('public.rate_limits') AS reg");
@@ -697,7 +695,7 @@ export async function createAccount(
   passwordHash: string,
   meta: RequestMetadata = {},
   // passwordSet=false marks an account whose password is a placeholder the owner
-  // never chose (a Discord-provisioned account). Defaults TRUE for every normal
+  // never chose (an OAuth-provisioned account). Defaults TRUE for every normal
   // (register / portal) signup so nothing changes for them.
   opts: { passwordSet?: boolean } = {},
 ): Promise<AccountRow> {
@@ -794,7 +792,7 @@ export interface AccountInfoRow {
   id: number;
   username: string;
   password_hash: string;
-  // Whether the owner set a real password (false for a Discord-provisioned account
+  // Whether the owner set a real password (false for an OAuth-provisioned account
   // that still only has its placeholder hash). The unlink + portal flows read it.
   password_set: boolean;
   email: string | null;
@@ -836,7 +834,7 @@ export async function touchCharacterLogin(characterId: number): Promise<void> {
 export async function updatePasswordHash(accountId: number, passwordHash: string): Promise<void> {
   // Setting a password always makes it a real, owner-chosen one, so mark the
   // account usable (a no-op for accounts that were already password_set = TRUE,
-  // and the conversion step for a Discord-provisioned account).
+  // and the conversion step for an OAuth-provisioned account).
   await pool.query('UPDATE accounts SET password_hash = $2, password_set = TRUE WHERE id = $1', [
     accountId,
     passwordHash,
@@ -933,8 +931,8 @@ export async function setAccountEmail(accountId: number, email: string | null): 
 
 // Fill the recovery email ONLY when the account has none yet, never overwriting an
 // address the owner already set (that can only change through the verified change
-// flow). Used by the Discord capture path: a Discord-verified address seeds the
-// recovery email + stamps email_verified_at, but a fresh Discord grant must never
+// flow). Used by the OAuth capture path: a provider-verified address seeds the
+// recovery email + stamps email_verified_at, but a fresh OAuth grant must never
 // clobber an existing one. Idempotent (the WHERE makes a second call a no-op) and
 // race-safe (the guard is in the UPDATE, not a read-then-write). Returns true when
 // a row was actually filled.

@@ -3236,7 +3236,7 @@ export function abilityImageUrl(id: string): string | null {
 // Item ids with committed painted art under /ui/items/<id>.webp (curated from the CraftPix
 // resource/consumable AND armor/equipment packs; provenance + license in
 // public/ui/items/mapping.json). Served for kind 'item' (bags, tooltips, loot, vendor, the
-// /wiki guide). Covers everything except weapons, which keep their rendered-model thumbnails
+// the removed /wiki guide). Covers everything except weapons, which keep their rendered-model thumbnails
 // via WEAPON_ICON_DIR; items not listed fall through to the procedural ITEM_RECIPES below.
 // For armor the icon is purely cosmetic (rarity colour still comes from item.quality), and the
 // flashier icons are reserved for higher-rarity pieces. WebP only, like the skill icons. Add

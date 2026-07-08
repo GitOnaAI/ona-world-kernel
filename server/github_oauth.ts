@@ -3,11 +3,11 @@
 // identity so the developer badge can credit their merged pull requests). Kept separate
 // from server/github.ts (DB + HTTP) so URL building and GitHub API response
 // parsing can be unit tested without a database or network. Mirrors
-// server/discord_oauth.ts and the wallet_link.ts / wallet.ts pure/IO split.
+// the removed OAuth integrations' pure/IO split.
 //
 // GitHub's OAuth App web flow is the standard authorization-code + client_secret
 // exchange with a CSRF `state` (it does not support PKCE for OAuth Apps), so there
-// is no code verifier here, unlike the Discord flow.
+// is no code verifier here.
 
 export const GITHUB_AUTHORIZE_URL = 'https://github.com/login/oauth/authorize';
 export const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';

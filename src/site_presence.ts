@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'woc_site_visitor_id';
+const STORAGE_KEY = 'owk_site_visitor_id';
 const HEARTBEAT_MS = 45_000;
 
 function randomVisitorId(): string {

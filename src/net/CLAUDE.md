@@ -4,14 +4,12 @@
 
 # src/net/ : online client (`ClientWorld` + REST `Api`)
 
-`online.ts` is the core: a REST `Api` (auth, characters, realms, leaderboard, wallet
-linking) and `ClientWorld implements IWorld`, which mirrors authoritative server
+`online.ts` is the core: a REST `Api` (auth, characters, realms, leaderboard) and
+`ClientWorld implements IWorld`, which mirrors authoritative server
 snapshots and sends commands over one WebSocket. **PRESENTATION ONLY**, it never
 computes outcomes (combat, loot, quest credit, talents), only reflects server state.
 The client even runs `abilitiesKnownAt` / `computeQuestState` locally, but purely to
 *display* what the server already decided; the server re-validates everything.
-`wallet.ts` is a small sibling: Wallet-Standard Solana connect in the browser, with
-no `sim/` dependency (the account-to-wallet link is verified server-side).
 
 ## Wire protocol: MUST stay in lockstep with `server/game.ts`
 See `server/CLAUDE.md` for server conventions; read `server/game.ts` directly for the exact wire encoding.

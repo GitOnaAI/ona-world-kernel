@@ -18,7 +18,7 @@ const OUTPUT =
   path.join('tmp', `perf-tour-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
 // PERF_PRESET seeds the STATIC graphics preset before boot so the applier stamps
 // data-fx-level and the per-element tier knobs engage (the per-tier perf gate). Unset
-// = the app's own default (ultra). Maps the preset label to the woc_settings numeric value
+// = the app's own default (ultra). Maps the preset label to the owk_settings numeric value
 // (src/render/gfx.ts PRESET_LOW..PRESET_ULTRA).
 const PERF_PRESET = process.env.PERF_PRESET ?? null;
 const PRESET_VALUES = { low: 1, medium: 2, high: 3, ultra: 4 };
@@ -511,11 +511,11 @@ async function runViewport(browser, viewport) {
     if (!presetValue) {
       throw new Error(`Unknown PERF_PRESET=${PERF_PRESET}; use low, medium, high, or ultra.`);
     }
-    // Seed the STATIC graphics preset into woc_settings before any app script runs, so the
+    // Seed the STATIC graphics preset into owk_settings before any app script runs, so the
     // applier resolves it on boot and the HUD tier knobs read the right data-fx-level.
     await page.evaluateOnNewDocument((value) => {
       try {
-        const key = 'woc_settings';
+        const key = 'owk_settings';
         const cur = JSON.parse(localStorage.getItem(key) ?? '{}');
         cur.graphicsPreset = value;
         localStorage.setItem(key, JSON.stringify(cur));

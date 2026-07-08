@@ -11,7 +11,7 @@ import {
   type GamepadActionId,
 } from './gamepad_map';
 
-const STORE_KEY = 'woc_gamepad';
+const STORE_KEY = 'owk_gamepad';
 const BINDABLE = new Set(BINDABLE_BUTTONS);
 
 export class GamepadBindings {

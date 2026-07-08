@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Repo DB-test pattern (mirrors tests/discord_server.test.ts): stub DATABASE_URL
+// Repo DB-test pattern: stub DATABASE_URL
 // + mock pg so db.ts loads and pool.query is a spy we control. This drives the
 // REAL GitHub link handlers (start/callback/status/unlink) through their
 // branches with no live DB.
@@ -174,7 +174,7 @@ describe('POST /api/auth/github/start', () => {
     );
     expect(insert).toBeTruthy();
     // The state row is bound to the already-authenticated account (link-only:
-    // unlike Discord there is no anonymous login mode) with the documented TTL.
+    // there is no anonymous login mode) with the documented TTL.
     const params = insert?.[1] as unknown[];
     expect(typeof params[0]).toBe('string');
     expect((params[0] as string).length).toBeGreaterThan(0);
@@ -227,7 +227,7 @@ describe('GET /api/github (status)', () => {
 });
 
 describe('DELETE /api/github (unlink)', () => {
-  it('removes the link for the account, no password-keep dance (unlike Discord)', async () => {
+  it('removes the link for the account, no password-keep dance (link-only flow)', async () => {
     const res = makeRes();
     await handleGitHubUnlink(makeReq(), res, 1);
     expect(parse(res)).toEqual({ status: 200, data: { unlinked: true } });
@@ -245,7 +245,7 @@ describe('GET /api/auth/github/callback', () => {
       res,
     );
     expect(res.headers['Content-Type']).toContain('text/html');
-    expect(res.body).toContain('woc-github');
+    expect(res.body).toContain('owk-github');
     expect(res.body).toContain('cancelled');
     // A deliberate cancel is not a failure: it must not pollute the failure metric.
     expect(metricCount('github.link.failure')).toBe(0);

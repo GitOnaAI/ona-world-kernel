@@ -36,7 +36,7 @@ export async function handleInternalApi(
     if (req.method !== 'POST') return fail(res, 404, 'unknown endpoint');
     const expected = process.env.RESTART_COUNTDOWN_SECRET ?? '';
     if (!expected) return fail(res, 404, 'unknown endpoint');
-    const actual = String(req.headers['x-woc-deploy-secret'] ?? '');
+    const actual = String(req.headers['x-owk-deploy-secret'] ?? '');
     if (!secretsMatch(actual, expected)) return fail(res, 401, 'not authenticated');
     const status = game.startRestartCountdown();
     if (!status.started) return fail(res, 409, 'restart countdown already active', status);

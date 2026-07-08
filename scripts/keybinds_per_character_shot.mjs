@@ -27,7 +27,7 @@ const tap = (sel) => page.evaluate((s) => document.querySelector(s)?.click(), se
 
 // Seed max-graphics settings so every shot renders the world at full quality.
 await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-await page.evaluate(() => localStorage.setItem('woc_settings', JSON.stringify({
+await page.evaluate(() => localStorage.setItem('owk_settings', JSON.stringify({
   graphicsPreset: 5, effectsQuality: 1, shadowQuality: 1,
 })));
 
@@ -61,7 +61,7 @@ const rebind = (action, code) => page.evaluate((a, c) => {
 const jumpCap = () => page.evaluate(() => window.__game.hud.keybinds.labelAt('jump', 0));
 const dumpKeys = () => page.evaluate(() => Object.fromEntries(
   Object.keys(localStorage)
-    .filter((k) => k.startsWith('woc_keybinds'))
+    .filter((k) => k.startsWith('owk_keybinds'))
     .map((k) => [k, JSON.parse(localStorage.getItem(k)).jump])));
 
 // --- Character A: Aldric the warrior rebinds Jump to Z ---

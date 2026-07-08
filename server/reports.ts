@@ -8,7 +8,7 @@
 //   POST /api/perf-report     client perf beacon (public telemetry)
 //   POST /api/site-presence   site-presence heartbeat (public telemetry)
 // The legacy handleApi arms stay in main.ts as the flag-off rollback path until the
-// ladder-deletion PR (next release). This follows the server/wallet.ts +
+// ladder-deletion PR (next release). This follows the shared route-layer +
 // server/account.ts template:
 //
 //  - PARITY-FIRST bodies. The migrated handlers write the SAME legacy { error }

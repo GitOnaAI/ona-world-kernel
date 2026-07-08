@@ -6,7 +6,7 @@ of everyone who helps keep players and self-hosters safe.
 ## Reporting a vulnerability
 
 **Please do not report security vulnerabilities through public GitHub issues,
-pull requests, or Discord.** Public disclosure before a fix is available puts
+pull requests, or community channels.** Public disclosure before a fix is available puts
 players and people running their own servers at risk.
 
 Instead, report privately using one of these channels:
@@ -15,10 +15,9 @@ Instead, report privately using one of these channels:
   [Security tab](https://github.com/GitOnaAI/ona-world-kernel/security/advisories/new)
   and open a draft advisory. This keeps the report private between you and the
   maintainers until a fix is ready.
-- **Discord.** If you can't use GitHub advisories, send a private message to a
-  member of the **Levy St**, **Admin**, or **Devs** group on the
-  [community Discord](https://discord.gg/GjhnUsBtw) and ask for a secure way to
-  share the details.
+- **Direct contact.** If you can't use GitHub advisories, reach the
+  maintainers through the repository's listed contact and ask for a secure
+  way to share the details.
 
 Please include as much as you can:
 

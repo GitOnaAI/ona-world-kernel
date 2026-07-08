@@ -52,7 +52,7 @@ vi.mock('../../server/admin_db', async (importActual) => {
 });
 
 // ---------------------------------------------------------------------------
-// Local helpers, copied verbatim from tests/server/wallet.test.ts.
+// Local helpers, shared shape with the sibling server suites.
 // ---------------------------------------------------------------------------
 
 /** Read status/body/raw-body/content-type off the fakeCtx's FakeRes. */

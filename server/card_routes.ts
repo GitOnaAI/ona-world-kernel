@@ -1,7 +1,7 @@
 // Shareable player-card publishing + referral reads.
 //
 // This surface (the binary POST /api/card and GET /api/referrals) used to live
-// in server/wallet.ts alongside the Solana wallet-link family; the wallet layer
+// in a removed integration module; that layer
 // was removed (Ona kernel trim), and the card / referral routes moved here
 // unchanged. It follows the server/account.ts template:
 //  - the bearer + moderation gate is a per-route guard middleware (activeGuard)

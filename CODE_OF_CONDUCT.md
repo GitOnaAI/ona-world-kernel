@@ -49,17 +49,14 @@ when appropriate.
 ## Scope
 
 This Code of Conduct applies within all community spaces, including the
-repository, issues, pull requests, the Discord server, and any other official
+repository, issues, pull requests, and any other official
 channel. It also applies when an individual is officially representing the
 community in public spaces.
 
 ## Reporting and enforcement
 
 If you experience or witness unacceptable behavior, please report it privately to
-the maintainers. The simplest way is to send a direct message to a member of the
-**Levy St**, **Admin**, or **Devs** group on the
-[community Discord](https://discord.gg/GjhnUsBtw) and ask for a private channel to
-share the details.
+the maintainers through the repository's listed contact.
 
 All reports will be reviewed and investigated promptly and fairly. Maintainers are
 obligated to respect the privacy and security of anyone who reports an incident.

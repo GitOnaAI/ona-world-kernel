@@ -5,7 +5,7 @@ import puppeteer from 'puppeteer-core';
 import { BROWSER_PATH } from './browser_path.mjs';
 import { enterOfflineGame } from './enter_offline_game.mjs';
 
-const URL = process.env.WOC_URL || 'http://localhost:5173/';
+const URL = process.env.OWK_URL || 'http://localhost:5173/';
 const OUT = process.env.OUT || 'mobile-jump.png';
 
 const browser = await puppeteer.launch({

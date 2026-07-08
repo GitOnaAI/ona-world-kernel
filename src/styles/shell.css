@@ -358,9 +358,10 @@
     display: block;
   }
 
-  /* Wallet verification CTA. It is a gold action until the account has a
-     server-verified wallet, then settles into a green verified state. */
-  .wallet-cta {
+  /* Account-link CTA (e.g. the GitHub developer-badge link). It is a gold
+     action until the account has a server-verified link, then settles into a
+     green verified state. */
+  .link-cta {
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -382,21 +383,21 @@
       box-shadow var(--transition-speed) var(--transition-ease),
       color var(--transition-speed) var(--transition-ease);
   }
-  .wallet-cta:hover,
-  .wallet-cta:focus-visible {
+  .link-cta:hover,
+  .link-cta:focus-visible {
     border-color: var(--gold);
     box-shadow: 0 0 12px var(--color-primary-glow);
     outline: none;
   }
-  .wallet-cta svg {
+  .link-cta svg {
     width: 16px;
     height: 16px;
     display: block;
   }
 
-  /* Wallet row inside the (logged-in) character-select panel: the account
+  /* Account-link row inside the (logged-in) character-select panel: the account
      context where linking actually belongs. */
-  .cs-wallet {
+  .cs-linkrow {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -405,31 +406,31 @@
     padding-top: 12px;
     border-top: 1px solid rgba(199, 148, 26, 0.18);
   }
-  .cs-wallet[hidden] {
+  .cs-linkrow[hidden] {
     display: none;
   }
-  .cs-wallet-label {
+  .cs-linkrow-label {
     font-family: var(--font-heading);
     color: var(--gold-dim);
     font-size: 13px;
     letter-spacing: 0.4px;
     white-space: nowrap;
   }
-  .cs-wallet-main {
+  .cs-linkrow-main {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 6px;
     min-width: 0;
   }
-  .cs-wallet-actions {
+  .cs-linkrow-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
   }
-  .wallet-status {
+  .link-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -446,7 +447,7 @@
     letter-spacing: 0;
     white-space: nowrap;
   }
-  .wallet-status::before {
+  .link-status::before {
     content: "";
     width: 7px;
     height: 7px;
@@ -455,18 +456,18 @@
     box-shadow: 0 0 8px rgba(92, 214, 126, 0.5);
     flex: 0 0 auto;
   }
-  .wallet-status[hidden] {
+  .link-status[hidden] {
     display: none;
   }
-  .cs-wallet-help {
+  .cs-linkrow-help {
     max-width: min(390px, 48vw);
     color: var(--color-text-muted);
     font-size: 11px;
     line-height: 1.35;
     text-align: left;
   }
-  /* Secondary wallet controls for account verification and wallet-app session state. */
-  .wallet-mini {
+  /* Secondary link controls for account verification state. */
+  .link-mini {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -486,34 +487,34 @@
       color var(--transition-speed) var(--transition-ease),
       border-color var(--transition-speed) var(--transition-ease);
   }
-  .wallet-mini svg {
+  .link-mini svg {
     width: 14px;
     height: 14px;
     display: block;
   }
-  .wallet-mini:hover,
-  .wallet-mini:focus-visible {
+  .link-mini:hover,
+  .link-mini:focus-visible {
     color: var(--color-text-light);
     border-color: var(--gold-dim);
     outline: none;
   }
-  .wallet-mini[hidden] {
+  .link-mini[hidden] {
     display: none;
   }
 
   @media (max-width: 720px) {
-    .cs-wallet {
+    .cs-linkrow {
       align-items: flex-start;
       flex-direction: column;
     }
-    .cs-wallet-main {
+    .cs-linkrow-main {
       align-items: flex-start;
       width: 100%;
     }
-    .cs-wallet-actions {
+    .cs-linkrow-actions {
       justify-content: flex-start;
     }
-    .cs-wallet-help {
+    .cs-linkrow-help {
       max-width: 100%;
       text-align: left;
     }
@@ -2294,7 +2295,7 @@
        than the full-screen panel: flatten. The create panel stays a block
        (everything in it docks against the panel). The roster panel is a
        column flexbox instead: the account bar sits IN FLOW at the top and
-       the stage (.cs-body) takes the rest, so when the wallet / developer
+       the stage (.cs-body) takes the rest, so when the developer
        cards wrap the bar onto extra lines the docked columns shift down
        with it. (The bar used to be absolute over hardcoded 150px column
        offsets, which let a wrapped bar cover the top of the roster.) */
@@ -2603,7 +2604,7 @@
       border-top: 58px solid transparent;
     }
 
-    /* The roster: the account chrome (realm / sort / wallet) is an in-flow
+    /* The roster: the account chrome (realm / sort / account links) is an in-flow
        top bar (first flex row of the panel column; it grows when its cards
        wrap and pushes the stage down), the character list docks right (WoW
        style) with its actions at its foot, and the selected character's
@@ -2636,14 +2637,14 @@
       justify-content: flex-end;
       margin: 0;
     }
-    /* $WOC Wallet and Developer become two matching stacked cards on the
+    /* The account-link cards (e.g. Developer) become matching stacked cards on the
        account bar: the service name reads as the card's own header, the
        action row sits under it, and the helper caption anchors the foot,
        instead of a label floating beside a button row with its caption
-       dangling underneath. Overrides the base .cs-wallet row layout (label
+       dangling underneath. Overrides the base .cs-linkrow row layout (label
        beside actions, separator border-top), which the card/mobile layouts
        keep. */
-    body:not(.mobile-touch) #charselect-panel.cs-wow :is(.cs-wallet-group, .cs-github-group) {
+    body:not(.mobile-touch) #charselect-panel.cs-wow :is(.cs-linkrow-group, .cs-github-group) {
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
@@ -2654,28 +2655,28 @@
       border-radius: var(--radius-sm);
       background: rgba(255, 255, 255, 0.03);
     }
-    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-wallet-label {
+    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-linkrow-label {
       font-size: 11px;
       letter-spacing: 0.8px;
       text-transform: uppercase;
     }
-    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-wallet-main {
+    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-linkrow-main {
       align-items: flex-start;
     }
-    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-wallet-actions {
+    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-linkrow-actions {
       justify-content: flex-start;
     }
-    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-wallet-help {
+    body:not(.mobile-touch) #charselect-panel.cs-wow .cs-linkrow-help {
       max-width: 300px;
       font-size: 10px;
     }
-    /* Below 1800px the two cards (verified wallet + linked developer) plus
+    /* Below 1800px the account-link cards (e.g. linked developer) plus
        the realm/sort controls no longer fit the account bar on one line
        with their helper captions, so the bar wraps tall and eats stage
        height: drop the captions (every action keeps its title/aria text)
        so the wrapped cards stay short. */
     @media (max-width: 1799px) {
-      body:not(.mobile-touch) #charselect-panel.cs-wow .cs-wallet-help {
+      body:not(.mobile-touch) #charselect-panel.cs-wow .cs-linkrow-help {
         display: none;
       }
     }
@@ -5200,7 +5201,7 @@
     font-size: 13px;
     color: var(--color-text-muted);
   }
-  /* $WOC holder-tier flair badge in the inspect/profile window */
+  /* legacy flair badge in the inspect/profile window */
   .inspect-holder {
     display: inline-flex;
     align-items: center;
@@ -5286,10 +5287,10 @@
 
   /* ---------- Online character-select: showcase claims the header band ----------
      Now that the panel is wide, raise the right-hand showcase so its top edge
-     lines up with the realm/wallet header row instead of starting below the
+     lines up with the realm header row instead of starting below the
      whole header. The panel becomes a 2-col grid: the title spans the top, the
-     realm + $WOC wallet line and roster stack in the left lane, and the
-     showcase spans from the wallet line down to the panel bottom, giving room
+     realm line and roster stack in the left lane, and the
+     showcase spans from the realm line down to the panel bottom, giving room
      for a noticeably larger character and more prominent stats/abilities. */
   @media (min-width: 900px) {
     /* Gated to :not(.mobile-touch): the mobile-touch query reaches up to 940px
@@ -5460,8 +5461,8 @@
       align-items: center;
       gap: 8px;
     }
-    body.mobile-touch #charselect-panel .cs-wallet,
-    body.mobile-touch #charselect-panel .cs-wallet-hidden-note {
+    body.mobile-touch #charselect-panel .cs-linkrow,
+    body.mobile-touch #charselect-panel .cs-linkrow-hidden-note {
       display: none;
     }
     body.mobile-touch #charselect-panel .cs-controls {

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // the restart-countdown endpoint and never issues a query, so set a dummy URL
 // before the module graph loads (the pg Pool stays lazy and never connects).
 vi.hoisted(() => {
-  process.env.DATABASE_URL ??= 'postgres://localhost:5432/woc_test';
+  process.env.DATABASE_URL ??= 'postgres://localhost:5432/owk_test';
 });
 
 import { handleInternalApi } from '../server/internal';
@@ -15,7 +15,7 @@ function fakeReq(opts: { method?: string; url?: string; secret?: string } = {}) 
   const req: any = new EventEmitter();
   req.method = opts.method ?? 'POST';
   req.url = opts.url ?? '/internal/restart-countdown';
-  req.headers = opts.secret ? { 'x-woc-deploy-secret': opts.secret } : {};
+  req.headers = opts.secret ? { 'x-owk-deploy-secret': opts.secret } : {};
   return req;
 }
 

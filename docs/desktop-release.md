@@ -21,12 +21,12 @@ The build stamps `wocDesktop` into the packaged `package.json` (electron-builder
 `scripts/electron-builder-config.mjs`): the `distribution` channel, the `apiOrigin`
 the Vite bundle was baked with, the main-process-only `loginOrigin`, and the optional
 `crashSubmitUrl`. The shell resolves the stamp at runtime in
-`electron/desktop_config.cjs`, and a PACKAGED build ignores the `WOC_*` and
+`electron/desktop_config.cjs`, and a PACKAGED build ignores the `OWK_*` and
 `VITE_DESKTOP_*` runtime env vars entirely (the stamp is final), so a local env var
 cannot steer an installed app to another API, login page, updater state, or crash
 endpoint. The updater runs only for a PACKAGED WEBSITE build; there is deliberately
 no way to force it on in a Steam build. To try either channel unpacked, set
-`WOC_DISTRIBUTION=website|steam` on `npm run electron:dev`.
+`OWK_DISTRIBUTION=website|steam` on `npm run electron:dev`.
 
 `npm run electron:pack` / `electron:pack:steam` are the fast local variants
 (`--dir`, host arch only, no installers). Release builds use the full arch matrix in
@@ -49,7 +49,7 @@ Linux artifacts on Linux). Cross-building is not part of this runbook.
 | Azure service principal with "Trusted Signing Certificate Profile Signer" role | CI auth for signing | CI secrets `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` |
 | Update host: a static HTTPS host / bucket serving `https://updates.worldofclaudecraft.com/desktop/` | website auto-update feed + installer downloads | e.g. Cloudflare R2 bucket behind that hostname (any static host works; the app only GETs) |
 | Steam partner account + app ID + three depot IDs | Steam distribution | partner.steamgames.com |
-| Optional: a crash-minidump endpoint (e.g. a Sentry project's minidump URL) | crash uploads | build env `WOC_CRASH_SUBMIT_URL` (https only) |
+| Optional: a crash-minidump endpoint (e.g. a Sentry project's minidump URL) | crash uploads | build env `OWK_CRASH_SUBMIT_URL` (https only) |
 
 Never commit any of these values; they are env vars in CI or the local shell.
 
@@ -232,7 +232,7 @@ Rules that keep this working:
   recovery events. Ask players to attach it to bug reports.
 - Native crash minidumps (Crashpad, all processes) accumulate under the directory
   logged at startup (`app.getPath('crashDumps')`). By default nothing is uploaded
-  anywhere. If `WOC_CRASH_SUBMIT_URL` (https) is set at BUILD time, dumps upload
+  anywhere. If `OWK_CRASH_SUBMIT_URL` (https) is set at BUILD time, dumps upload
   compressed + rate-limited to that endpoint; any multipart minidump receiver works,
   including a Sentry project's `/minidump/` ingest URL, with no SDK added.
 - Privacy: logs stay on the player's machine; the only optional transmission is the

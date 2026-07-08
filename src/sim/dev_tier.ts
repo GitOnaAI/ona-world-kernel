@@ -4,7 +4,7 @@
 // contributor has had MERGED into the open-source game repo (the count comes
 // from GitHub's pulls API, filtered to merged, resolved server-side from a
 // verified GitHub-OAuth link). It grants NO gameplay power (the sim never
-// reads it, like holder/Discord tiers); it is flair for the player card,
+// reads it); it is flair for the player card,
 // nameplate, and inspect screen.
 //
 // Merged PRs, not raw commits: a raw commit count (e.g. from GitHub's
@@ -17,8 +17,7 @@
 //
 // This pure, host-agnostic module exists so the server, the HUD presentation
 // code, and any tooling can agree on the cosmetic tier index without importing
-// across host boundaries. It mirrors src/sim/holder_tier.ts and
-// src/sim/discord_tier.ts in shape.
+// across host boundaries.
 
 export interface DevTierCore {
   /** 1-based rung (1 = Tinkerer, 5 = Worldwright). */
