@@ -68,6 +68,9 @@ Thumbs.db
 !.claude/commands/
 !.claude/hooks/
 !.claude/settings.json
+# shared estimation reference class for the game-effort-estimator agent (tracked);
+# .claude/memory/ (per-clone Ona project binding) stays ignored by the rule above
+!.claude/estimation-log.md
 .cursor/
 
 # local SDK/tooling dump (extracted command-line tools, not project source)
