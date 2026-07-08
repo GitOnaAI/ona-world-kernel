@@ -1237,6 +1237,21 @@ function drownedLitany(): Scenario {
         addThreat(boss, p.id, 5000);
         aggroOnto(boss, p);
         sim.startAutoAttack();
+        // The boss's damage is %maxHp (marks/bells/Final Bell), so beef() alone
+        // cannot guarantee survival across shared-rng-stream shifts: any upstream
+        // content change re-deals every volley roll and can stack lethal hits.
+        // Top the player off between short tick windows. Deterministic (draws no
+        // rng), keeps the pull live, and keeps this recipe actually reaching the
+        // rite regardless of the rolls.
+        const topOff = () => {
+          if (!p.dead) p.hp = p.maxHp;
+        };
+        const rideOut = (ticks: number) => {
+          for (let left = ticks; left > 0; left -= 5) {
+            rec.tick(Math.min(5, left));
+            topOff();
+          }
+        };
         // Past the 70% gate -> cantor phase 1 (shield adds), then ride out the
         // 14s mark timer + ~12s first volley window on the driver's rng draws.
         sim.dealDamage(
@@ -1250,7 +1265,7 @@ function drownedLitany(): Scenario {
           true,
         );
         for (let round = 0; round < 15; round++) {
-          rec.tick(20);
+          rideOut(20);
           if (!boss.dead) face(p, boss);
         }
         rec.notes.marksSeen = (run.nhaliaBoss?.marks?.length ?? 0) as number;
@@ -1264,7 +1279,7 @@ function drownedLitany(): Scenario {
           const m = sim.entities.get(id) as AnyEntity | undefined;
           if (m && !m.dead && m.templateId === 'drowned_cantor') lethal(sim, p, m);
         }
-        rec.tick(20);
+        rideOut(20);
         sim.dealDamage(
           p,
           boss,
@@ -1275,7 +1290,7 @@ function drownedLitany(): Scenario {
           'hit',
           true,
         );
-        rec.tick(40);
+        rideOut(40);
         sim.dealDamage(
           p,
           boss,
@@ -1286,7 +1301,7 @@ function drownedLitany(): Scenario {
           'hit',
           true,
         );
-        rec.tick(40);
+        rideOut(40);
         lethal(sim, p, boss);
       }
       rec.tick(6); // reliquary + shrines rise, rite awaits the intensity choice
