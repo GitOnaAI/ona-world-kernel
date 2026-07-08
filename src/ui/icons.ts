@@ -2557,6 +2557,7 @@ const ITEM_RECIPES: Record<string, IconRecipe> = {
   supply_crate: r('wood', 'earthBrown', ['crate']),
   greyjaw_fang: r('earth', 'bone', [{ p: 'fang', pal: 'bone' }]),
   wolf_fang: r('junk', 'bone', [{ p: 'fang', pal: 'bone' }], ['crack']),
+  duskfang_pelt: r('leather', 'shadowPurple', ['pelt']),
   bandit_bandana: r('junk', 'blood', [{ p: 'pelt', pal: 'blood' }]),
   tough_jerky: r('food', 'earthBrown', [{ p: 'meat', pal: 'earthBrown' }]),
   mudfin_scale: r('junk', 'venom', [{ p: 'droplet', pal: 'venom' }]),

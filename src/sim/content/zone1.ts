@@ -113,6 +113,30 @@ export const ZONE1_MOBS: Record<string, MobTemplate> = {
     packFrenzy: { radius: 12, hasteMult: 1.3, duration: 8 },
     componentTags: ['hide', 'fang'],
   },
+  duskfang_prowler: {
+    id: 'duskfang_prowler',
+    name: 'Duskfang Prowler',
+    minLevel: 4,
+    maxLevel: 5,
+    family: 'beast',
+    hpBase: 44,
+    hpPerLevel: 17,
+    dmgBase: 5,
+    dmgPerLevel: 1.9,
+    attackSpeed: 2.0,
+    armorPerLevel: 12,
+    moveSpeed: 8,
+    aggroRadius: 11,
+    loot: [
+      { copper: 25, chance: 1 },
+      { itemId: 'duskfang_pelt', chance: 0.7 },
+    ],
+    scale: 0.95,
+    // Dusk-dark coat: the twilight recolor of the forest wolf family.
+    color: 0x2f3542,
+    packFrenzy: { radius: 12, hasteMult: 1.3, duration: 8 },
+    componentTags: ['hide', 'fang'],
+  },
   old_greyjaw: {
     id: 'old_greyjaw',
     name: 'Old Greyjaw',
@@ -1037,6 +1061,7 @@ export const ZONE1_CAMPS: CampDef[] = [
   { mobId: 'forest_wolf', center: { x: -15, z: 55 }, radius: 22, count: 7 },
   { mobId: 'forest_wolf', center: { x: 20, z: 70 }, radius: 20, count: 6 },
   { mobId: 'old_greyjaw', center: { x: 0, z: 95 }, radius: 8, count: 1 },
+  { mobId: 'duskfang_prowler', center: { x: 10, z: 85 }, radius: 14, count: 3 },
   // Boars: east meadow
   { mobId: 'wild_boar', center: { x: 55, z: 12 }, radius: 22, count: 6 },
   { mobId: 'wild_boar', center: { x: 80, z: -15 }, radius: 18, count: 5 },

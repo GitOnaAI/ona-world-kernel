@@ -1206,6 +1206,15 @@ export const BASE_ITEMS: Record<string, ItemDef> = {
     quality: 'poor',
     sellValue: 4,
   },
+  // Duskfang Prowler's vendor trophy: a white trade pelt, no quest tie, so the
+  // dusk wolf hunt always pays out at the town vendor.
+  duskfang_pelt: {
+    id: 'duskfang_pelt',
+    name: 'Duskfang Pelt',
+    kind: 'junk',
+    quality: 'common',
+    sellValue: 35,
+  },
   bandit_bandana: {
     id: 'bandit_bandana',
     name: 'Red Bandana',
