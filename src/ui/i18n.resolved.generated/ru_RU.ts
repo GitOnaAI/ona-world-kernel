@@ -1282,17 +1282,6 @@ export const ru_RU: EnTranslations = {
     },
     "origin": {
       "cross_site": "Запрос заблокирован по соображениям безопасности."
-    },
-    "discord": {
-      "not_configured": "Интеграция с Discord сейчас недоступна.",
-      "expired": "Этот вход через Discord истёк. Войдите через Discord ещё раз.",
-      "already_linked": "Этот аккаунт Discord уже привязан к другому аккаунту.",
-      "password_required": "Перед отвязкой аккаунта Discord задайте пароль.",
-      "unknown_swag": "Эта награда недоступна.",
-      "link_required": "Сначала привяжите аккаунт Discord.",
-      "swag_claimed": "Вы уже получили эту награду.",
-      "swag_tier": "Достигните более высокого ранга, чтобы получить это.",
-      "swag_points": "Недостаточно очков."
     }
   },
   "guide": {

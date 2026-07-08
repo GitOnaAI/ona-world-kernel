@@ -59,7 +59,6 @@ import {
   ZONES,
   zoneAt,
 } from '../sim/data';
-import { specialRoleColor } from '../sim/discord_roles';
 import { armorTypeForItem, canEquipItem, weaponArchetypeForItem } from '../sim/equipment_rules';
 import { isItemLevelEligible, itemLevel, itemScore } from '../sim/item_level';
 import { requiredLevelFor } from '../sim/item_level_req';
@@ -124,7 +123,6 @@ import {
 import { type AuraEffectInput, auraEffectDescriptor } from './aura_effect';
 import { AurasPainter, type AurasPainterDeps } from './auras_painter';
 import { type AurasDeps, createAurasView } from './auras_view';
-import { attachAvatarFallback } from './avatar_fallback';
 import { BagsWindow } from './bags_window';
 import { CalendarWindow } from './calendar_window';
 import { CastBarPainter } from './cast_bar_painter';
@@ -170,7 +168,6 @@ import { renderCraftingWindow } from './crafting_window';
 import { DelveMapPainter } from './delve_map_painter';
 import { devTierBadgeDataUrl, devTierByIndex, devTierDisplayName } from './dev_tier';
 import { markDialogRoot } from './dialog_root';
-import { discordStatusBadgeDataUrl, discordStatusDisplayName } from './discord_tier';
 import { dropdownKeyNav } from './dropdown_nav';
 import { emoteIconUrl } from './emote_icons';
 import {
@@ -848,8 +845,8 @@ export class Hud {
   private targetNameEl = $('#tf-name');
   private targetLevelEl = $('#tf-level');
   private targetDiscordEl = $('#tf-discord');
-  // Diff key for the target-frame Discord line, so its per-frame update only rebuilds
-  // innerHTML (and re-attaches the avatar fallback) when the Discord content changes.
+  // Diff key for the target-frame badge line, so its per-frame update only rebuilds
+  // innerHTML when the badge content changes.
   private targetDiscordSig = '';
   private targetHpEl = $('#tf-hp');
   private targetHpTextEl = $('#tf-hp-text');
@@ -5264,15 +5261,12 @@ export class Hud {
       // original writers cannot express, hence the toggleClass / setStyleProp).
       this.toggleClass(this.targetFrameEl, 'elite', !!MOBS[target.templateId]?.elite);
       this.setText(this.targetEliteTagEl, isBoss ? t('hud.core.boss') : t('hud.core.elite'));
-      // Linked-Discord players get their staff-role name color (else friendly/hostile),
-      // plus a Discord info line (nickname + rank + role chips) under the healthbar.
-      const tfRoleColor = target.kind === 'player' ? specialRoleColor(target.discordRole) : null;
       this.setStyleProp(
         this.targetNameEl,
         'color',
-        tfRoleColor ?? (target.hostile ? 'var(--color-hostile)' : 'var(--color-friendly)'),
+        target.hostile ? 'var(--color-hostile)' : 'var(--color-friendly)',
       );
-      this.updateTargetDiscordLine(target);
+      this.updateTargetBadgeLine(target);
       // Redundant non-color cue for forced-colors (high-contrast) mode, where the OS
       // strips the inline color so a hostile and a friendly name would read identically.
       // The base.css forced-colors block underlines #tf-name.hostile; routed through the
@@ -11178,18 +11172,13 @@ export class Hud {
     });
   }
 
-  // Fill the target frame's social/badge line: a linked player's nickname (with
-  // PFP), their staff-role tag, Discord rank, and developer badge. Hidden for mobs
-  // and players with no linked flair at all.
-  private updateTargetDiscordLine(target: Entity): void {
+  // Fill the target frame's badge line: a linked player's developer badge.
+  // Hidden for mobs and players with no badge at all.
+  private updateTargetBadgeLine(target: Entity): void {
     const el = this.targetDiscordEl;
-    const tier = target.discordTier ?? 0;
     const showDevBadges = this.optionsHooks?.settings.get('showDevBadges') ?? true;
     const devIdx = showDevBadges ? (target.devTier ?? 0) : 0;
-    if (
-      target.kind !== 'player' ||
-      (!tier && !target.discordName && !target.discordRole && !devIdx)
-    ) {
+    if (target.kind !== 'player' || !devIdx) {
       if (this.targetDiscordSig !== '') {
         this.targetDiscordSig = '';
         el.classList.remove('show');
@@ -11197,53 +11186,17 @@ export class Hud {
       }
       return;
     }
-    // This runs every frame the target frame updates; only rebuild when the Discord
-    // content actually changes (else a fresh <img> per frame would re-fetch the
-    // avatar and, on a failing CDN load, flicker between the broken glyph and hidden).
-    const sig = `${tier}|${target.discordName ?? ''}|${target.discordRole ?? ''}|${target.discordAvatar ?? ''}|${devIdx}`;
+    // This runs every frame the target frame updates; only rebuild when the badge
+    // content actually changes.
+    const sig = `${devIdx}`;
     if (sig === this.targetDiscordSig) return;
     this.targetDiscordSig = sig;
-    const roleTagLabel = (key: string | undefined): string => {
-      switch (key) {
-        case 'levyst':
-          return t('hudChrome.discord.roleTag.levyst');
-        case 'admin':
-          return t('hudChrome.discord.roleTag.admin');
-        case 'devs':
-          return t('hudChrome.discord.roleTag.devs');
-        case 'mods':
-          return t('hudChrome.discord.roleTag.mods');
-        case 'artists':
-          return t('hudChrome.discord.roleTag.artists');
-        default:
-          return '';
-      }
-    };
     const parts: string[] = [];
-    const nameInner = target.discordAvatar
-      ? `<img src="${esc(target.discordAvatar)}" referrerpolicy="no-referrer" alt="" draggable="false">${esc(target.discordName ?? '')}`
-      : esc(target.discordName ?? '');
-    if (target.discordName || target.discordAvatar) {
-      parts.push(`<span class="uf-dc-name">${nameInner}</span>`);
-    }
-    const roleLabel = roleTagLabel(target.discordRole);
-    if (roleLabel) {
-      parts.push(
-        `<span class="uf-dc-chip role" style="--role:${specialRoleColor(target.discordRole) ?? '#888'}">${esc(roleLabel)}</span>`,
-      );
-    }
-    if (tier > 0) {
-      parts.push(`<span class="uf-dc-chip rank">${esc(discordStatusDisplayName(tier))}</span>`);
-    }
     const devDef = devTierByIndex(devIdx);
     if (devDef) {
       parts.push(`<span class="uf-dc-chip dev">${esc(devTierDisplayName(devDef))}</span>`);
     }
     el.innerHTML = parts.join('');
-    // Hide the external Discord avatar if its CDN image fails to load, so the line
-    // never shows the browser's broken-image placeholder (the nickname stays).
-    const dcAvatar = el.querySelector<HTMLImageElement>('.uf-dc-name img');
-    if (dcAvatar) attachAvatarFallback(dcAvatar);
     el.classList.add('show');
   }
 
@@ -11256,50 +11209,6 @@ export class Hud {
     const className = classDisplayName(cls);
     const el = $('#inspect-window');
     this.closeOtherWindows('#inspect-window');
-    // Linked-Discord flair: avatar/badge, nickname, rank, "member since", role.
-    const discordTierIdx = e.discordTier ?? 0;
-    const discordImg = e.discordAvatar
-      ? `<img class="inspect-holder-badge inspect-discord-pfp" src="${esc(e.discordAvatar)}" referrerpolicy="no-referrer" alt="" draggable="false">`
-      : `<img class="inspect-holder-badge" src="${discordStatusBadgeDataUrl(discordTierIdx)}" alt="" draggable="false">`;
-    const memberDays =
-      typeof e.discordJoined === 'number'
-        ? Math.max(0, Math.floor((Date.now() - e.discordJoined) / 86_400_000))
-        : null;
-    const memberSinceHtml =
-      memberDays !== null
-        ? `<div class="inspect-holder-sub">${esc(t('hudChrome.discord.memberSince'))}: ${esc(t('hudChrome.discord.memberSinceDays', { days: formatNumber(memberDays, { maximumFractionDigits: 0 }) }))}</div>`
-        : '';
-    const discordRoleLabel = (key: string | undefined): string => {
-      switch (key) {
-        case 'levyst':
-          return t('hudChrome.discord.roleTag.levyst');
-        case 'admin':
-          return t('hudChrome.discord.roleTag.admin');
-        case 'devs':
-          return t('hudChrome.discord.roleTag.devs');
-        case 'mods':
-          return t('hudChrome.discord.roleTag.mods');
-        case 'artists':
-          return t('hudChrome.discord.roleTag.artists');
-        default:
-          return '';
-      }
-    };
-    const roleLabel = discordRoleLabel(e.discordRole);
-    const roleHtml = roleLabel
-      ? `<div class="inspect-holder-sub inspect-discord-role">${esc(roleLabel)}</div>`
-      : '';
-    const discordHtml =
-      discordTierIdx > 0
-        ? `<div class="inspect-holder">` +
-          discordImg +
-          `<div class="inspect-holder-text">` +
-          `<div class="inspect-holder-name">${esc(e.discordName ? e.discordName : discordStatusDisplayName(discordTierIdx))}</div>` +
-          `<div class="inspect-holder-sub">${esc(t('hudChrome.discord.title'))} · ${esc(discordStatusDisplayName(discordTierIdx))}</div>` +
-          memberSinceHtml +
-          roleHtml +
-          `</div></div>`
-        : '';
     // Developer badge: the cosmetic contributor tier, broadcast per-entity via the
     // `dvt`/`dvc`/`dgl` identity fields. Shown only for an actual contributor
     // (tier > 0), with the merged-PR count and the @login under the rung name,
@@ -11330,7 +11239,6 @@ export class Hud {
       portraitChipHtml({ cls, skin: e.skin ?? 0, name: e.name, variant: 'lg' }) +
       `<div class="inspect-name">${esc(e.name)}</div>` +
       `<div class="inspect-meta">${esc(t('itemUi.equipment.levelClass', { level: formatNumber(e.level, { maximumFractionDigits: 0 }), className }))}</div>` +
-      discordHtml +
       devHtml +
       `</div>` +
       // Worn gear, mirrored from the entity's render-only `equippedItems` (the
@@ -11343,16 +11251,6 @@ export class Hud {
       `<div class="equip-col equip-col-right" id="inspect-equip-right"></div>` +
       `</div></div>`;
     hydratePortraits(el);
-    // If the linked-Discord avatar fails to load from the CDN, degrade to exactly the
-    // no-avatar rendering (the plain status-tier badge, without the pfp's blue ring)
-    // instead of the browser's broken-image placeholder.
-    const inspectPfp = el.querySelector<HTMLImageElement>('.inspect-discord-pfp');
-    if (inspectPfp) {
-      attachAvatarFallback(inspectPfp, (img) => {
-        img.classList.remove('inspect-discord-pfp');
-        img.src = discordStatusBadgeDataUrl(discordTierIdx);
-      });
-    }
     const view = buildPaperdollView(e.equippedItems, ITEMS);
     const leftCol = el.querySelector('#inspect-equip-left');
     const rightCol = el.querySelector('#inspect-equip-right');

@@ -20,10 +20,6 @@ import type { Middleware } from '../types';
 export const DEPLOY_SECRET_HEADER = 'x-woc-deploy-secret';
 export const DEPLOY_SECRET_ENV = 'RESTART_COUNTDOWN_SECRET';
 
-/** Header + env pair for the Discord bot gate (every /internal/discord/* route). */
-export const DISCORD_SECRET_HEADER = 'x-woc-discord-secret';
-export const DISCORD_SECRET_ENV = 'DISCORD_BOT_SECRET';
-
 /** The legacy fail() bodies from server/internal.ts, frozen for byte parity. */
 const FEATURE_OFF_BODY = { success: false, data: null, error: 'unknown endpoint' } as const;
 const NOT_AUTHENTICATED_BODY = { success: false, data: null, error: 'not authenticated' } as const;

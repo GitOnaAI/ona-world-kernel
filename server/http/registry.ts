@@ -27,7 +27,6 @@ import { routes as authRoutes } from '../auth_routes';
 import { routes as cardRoutes } from '../card_routes';
 import { routes as characterRoutes } from '../characters';
 import { routes as desktopLoginRoutes } from '../desktop_login_routes';
-import { routes as discordRoutes } from '../discord';
 import { routes as githubRoutes } from '../github';
 import { routes as internalRoutes } from '../internal';
 import { routes as leaderboardRoutes } from '../leaderboard';
@@ -77,9 +76,6 @@ export interface ApiRegistry {
  *  - the reports + telemetry surface (server/reports.ts: POST /api/reports,
  *    POST /api/bug-reports, and the public beacons POST /api/perf-report and
  *    POST /api/site-presence);
- *  - the Discord family (server/discord.ts: the OAuth start/callback pair, the
- *    two first-login chooser routes login/new + login/link, the GET/DELETE
- *    /api/discord link status + unlink pair, and POST /api/discord/swag/claim);
  *  - the GitHub link family (server/github.ts: the OAuth start/callback pair
  *    and the GET/DELETE /api/github status + unlink pair);
  *  - the desktop-login handoff pair (server/desktop_login_routes.ts: create +
@@ -98,8 +94,7 @@ export interface ApiRegistry {
  *    revoke / device endpoints; the GET consent and device HTML pages stay on
  *    the top-level ladder, off this table);
  *  - the secret-gated /internal ops surface (server/internal.ts:
- *    restart-countdown plus the Discord-bot routes behind
- *    requireInternalSecret);
+ *    restart-countdown behind requireInternalSecret);
  * the oauth and internal surfaces are each served through their own flag-gated
  * dispatcher in main.ts.
  */
@@ -110,7 +105,6 @@ export const apiRoutes: readonly RouteDef[] = [
   ...accountRoutes,
   ...cardRoutes,
   ...reportsRoutes,
-  ...discordRoutes,
   ...githubRoutes,
   ...desktopLoginRoutes,
   ...mapsRoutes,

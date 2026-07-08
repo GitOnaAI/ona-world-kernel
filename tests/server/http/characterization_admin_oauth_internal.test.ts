@@ -75,13 +75,12 @@ async function characterize(
   expect(ctMismatch, ctMismatch ?? name).toBeNull();
 }
 
-// The two shared-secret gate env vars (named so the secret-gate contract is not
-// a wall of inline literals). The matching request headers (x-woc-deploy-secret,
-// x-woc-discord-secret) are deliberately OMITTED from every request below: the
-// not-authenticated contract is exactly the absent-header path.
+// The shared-secret gate env var (named so the secret-gate contract is not
+// an inline literal). The matching request header (x-woc-deploy-secret) is
+// deliberately OMITTED from every request below: the not-authenticated
+// contract is exactly the absent-header path.
 const SECRET_ENV = {
   restartCountdown: 'RESTART_COUNTDOWN_SECRET',
-  discordBot: 'DISCORD_BOT_SECRET',
 } as const;
 // A non-empty value to turn a secret-gated feature ON without presenting the
 // matching request secret, so the gate answers 401 (not 404 feature-off). The
@@ -303,53 +302,8 @@ describe('characterization: internal handleInternalApi', () => {
     });
   });
 
-  // The /internal/discord/* routes and the method each is documented under.
-  // The DISCORD_BOT_SECRET gate in handleDiscordInternal runs BEFORE any route or
-  // method branch, so the 401 (and the 404 feature-off) contract is identical for
-  // all of them; we capture each route so the security gate is documented per route.
-  const DISCORD_ROUTES = [
-    { method: 'GET', path: '/internal/discord/flex', name: 'discord_flex' },
-    { method: 'GET', path: '/internal/discord/roles', name: 'discord_roles' },
-    { method: 'POST', path: '/internal/discord/presence', name: 'discord_presence' },
-    { method: 'POST', path: '/internal/discord/grant', name: 'discord_grant' },
-    { method: 'POST', path: '/internal/discord/member', name: 'discord_member' },
-    { method: 'GET', path: '/internal/discord/relay', name: 'discord_relay' },
-    { method: 'GET', path: '/internal/discord/activity', name: 'discord_activity' },
-    { method: 'POST', path: '/internal/discord/members-meta', name: 'discord_members_meta' },
-  ] as const;
-
-  // Feature-off gate, captured PER ROUTE: with DISCORD_BOT_SECRET unset, the whole
-  // /internal/discord/* surface answers 404 unknown endpoint at the shared gate.
-  // Looping all of them (mirroring the 401 loop below) freezes each route's
-  // feature-off baseline, so a later change that moves any one off the shared gate is caught.
-  for (const route of DISCORD_ROUTES) {
-    it(`${route.method} ${route.path} (bot secret unset) -> 404 unknown endpoint`, async () => {
-      await withEnv(SECRET_ENV.discordBot, undefined, async () => {
-        await characterize(
-          FIXTURE_SUBDIR.internal,
-          `${route.name}_secret_unset_404`,
-          makeReq({ method: route.method, url: route.path }),
-        );
-      });
-    });
-  }
-
-  // 401 not-authenticated gate for each of the ten routes: DISCORD_BOT_SECRET
-  // set, the x-woc-discord-secret request header absent. The gate precedes the db.
-  for (const route of DISCORD_ROUTES) {
-    it(`${route.method} ${route.path} (bot secret set, no header) -> 401 not authenticated`, async () => {
-      await withEnv(SECRET_ENV.discordBot, GATE_ENABLED_VALUE, async () => {
-        await characterize(
-          FIXTURE_SUBDIR.internal,
-          `${route.name}_no_secret_401`,
-          makeReq({ method: route.method, url: route.path }),
-        );
-      });
-    });
-  }
-
-  // An unknown /internal path (neither restart-countdown nor /internal/discord/)
-  // falls through to the 404 unknown endpoint tail, independent of either secret.
+  // An unknown /internal path falls through to the 404 unknown endpoint tail,
+  // independent of the secret.
   it('GET /internal/<unknown> -> 404 unknown endpoint', async () => {
     await characterize(
       FIXTURE_SUBDIR.internal,
@@ -387,7 +341,7 @@ afterAll(() => {
 //  - POST /admin/api/login 403 ("no admin access") and the authenticated admin
 //    GET reads (overview/online/accounts/...): all require a real account/admin
 //    lookup against the db; pool-less here. Deferred (needs a mocked db).
-//  - Every /internal secret-PASS path (correct x-woc-deploy-secret /
-//    x-woc-discord-secret): reaches the pool-less db and (no try/catch) hangs the
-//    poller. Never captured; the gate-contract paths above are the safe surface.
+//  - Every /internal secret-PASS path (correct x-woc-deploy-secret): reaches the
+//    pool-less db and (no try/catch) hangs the poller. Never captured; the
+//    gate-contract paths above are the safe surface.
 // -----------------------------------------------------------------------------

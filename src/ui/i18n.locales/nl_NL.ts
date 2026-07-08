@@ -6005,17 +6005,6 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
     'Dit personage moet hernoemd worden voordat het de wereld kan betreden.',
   'apiError.character.taken_over': 'Je personage is overgenomen door een andere sessie.',
   'apiError.db.conflict': 'Die wijziging conflicteerde met een andere update. Probeer het opnieuw.',
-  'apiError.discord.already_linked': 'Dat Discord-account is al gekoppeld aan een ander account.',
-  'apiError.discord.expired':
-    'Die Discord-aanmelding is verlopen. Meld je opnieuw aan met Discord.',
-  'apiError.discord.link_required': 'Koppel eerst je Discord-account.',
-  'apiError.discord.not_configured': 'Discord-integratie is momenteel niet beschikbaar.',
-  'apiError.discord.password_required':
-    'Stel een wachtwoord in voordat je je Discord-account ontkoppelt.',
-  'apiError.discord.swag_claimed': 'Je hebt deze beloning al geclaimd.',
-  'apiError.discord.swag_points': 'Niet genoeg punten.',
-  'apiError.discord.swag_tier': 'Bereik een hogere rang om dit te claimen.',
-  'apiError.discord.unknown_swag': 'Die beloning is niet beschikbaar.',
   'apiError.email.invalid': 'Voer een geldig e-mailadres in.',
   'apiError.email.unchanged': 'Dat is al je e-mailadres.',
   'apiError.internal.error': 'Er is iets misgegaan aan onze kant. Probeer het opnieuw.',

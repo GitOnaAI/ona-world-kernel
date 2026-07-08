@@ -48,32 +48,19 @@ describe('ensureSchema wires every schema module at boot', () => {
     h.state.rateLimitsExists = true;
   });
 
-  it('applies the Discord schema so its tables exist before the feature is enabled', async () => {
+  it('applies the GitHub schema so its tables exist before the feature is enabled', async () => {
     await ensureSchema();
     const applied = h.calls.join('\n');
-    // The whole Discord integration depends on all six tables being created at boot:
-    // the five the Discord route surface reads (discord_links, discord_oauth_states,
-    // reward_points, reward_ledger, swag_claims) plus the discord_pending_logins
-    // chooser table (PR #1075).
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS discord_links');
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS discord_oauth_states');
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS discord_pending_logins');
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS reward_points');
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS reward_ledger');
-    expect(applied).toContain('CREATE TABLE IF NOT EXISTS swag_claims');
-    // The captured Discord email column (recovery-email capture) must be added at boot,
-    // on both the durable link and the first-time pending-login rows.
-    expect(applied).toContain('ALTER TABLE discord_links ADD COLUMN IF NOT EXISTS discord_email');
-    expect(applied).toContain(
-      'ALTER TABLE discord_pending_logins ADD COLUMN IF NOT EXISTS discord_email',
-    );
+    // The GitHub developer-badge link depends on both tables being created at boot.
+    expect(applied).toContain('CREATE TABLE IF NOT EXISTS github_links');
+    expect(applied).toContain('CREATE TABLE IF NOT EXISTS github_oauth_states');
   });
 
-  it('applies the Discord schema idempotently (a second boot is a no-op: only guarded DDL)', async () => {
-    // The Discord routes run on the API request pipeline and rely on the schema
-    // being wired (it was, since PR #1075). This pins that re-running ensureSchema (every
+  it('applies the GitHub schema idempotently (a second boot is a no-op: only guarded DDL)', async () => {
+    // The GitHub routes run on the API request pipeline and rely on the schema
+    // being wired. This pins that re-running ensureSchema (every
     // boot re-applies it under the advisory lock) is safe: the whole boot is deterministic
-    // and the Discord DDL is entirely IF NOT EXISTS / ADD COLUMN IF NOT EXISTS, so a
+    // and the GitHub DDL is entirely IF NOT EXISTS / ADD COLUMN IF NOT EXISTS, so a
     // second boot against a live database changes nothing.
     await ensureSchema();
     const firstBoot = h.calls.slice();
@@ -83,22 +70,22 @@ describe('ensureSchema wires every schema module at boot', () => {
     // Deterministic re-run against the recording client: the second boot issues the
     // identical statements (this pins HARNESS determinism, not real-DB idempotency;
     // against a live database the second boot would legitimately differ where a seed
-    // already exists). The REAL no-op-on-re-run guarantee for the Discord schema is the
+    // already exists). The REAL no-op-on-re-run guarantee for the GitHub schema is the
     // IF-NOT-EXISTS / ADD-COLUMN-IF-NOT-EXISTS guard block below.
     expect(secondBoot).toEqual(firstBoot);
-    // The Discord DDL is applied as one multi-statement query. Every table/index/column
+    // The GitHub DDL is applied as one multi-statement query. Every table/index/column
     // op must be guarded so a re-run is a no-op, and there must be no destructive op.
-    const discordDdl = secondBoot.find((sql) =>
-      sql.includes('CREATE TABLE IF NOT EXISTS discord_links'),
+    const githubDdl = secondBoot.find((sql) =>
+      sql.includes('CREATE TABLE IF NOT EXISTS github_links'),
     );
-    expect(discordDdl).toBeDefined();
-    if (discordDdl) {
+    expect(githubDdl).toBeDefined();
+    if (githubDdl) {
       // Case-insensitive so a future lowercase (or mixed-case) destructive statement
       // cannot slip past the guard; the repo's DDL style is uppercase today.
-      expect(discordDdl).not.toMatch(/CREATE TABLE (?!IF NOT EXISTS)/i);
-      expect(discordDdl).not.toMatch(/CREATE (?:UNIQUE )?INDEX (?!IF NOT EXISTS)/i);
-      expect(discordDdl).not.toMatch(/ADD COLUMN (?!IF NOT EXISTS)/i);
-      expect(discordDdl).not.toMatch(/\b(?:DROP|TRUNCATE|ALTER COLUMN)\b/i);
+      expect(githubDdl).not.toMatch(/CREATE TABLE (?!IF NOT EXISTS)/i);
+      expect(githubDdl).not.toMatch(/CREATE (?:UNIQUE )?INDEX (?!IF NOT EXISTS)/i);
+      expect(githubDdl).not.toMatch(/ADD COLUMN (?!IF NOT EXISTS)/i);
+      expect(githubDdl).not.toMatch(/\b(?:DROP|TRUNCATE|ALTER COLUMN)\b/i);
     }
   });
 

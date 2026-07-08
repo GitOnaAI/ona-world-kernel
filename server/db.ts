@@ -5,7 +5,6 @@ import type { CharacterState, MailSave, MarketSave } from '../src/sim/sim';
 import type { ArenaFormat, PlayerClass } from '../src/sim/types';
 import { seedChatFilterDefaults } from './chat_filter_db';
 import type { ChatLogRow } from './chat_log';
-import { DISCORD_SCHEMA } from './discord_db';
 import { GITHUB_SCHEMA } from './github_db';
 import { isUniqueViolation } from './http_util';
 import { MAPS_SCHEMA } from './maps_db';
@@ -502,18 +501,13 @@ export async function ensureSchema(): Promise<void> {
     await client.query(SCHEMA);
     await client.query(SOCIAL_SCHEMA);
     await client.query(OAUTH_SCHEMA);
-    // Discord integration tables (links, oauth states, pending logins, reward
-    // economy). FK-references accounts(id), so it runs after SCHEMA. Applied
-    // unconditionally (idempotent) so the tables exist before the feature is
-    // enabled, like the other schema modules.
-    await client.query(DISCORD_SCHEMA);
     // GitHub link tables (links + oauth states) for the developer badge.
     // FK-references accounts(id), so it runs after SCHEMA. Applied unconditionally
-    // (idempotent), like the Discord tables.
+    // (idempotent), like the other schema modules.
     await client.query(GITHUB_SCHEMA);
     // Tier-2 global rate-limit backstop table (pg-backed fixed-window counters,
     // one row per (policy, key)) for the multi-realm deployment. Applied
-    // unconditionally (idempotent), like the Discord/GitHub tables. See
+    // unconditionally (idempotent), like the GitHub tables. See
     // server/ratelimit_db.ts.
     await client.query(RATELIMIT_SCHEMA);
     // Fail-fast at boot if rate_limits did not materialize: the tier-2 limiter
@@ -1518,24 +1512,6 @@ export interface CharacterRow {
   force_rename: boolean;
   last_played?: Date | string | null;
   playtime_seconds?: string | number | null;
-}
-
-// The account's "top" character on this realm (highest level, then lifetime XP),
-// for the Discord nameplate flair / level-on-nickname. Realm-scoped like the other
-// reads. Fully parameterized: the only inputs (accountId, REALM) are bound as $1/$2;
-// the ORDER BY uses a static JSONB expression literal (Postgres does not allow a
-// bound parameter for an ORDER BY expression), so the query string carries no
-// interpolation and there is no injection surface.
-export async function highestCharacterForAccount(accountId: number): Promise<CharacterRow | null> {
-  const res = await pool.query(
-    `SELECT id, account_id, name, class, level, state, is_gm, force_rename
-       FROM characters
-      WHERE account_id = $1 AND realm = $2
-      ORDER BY level DESC, ((state->>'lifetimeXp')::bigint) DESC NULLS LAST, id ASC
-      LIMIT 1`,
-    [accountId, REALM],
-  );
-  return res.rows[0] ?? null;
 }
 
 // Character reads/writes are scoped to this process's realm: an account may

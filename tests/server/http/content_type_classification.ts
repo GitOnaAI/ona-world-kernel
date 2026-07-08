@@ -92,7 +92,6 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   // The two email link-click endpoints (verify, unsubscribe) read like server-rendered
   // pages but every branch of handleAccountEmailVerify / handleEmailUnsubscribe answers
   // application/json (the SPA owns the UX), so they are PROBLEM_JSON, NOT HTML. The only
-  // /api route that emits text/html today is /api/auth/discord/callback (the OAuth bounce).
   '/api/account/email/verify': PROBLEM_JSON,
   '/api/account/export': PROBLEM_JSON,
   '/api/account/marketing': PROBLEM_JSON,
@@ -100,17 +99,11 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/account/2fa/enable': PROBLEM_JSON,
   '/api/account/2fa/disable': PROBLEM_JSON,
   '/api/email/unsubscribe': PROBLEM_JSON,
-  '/api/auth/discord/start': PROBLEM_JSON,
-  '/api/auth/discord/callback': HTML,
-  '/api/auth/discord/login/new': PROBLEM_JSON,
-  '/api/auth/discord/login/link': PROBLEM_JSON,
-  '/api/discord': PROBLEM_JSON,
   '/api/auth/github/start': PROBLEM_JSON,
   '/api/auth/github/callback': HTML,
   '/api/github': PROBLEM_JSON,
   '/api/card': BINARY,
   '/api/referrals': PROBLEM_JSON,
-  '/api/discord/swag/claim': PROBLEM_JSON,
   // v0.20.0 release merge: the map editor surface. JSON everywhere except the
   // two binary lanes (the GLB upload request body, the byte-read response body).
   '/api/maps': PROBLEM_JSON,

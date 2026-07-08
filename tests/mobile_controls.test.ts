@@ -407,7 +407,6 @@ function installMobileControlDom(): {
   cameraJoystick: FakeElement;
   jumpButton: FakeElement;
   emoteButton: FakeElement;
-  discordButton: FakeElement;
   windowTarget: EventTarget;
 } {
   const elements = new Map<string, FakeElement>([
@@ -426,7 +425,6 @@ function installMobileControlDom(): {
     ['mobile-camera-stick', new FakeElement()],
     ['mobile-jump', new FakeElement()],
     ['mobile-emote', new FakeElement()],
-    ['mobile-discord', new FakeElement()],
   ]);
   const body = new FakeElement();
   const documentTarget = new EventTarget();
@@ -454,7 +452,6 @@ function installMobileControlDom(): {
     cameraJoystick: elements.get('mobile-camera-joystick')!,
     jumpButton: elements.get('mobile-jump')!,
     emoteButton: elements.get('mobile-emote')!,
-    discordButton: elements.get('mobile-discord')!,
     windowTarget,
   };
 }
@@ -588,29 +585,6 @@ describe('MobileControls pointer lifecycle', () => {
     emoteButton.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
 
     expect(emotes).toBe(1);
-  });
-
-  it('fires the Discord callback when the on-screen Discord button is tapped', () => {
-    const { discordButton } = installMobileControlDom();
-    const input = {
-      setTouchMove: () => {},
-      clearTouchMove: () => {},
-      setTouchLook: () => {},
-      setTouchLookVector: () => {},
-    } as unknown as Input;
-
-    let discord = 0;
-    const callbacks = {
-      ...mobileCallbacks(),
-      onDiscord: () => {
-        discord += 1;
-      },
-    };
-    new MobileControls(input, callbacks).start();
-
-    discordButton.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
-
-    expect(discord).toBe(1);
   });
 
   it('closes the open More modal when tapping outside it', () => {

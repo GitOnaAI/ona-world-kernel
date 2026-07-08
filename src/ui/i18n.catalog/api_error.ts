@@ -149,22 +149,4 @@ export const apiErrorStrings = {
     // reuses errors.api.crossSiteOrigin
     cross_site: 'Request blocked for security reasons.',
   },
-  // discord: the Discord family codes (server/discord.ts), riding alongside
-  // the untouched legacy JSON prose. The shared 'rate limited' body is NOT here (it is
-  // the cross-cutting rate_limit.exceeded identity).
-  discord: {
-    // reuses hudChrome.discord.disabled
-    not_configured: 'Discord integration is not available right now.',
-    // reuses hudChrome.discord.choice.expired
-    expired: 'That Discord sign-in expired. Please sign in with Discord again.',
-    already_linked: 'That Discord account is already linked to another account.',
-    password_required: 'Set a password before unlinking your Discord account.',
-    unknown_swag: 'That reward is not available.',
-    link_required: 'Link your Discord account first.',
-    swag_claimed: 'You have already claimed this reward.',
-    // reuses hudChrome.discord.swag.needTier
-    swag_tier: 'Reach a higher rank to claim this.',
-    // reuses hudChrome.discord.swag.needPoints
-    swag_points: 'Not enough points.',
-  },
 };

@@ -59,17 +59,8 @@ services:
       APPLE_DEVICECHECK_ENV: ${APPLE_DEVICECHECK_ENV:-production}
       # Runtime: protects the loopback-only deploy countdown endpoint.
       RESTART_COUNTDOWN_SECRET: ${RESTART_COUNTDOWN_SECRET:-}
-      # Runtime: Discord OAuth + the secret-gated game <-> Discord bot channel.
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
-      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
-      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
-      DISCORD_GUILD_INVITE: ${DISCORD_GUILD_INVITE:-}
-      DISCORD_BOT_SECRET: ${DISCORD_BOT_SECRET:-}
-      # Runtime: the game server uses the bot token to auto-join a linking player to
-      # the official guild (guilds.join). Empty disables auto-join (verify-only).
-      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
       # Runtime: GitHub OAuth for the in-game developer badge. Both id+secret must be
-      # set to enable "Link GitHub"; empty hides it exactly like Discord. GITHUB_REPO
+      # set to enable "Link GitHub"; empty hides it. GITHUB_REPO
       # selects which repo's contributor stats back the badge (code default:
       # levy-street/world-of-claudecraft); GITHUB_TOKEN lifts the GitHub API rate limit
       # for the contributor + News/Releases fetches. See .env.example.
@@ -77,9 +68,6 @@ services:
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}
       GITHUB_REPO: ${GITHUB_REPO:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      WOC_DAILY_REWARD_SERVICE_URL: ${WOC_DAILY_REWARD_SERVICE_URL:-}
-      WOC_DAILY_REWARD_SERVICE_SECRET: ${WOC_DAILY_REWARD_SERVICE_SECRET:-}
-      WOC_DAILY_REWARD_CONFIG_TTL_MS: ${WOC_DAILY_REWARD_CONFIG_TTL_MS:-}
       META_CAPI_PIXEL_ID: ${META_CAPI_PIXEL_ID:-}
       META_CAPI_ACCESS_TOKEN: ${META_CAPI_ACCESS_TOKEN:-}
       META_CAPI_TEST_EVENT_CODE: ${META_CAPI_TEST_EVENT_CODE:-}

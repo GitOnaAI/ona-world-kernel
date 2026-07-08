@@ -184,12 +184,7 @@ describe('surface inventory: route-count freshness gate', () => {
     expect(missing).toEqual([]);
   });
 
-  it('the orphan and the OPTIONS preflight are excluded from the source set', () => {
-    // The swag-claim orphan has no dispatch arm, so it must NOT appear in source.
-    const fromSource = sourceExactPaths(readSources());
-    expect(fromSource.has('/api/discord/swag/claim')).toBe(false);
-    const orphan = SURFACE_INVENTORY.find((r) => r.path === '/api/discord/swag/claim');
-    expect(orphan?.unreachable).toBe(true);
+  it('the OPTIONS preflight is excluded from the source set', () => {
     const preflight = SURFACE_INVENTORY.find(
       (r) => r.handler === 'routeHttpRequest OPTIONS-204 arm',
     );

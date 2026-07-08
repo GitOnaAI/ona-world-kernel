@@ -1665,15 +1665,6 @@ export interface Entity {
   // fields (terse `eq`) so another player can be inspected. Like mainhandItemId,
   // the sim never reads it for gameplay (no effect on stats).
   equippedItems: Partial<Record<EquipSlot, string>>;
-  // Linked-Discord flair (cosmetic, server-set from the account's Discord link;
-  // the sim never reads any of it): status tier, profile-picture URL, handle/
-  // nickname, server-join epoch ms (for "member since"), and top staff/special
-  // role key (drives the in-world name color + tag).
-  discordTier?: number;
-  discordAvatar?: string;
-  discordName?: string;
-  discordJoined?: number;
-  discordRole?: string;
   // Developer-badge flair (cosmetic, server-set from a verified GitHub link plus
   // the repo's merged-PR stats; the sim never reads any of it): the tier index
   // (0/undefined = none, 1-5 = Tinkerer…Worldwright), the count of merged pull

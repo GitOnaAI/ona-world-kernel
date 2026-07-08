@@ -14,8 +14,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   DEPLOY_SECRET_ENV,
   DEPLOY_SECRET_HEADER,
-  DISCORD_SECRET_ENV,
-  DISCORD_SECRET_HEADER,
   requireInternalSecret,
 } from '../../../server/http/middleware/require_internal_secret';
 import type { Ctx } from '../../../server/http/types';
@@ -38,7 +36,7 @@ const NOT_AUTHENTICATED_JSON = '{"success":false,"data":null,"error":"not authen
 
 // Every env var any test in this file may touch; snapshotted and restored so the
 // suite leaves the real ops secrets exactly as it found them.
-const TOUCHED_ENV = [TEST_ENV, DEPLOY_SECRET_ENV, DISCORD_SECRET_ENV];
+const TOUCHED_ENV = [TEST_ENV, DEPLOY_SECRET_ENV];
 
 /** Read the FakeRes backing a fakeCtx so we can assert on the captured result. */
 function resOf(ctx: Ctx): FakeRes {
@@ -255,27 +253,11 @@ describe('requireInternalSecret: real exported (header, env) pairs', () => {
     expect(res.headersSent).toBe(false);
     expect(res.body).toBe('');
   });
-
-  it('discord pair: 401 on a mismatch when DISCORD_BOT_SECRET is set', async () => {
-    process.env[DISCORD_SECRET_ENV] = SECRET;
-    const mw = requireInternalSecret({ header: DISCORD_SECRET_HEADER, envVar: DISCORD_SECRET_ENV });
-    const ctx = fakeCtx({ headers: { [DISCORD_SECRET_HEADER]: WRONG_SAME_LENGTH } });
-    const res = resOf(ctx);
-    const next = makeNext();
-
-    await mw(ctx, next);
-
-    expect(res.statusCode).toBe(401);
-    expect(res.body).toBe(NOT_AUTHENTICATED_JSON);
-    expect(next).not.toHaveBeenCalled();
-  });
 });
 
 describe('requireInternalSecret: exported constants (single source of truth)', () => {
   it('pins the header and env names the route tables consume', () => {
     expect(DEPLOY_SECRET_HEADER).toBe('x-woc-deploy-secret');
     expect(DEPLOY_SECRET_ENV).toBe('RESTART_COUNTDOWN_SECRET');
-    expect(DISCORD_SECRET_HEADER).toBe('x-woc-discord-secret');
-    expect(DISCORD_SECRET_ENV).toBe('DISCORD_BOT_SECRET');
   });
 });

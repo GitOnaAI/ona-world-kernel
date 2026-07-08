@@ -22,7 +22,6 @@ import {
   CHARACTER_DELETE_POLICY,
   CHARACTER_RENAME_POLICY,
   CHARACTER_TAKEOVER_POLICY,
-  DISCORD_POLICY,
   PUBLIC_READ_POLICY,
   type RateLimitPolicy,
   REPORTS_CREATE_POLICY,
@@ -33,11 +32,9 @@ import type { RateLimitOutcome, RateLimitStore } from '../../../server/http/type
 import {
   CARD_UPLOAD_MAX_PER_MINUTE,
   CHARACTER_MUTATION_MAX_PER_MINUTE,
-  DISCORD_MAX_PER_MINUTE,
   PUBLIC_READ_MAX_PER_MINUTE,
   REPORTS_CREATE_MAX_PER_MINUTE,
   resetCardUploadRateLimits,
-  resetDiscordRateLimits,
   resetPublicReadRateLimits,
   resetRateLimitClock,
   setRateLimitClock,
@@ -173,35 +170,6 @@ describe('rateLimit: ip+account policy', () => {
     // tier1 reads ctxAccountId, which 500s before any tier-2 work when account is unset.
     const ctx = fakeCtx();
     await expect(rateLimit(CARD_UPLOAD_POLICY)(ctx, async () => {})).rejects.toMatchObject({
-      status: 500,
-      code: 'internal.error',
-    });
-  });
-});
-
-describe('rateLimit: discord ip+account policy', () => {
-  beforeEach(() => {
-    resetDiscordRateLimits();
-  });
-  afterEach(() => {
-    resetDiscordRateLimits();
-  });
-
-  it('DISCORD_POLICY is ip+account and 429s once its cap is exceeded', async () => {
-    expect(DISCORD_POLICY.keyClass).toBe('ip+account');
-    const ctx = fakeCtx({ account: { accountId: 12, scope: 'full' } });
-    for (let i = 0; i < DISCORD_MAX_PER_MINUTE; i++) {
-      await rateLimit(DISCORD_POLICY)(ctx, async () => {});
-    }
-    await expect(rateLimit(DISCORD_POLICY)(ctx, async () => {})).rejects.toMatchObject({
-      status: 429,
-      code: 'rate_limit.exceeded',
-    });
-  });
-
-  it('DISCORD_POLICY 500s when ctx.account is missing (ip+account composition bug)', async () => {
-    const ctx = fakeCtx();
-    await expect(rateLimit(DISCORD_POLICY)(ctx, async () => {})).rejects.toMatchObject({
       status: 500,
       code: 'internal.error',
     });
@@ -354,7 +322,6 @@ describe('rateLimit: policy derivation guard', () => {
       { policy: CHARACTER_DELETE_POLICY, limit: CHARACTER_MUTATION_MAX_PER_MINUTE },
       { policy: CHARACTER_TAKEOVER_POLICY, limit: CHARACTER_MUTATION_MAX_PER_MINUTE },
       { policy: REPORTS_CREATE_POLICY, limit: REPORTS_CREATE_MAX_PER_MINUTE },
-      { policy: DISCORD_POLICY, limit: DISCORD_MAX_PER_MINUTE },
     ];
     for (const { policy, limit } of table) {
       expect(policy.limit, `${policy.name} limit`).toBe(limit);

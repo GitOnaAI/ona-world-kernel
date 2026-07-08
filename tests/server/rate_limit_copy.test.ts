@@ -69,11 +69,12 @@ describe('rate-limit copy: matcher-safe (prefix before the comma)', () => {
     expect(client).toContain(`normalized.startsWith('${FAILED_PREFIX}')`);
   });
 
-  it("userFacingApiError keeps the exact-match arm for the discord 'rate limited' 429", () => {
-    // The Discord-family migration closed the discordRateLimited gap with one exact-match
-    // arm reusing the existing errors.api.tooManyAttempts key. The api_error_i18n.ts
-    // extraction made the matcher unit-testable (tests/main_api_error.test.ts); this text
-    // pin stays as the cheap source-level guard against a silent removal of the arm.
+  it("userFacingApiError keeps the exact-match arm for the prose 'rate limited' 429", () => {
+    // Several legacy arms answer the bare prose { error: 'rate limited' }; one
+    // exact-match arm reuses the existing errors.api.tooManyAttempts key. The
+    // api_error_i18n.ts extraction made the matcher unit-testable
+    // (tests/main_api_error.test.ts); this text pin stays as the cheap
+    // source-level guard against a silent removal of the arm.
     const client = read('src/ui/api_error_i18n.ts');
     expect(client).toContain("normalized === 'rate limited'");
   });

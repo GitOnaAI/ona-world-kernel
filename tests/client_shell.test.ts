@@ -476,29 +476,6 @@ describe('client HTML shell', () => {
     );
   });
 
-  it('keeps the Discord unlink panel clickable over the pre-game shell', () => {
-    const startZ = Number(shellCss.match(/#start-screen \{[\s\S]*?z-index: (\d+);/)?.[1]);
-    const modalZ = Number(shellCss.match(/\.modal-backdrop \{[\s\S]*?z-index: (\d+);/)?.[1]);
-    const discordZ = Number(indexExtraCss.match(/#discord-window \{[\s\S]*?z-index: (\d+);/)?.[1]);
-    expect(discordZ).toBeGreaterThan(startZ);
-    expect(discordZ).toBeLessThan(modalZ);
-  });
-
-  it('keeps the Discord unlink modal at top level so it shows in-game', () => {
-    // #start-screen is display:none once the game starts (main.ts hides it) and is a
-    // lower z-index:100 stacking context, so a keep-modal nested inside it would be
-    // invisible in-game and trapped below the top-level #discord-window. It must be a
-    // top-level sibling declared above #start-screen, exactly like #discord-window.
-    const modalAt = html.indexOf('id="discord-keep-modal"');
-    const windowAt = html.indexOf('id="discord-window"');
-    const startAt = html.indexOf('id="start-screen"');
-    expect(modalAt).toBeGreaterThan(-1);
-    expect(windowAt).toBeGreaterThan(-1);
-    // Declared before #start-screen opens, hence a top-level sibling, never a descendant.
-    expect(modalAt).toBeLessThan(startAt);
-    expect(windowAt).toBeLessThan(startAt);
-  });
-
   it('shows a logged-in Logout nav item next to Account', () => {
     expect(html).toContain('id="nav-btn-account"');
     expect(html).toContain('id="nav-btn-logout"');
@@ -705,16 +682,6 @@ describe('client HTML shell', () => {
     expect(html).toContain('id="mobile-extra-controls"');
     expect(html).toContain('id="mobile-quest"');
     expect(html).toContain('aria-label="Quest Log"');
-  });
-
-  it('offers a Discord entry in the mobile drawer, hidden until Discord is available', () => {
-    // Mobile has no keyboard, so the U-key Discord panel toggle is unreachable;
-    // this drawer button is the touch path into #discord-window (link / unlink).
-    expect(html).toContain('id="mobile-discord"');
-    // Carries the icon hook (hydrateIcons swaps [data-icon] for the inline SVG).
-    expect(html).toMatch(/id="mobile-discord"[^>]*data-icon="discord"/);
-    // Starts hidden; main.ts reveals it only when Discord is enabled and logged in.
-    expect(html).toMatch(/id="mobile-discord"\s+hidden/);
   });
 
   it('keeps the game menu free of duplicate and dev-only entries', () => {

@@ -1282,17 +1282,6 @@ export const zh_CN: EnTranslations = {
     },
     "origin": {
       "cross_site": "出于安全原因，请求已被拦截。"
-    },
-    "discord": {
-      "not_configured": "Discord 集成当前不可用。",
-      "expired": "该 Discord 登录已过期，请重新使用 Discord 登录。",
-      "already_linked": "该 Discord 账号已关联到另一个账号。",
-      "password_required": "取消关联 Discord 账号前请先设置密码。",
-      "unknown_swag": "该奖励不可用。",
-      "link_required": "请先关联你的 Discord 账号。",
-      "swag_claimed": "你已经领取过此奖励。",
-      "swag_tier": "达到更高段位即可领取。",
-      "swag_points": "积分不足。"
     }
   },
   "guide": {

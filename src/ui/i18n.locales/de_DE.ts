@@ -6076,18 +6076,6 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   'apiError.character.taken_over': 'Dein Charakter wurde von einer anderen Sitzung übernommen.',
   'apiError.db.conflict':
     'Diese Änderung kollidierte mit einer anderen Aktualisierung. Bitte versuche es erneut.',
-  'apiError.discord.already_linked':
-    'Dieses Discord-Konto ist bereits mit einem anderen Konto verknüpft.',
-  'apiError.discord.expired':
-    'Diese Discord-Anmeldung ist abgelaufen. Bitte melde dich erneut mit Discord an.',
-  'apiError.discord.link_required': 'Verknüpfe zuerst dein Discord-Konto.',
-  'apiError.discord.not_configured': 'Die Discord-Integration ist derzeit nicht verfügbar.',
-  'apiError.discord.password_required':
-    'Lege ein Passwort fest, bevor du dein Discord-Konto trennst.',
-  'apiError.discord.swag_claimed': 'Du hast diese Belohnung bereits beansprucht.',
-  'apiError.discord.swag_points': 'Nicht genügend Punkte.',
-  'apiError.discord.swag_tier': 'Erreiche einen höheren Rang, um dies zu beanspruchen.',
-  'apiError.discord.unknown_swag': 'Diese Belohnung ist nicht verfügbar.',
   'apiError.email.invalid': 'Gib eine gültige E-Mail-Adresse ein.',
   'apiError.email.unchanged': 'Das ist bereits deine E-Mail-Adresse.',
   'apiError.internal.error':

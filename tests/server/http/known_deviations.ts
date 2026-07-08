@@ -41,10 +41,6 @@ export const DEVIATION_ID = {
   rateLimitedBodyToCode: 'rate-limited-body-to-code',
   reportsBodyValidationRemap: 'reports-body-validation-remap',
   newLimiterReportsCreate: 'new-limiter-reports-create',
-  newLimiterDiscord: 'new-limiter-discord',
-  discordCallbackHtmlNotRedirect: 'discord-callback-html-not-redirect',
-  swagClaimOrphanUnreachable: 'swag-claim-orphan-unreachable',
-  discordBodyValidationRemap: 'discord-body-validation-remap',
   adminEnumInvalid422: 'admin-enum-invalid-422',
   adminIdParamDecode: 'admin-id-param-decode-422',
   adminBodyValidationRemap: 'admin-body-validation-remap',
@@ -155,29 +151,6 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'Owner-scoped object reads deny a non-owned id with 404 not 403 to avoid ' +
       'leaking the existence of another player character (BOLA anti-enumeration); ' +
       'the migrated requireOwned guard keeps it.',
-  },
-  {
-    id: DEVIATION_ID.discordCallbackHtmlNotRedirect,
-    routes: ['/api/auth/discord/callback'],
-    currentBehavior:
-      'GET /api/auth/discord/callback answers text/html (a self-posting bounce ' +
-      'page that does window.opener.postMessage then location.replace), not a ' +
-      '302 redirect, on both the success and error paths.',
-    intendedBehavior:
-      'Preserved: the OAuth popup flow needs an HTML bounce to postMessage the ' +
-      'opener window and close the popup, so it is intentionally not a bare 302 ' +
-      '(the REDIRECT content class stays unused). The migrated route rides a ' +
-      'RouteDef carrying meta.envelope "html", so even an unexpected throw escaping ' +
-      'handleDiscordCallback serializes through the error boundary as an HTML ' +
-      'error (never problem+json, which would break window.opener.postMessage); its ' +
-      'normal responses stay the self-written bouncePage.',
-    introducedInPhase: null,
-    reason:
-      'The Discord OAuth popup completes by postMessaging the opener and closing ' +
-      'the popup; a 302 cannot do that, so the HTML-not-302 shape is by design. The ' +
-      'RouteDef pins the HTML surface via meta.envelope so the error path ' +
-      'cannot regress to problem+json.',
-    goldenFixtures: ['tests/server/fixtures/main/discord_callback_error_bounce.json'],
   },
 
   // --- Phase-numbered deviations (introducedInPhase names the change) ----------
@@ -623,133 +596,6 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'pass, so a bucket is never drained), so it is documented here rather than ' +
       'caught by the harness.',
   },
-  {
-    id: DEVIATION_ID.newLimiterDiscord,
-    routes: [
-      '/api/auth/discord/start',
-      '/api/auth/discord/callback',
-      '/api/auth/discord/login/new',
-      '/api/auth/discord/login/link',
-      '/api/discord',
-    ],
-    currentBehavior:
-      'The discord.* routes share one legacy discordRateLimited limiter (keyed ' +
-      'ip+account, or ip-only when the account is 0). start is DOUBLE-counted (the ' +
-      'legacy handleApi arm pre-checks discordRateLimited AND handleDiscordStart ' +
-      'self-checks it). The callback is unlimited and applies no isIpBlocked, and ' +
-      'start applies no isIpBlocked either, so a moderation-IP-blocked client can ' +
-      'still open the OAuth flow (start mints state; the login-mode callback mints a ' +
-      'returning-user session). login/new + login/link already apply isIpBlocked.',
-    intendedBehavior:
-      'The new pipeline serves the discord routes PARITY-FIRST: the ' +
-      'rate limit stays legacy prose { error: "rate limited" } (NOT the coded ' +
-      'rateLimit(DISCORD_POLICY) adapter; the pre-seeded DISCORD_POLICY stays ' +
-      'UNMOUNTED, held for a future coded-emission adoption), because the keying is ' +
-      'entangled with handler logic. start drops the legacy double-count to a single ' +
-      'count on the new path (the RouteDef does not pre-check; handleDiscordStart ' +
-      'self-limits once; a side effect only visible in the unconfigured-AND-drained ' +
-      'test state is that a start IN EITHER MODE (login or link, both share the ' +
-      'handler) then answers 503 [config-null] where the legacy pre-check would answer ' +
-      '429, since the new path defers the rate check into the handler after its config ' +
-      'check; prod-irrelevant, since prod configures Discord). status/unlink carry the ' +
-      'discordActiveRateGuard (the same check the legacy arm ran in main.ts, moved ' +
-      'behind the auth guard); swag self-limits inside handleSwagClaim (no rate guard). ' +
-      'The migration also CLOSES the isIpBlocked gap the PR #1044 / #1075 reviews flagged: ' +
-      'start applies isIpBlocked (opaque 429 { error: "rate limited" }, matching ' +
-      'login/new + login/link; in link mode the inline bearer resolve runs BEFORE the ' +
-      'IP gate, so an unauthenticated blocked-IP link start answers the ordinary 401 ' +
-      'and the block stays invisible there too) and the ' +
-      'callback applies isIpBlocked (an opaque HTML bounce reusing the existing ' +
-      '"server_error" vocabulary, so the block is never revealed and the callback ' +
-      'stays HTML). passesTurnstile is DELIBERATELY not added (the Discord flow carries ' +
-      'no turnstile token, so a gate would 403 every prod login; the OAuth itself is ' +
-      'the human-check, matching login/new + login/link). The wider rate-limiter rework ' +
-      '(the two-tier limiter) reworked the backing afterward.',
-    introducedInPhase: 16,
-    reason:
-      'The migration ports the discord family parity-first: the limiters keep their ' +
-      'legacy prose bodies (coded emission stays a deferred adoption), start loses ' +
-      'its double-count ' +
-      'on the new path, and start + callback gain an opaque isIpBlocked gate closing ' +
-      'the PR #1044 / #1075 IP-ban-evasion finding (a blocked IP could mint a Discord ' +
-      'account/session). The 429 / IP-block divergences are NOT exercised by the ' +
-      'db-free parity corpus (runParity resets every limiter bucket before each pass, ' +
-      'and the corpus IP is never blocked), so they are documented here rather than ' +
-      'caught by the harness. The four discord corpus fixtures (start-503, ' +
-      'status-401, unlink-401, callback-bounce) are path-masked by this entry, so ' +
-      'each is re-pinned by a dedicated captureBothModes assertion proving the ' +
-      'migrated path stays byte-identical to the legacy arm.',
-  },
-  {
-    id: DEVIATION_ID.swagClaimOrphanUnreachable,
-    routes: ['/api/discord/swag/claim'],
-    currentBehavior:
-      'handleSwagClaim is exported but no dispatcher arm routes to it, so POST ' +
-      '/api/discord/swag/claim is unreachable today (it falls through to the 404 ' +
-      'unknown-endpoint arm).',
-    intendedBehavior:
-      'The migration registers POST /api/discord/swag/claim as a RouteDef ([activeGuard] ' +
-      'plus handleSwagClaim, which self-limits with discordRateLimited and receives a ' +
-      'live grantCosmetic hook injected via configureDiscordRuntime -> ' +
-      'game.grantMechChromaToAccount), so the handler is now reachable over HTTP and ' +
-      'answers its real 200 / 400 / 403 / 409 / 429 bodies. The legacy ladder still 404s ' +
-      'it (no legacy arm was ever added), so it is served on the new path only (a ' +
-      'dispatch-flag rollback would 404 it again); there is still no client caller (the ' +
-      'widget shows a claim badge but never posts), so the reachability is the deliverable.',
-    introducedInPhase: 16,
-    reason:
-      'The swag-claim handler exists but had no dispatch arm (an orphan); the ' +
-      'discord wiring registers it as a RouteDef so it is reachable over HTTP. Its ' +
-      'existing unit tests (the handleSwagClaim logic) stay green; the previously-404 ' +
-      'behavior on the legacy path is preserved for rollback until the legacy ladder ' +
-      'is removed. Not ' +
-      'exercised by the parity corpus (no swag fixture, since it 404d), so documented ' +
-      'here rather than harness-caught.',
-  },
-  {
-    id: DEVIATION_ID.discordBodyValidationRemap,
-    routes: [
-      '/api/auth/discord/start',
-      '/api/auth/discord/callback',
-      '/api/auth/discord/login/new',
-      '/api/auth/discord/login/link',
-      '/api/discord',
-      '/api/discord/swag/claim',
-    ],
-    currentBehavior:
-      'The Discord handlers self-read their request body with readJsonBody, which ' +
-      'SWALLOWS an over-cap (> 4 KB) or malformed body and returns {} (it never ' +
-      'rejects), so there is no 400/413 body path. On the legacy handleApi ladder, an ' +
-      'UNEXPECTED throw (e.g. a Postgres error from consumeDiscordOAuthState / ' +
-      "linkDiscordToAccount / a reward query) falls to handleApi's outer catch and " +
-      'answers 500 { error: "internal error" } (application/json); an unexpected throw ' +
-      'escaping the callback (outside its internal try/catch) hits the same generic 500.',
-    intendedBehavior:
-      'The new pipeline serves these routes. The handlers self-read ' +
-      '(so NO withBody middleware is composed and there is NO 400/413 status remap: a ' +
-      'bad body is still coerced to {} by readJsonBody), and every handler-owned body ' +
-      'stays byte-identical. The ONLY divergence is the 500 BODY SHAPE on an unexpected ' +
-      'throw: for the JSON routes it propagates to the withErrors boundary and ' +
-      'serializes as 500 application/problem+json (internal.error) instead of the ' +
-      'legacy 500 { error: "internal error" }; for the callback (meta.envelope "html") ' +
-      'it serializes as a 500 HTML error page instead of the legacy 500 JSON, ' +
-      'preserving the never-problem+json contract. Leak-free (the 500 detail is a ' +
-      'static sentence; the original error goes only to the logger). The client ' +
-      'code-matcher covers the problem+json body; the divergence becomes the ' +
-      'real behavior when the legacy arm is removed.',
-    introducedInPhase: 16,
-    reason:
-      'The migrated Discord handlers surface an unexpected throw through the shared ' +
-      'error-model boundary as 500 problem+json (JSON routes) or 500 HTML ' +
-      '(callback, via meta.envelope) instead of the legacy outer-catch 500 { error }. ' +
-      'Same 500 STATUS, different body shape; there is no status remap because these ' +
-      'handlers self-read without withBody (and readJsonBody swallows a bad body to {}, ' +
-      'so no 400/413 path exists at all). Exact sibling to accountBodyValidationRemap / ' +
-      'walletBodyValidationRemap / reportsBodyValidationRemap (the callback variant ' +
-      'stays HTML per discordCallbackHtmlNotRedirect). These framework-error paths are ' +
-      'NOT exercised by the db-free parity corpus (which replays valid bodies only), so ' +
-      'the divergence is documented here rather than harness-caught.',
-  },
   // --- The admin surface (server/admin.ts) -------------------------------------
   {
     id: DEVIATION_ID.adminEnumInvalid422,
@@ -874,7 +720,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'admin serializer, selected by meta.envelope "admin") instead of the legacy ' +
       'outer-catch 500 { ...error: "internal error" }. Same status + envelope shape, ' +
       'different error string. Exact sibling to accountBodyValidationRemap / ' +
-      'walletBodyValidationRemap / reportsBodyValidationRemap / discordBodyValidationRemap. ' +
+      'walletBodyValidationRemap / reportsBodyValidationRemap. ' +
       'The listed routes are representative (the remap applies to every admin route); the ' +
       'framework-error path is not exercised by the db-free parity corpus, documented here.',
   },
@@ -914,30 +760,18 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'error-model boundary (the RFC 6749 serializer) instead of the legacy ' +
       'module-local catch. Same status + error code, an additive description field. ' +
       'Sibling to accountBodyValidationRemap / walletBodyValidationRemap / ' +
-      'reportsBodyValidationRemap / discordBodyValidationRemap / adminBodyValidationRemap. ' +
+      'reportsBodyValidationRemap / adminBodyValidationRemap. ' +
       'Not exercised by the db-free parity corpus (a real throw needs a DB failure or an ' +
       'over-cap stream), documented here and pinned with fakes in tests/server/oauth.test.ts.',
   },
   {
     id: DEVIATION_ID.internalBodyValidationRemap,
-    routes: [
-      '/internal/restart-countdown',
-      '/internal/discord/flex',
-      '/internal/discord/roles',
-      '/internal/discord/presence',
-      '/internal/discord/grant',
-      '/internal/discord/member',
-      '/internal/discord/relay',
-      '/internal/discord/activity',
-      '/internal/discord/members-meta',
-    ],
+    routes: ['/internal/restart-countdown'],
     currentBehavior:
-      'The legacy handleInternalApi has NO outer catch. Every body read carries its own ' +
-      '.catch(() => ({})) (a malformed/over-cap body coerces to {} and is not a throw ' +
-      'path), but an unexpected throw (a Postgres error, a dailyRewardService throw) ' +
+      'The legacy handleInternalApi has NO outer catch: an unexpected throw ' +
       "escapes the whole ladder into main.ts's fire-and-forget /internal arm as an " +
       'unhandled promise rejection: the keep-alive unhandledRejection handler logs it, NO ' +
-      "response is ever written, and the bot's request hangs until its client timeout.",
+      "response is ever written, and the caller's request hangs until its client timeout.",
     intendedBehavior:
       'The migration routes the same throw to the withErrors boundary, which serializes ' +
       'it through the admin-shape serializer (meta.envelope "admin": the internal fail() ' +
@@ -947,7 +781,7 @@ export const KNOWN_DEVIATIONS: readonly KnownDeviation[] = [
       'null, error: "internal.error" } plus an X-Request-Id header. A response is now ' +
       'always written where legacy hung the request: strictly a reliability improvement, ' +
       'flag-gated, leak-free (stable code only; the original error goes to the logger). ' +
-      'SECRET-GATED: every divergence is only reachable behind a valid deploy/bot secret ' +
+      'SECRET-GATED: every divergence is only reachable behind a valid deploy secret ' +
       '(the gate itself answers the legacy 404/401 bodies via direct json(), no header).',
     introducedInPhase: 18,
     reason:

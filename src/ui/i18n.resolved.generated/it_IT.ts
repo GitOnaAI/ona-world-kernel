@@ -1282,17 +1282,6 @@ export const it_IT: EnTranslations = {
     },
     "origin": {
       "cross_site": "Richiesta bloccata per motivi di sicurezza."
-    },
-    "discord": {
-      "not_configured": "L'integrazione con Discord non è disponibile al momento.",
-      "expired": "L'accesso con Discord è scaduto. Accedi di nuovo con Discord.",
-      "already_linked": "Questo account Discord è già collegato a un altro account.",
-      "password_required": "Imposta una password prima di scollegare il tuo account Discord.",
-      "unknown_swag": "Questa ricompensa non è disponibile.",
-      "link_required": "Collega prima il tuo account Discord.",
-      "swag_claimed": "Hai già riscattato questa ricompensa.",
-      "swag_tier": "Raggiungi un grado più alto per riscattarla.",
-      "swag_points": "Punti insufficienti."
     }
   },
   "guide": {

@@ -219,7 +219,7 @@ export class Api {
   username: string | null = null;
   // Whether the signed-in account still needs a recovery email (mandatory-email
   // capture). Set from the login/register response; undefined until a fresh auth
-  // reports it (a restored/Discord session leaves it undefined, so the caller
+  // reports it (a restored session leaves it undefined, so the caller
   // confirms via getAccount()). Never persisted; it is a per-session hint only.
   emailMissing: boolean | undefined = undefined;
   realm: string | null = null;
@@ -574,57 +574,6 @@ export class Api {
     } catch {
       return [];
     }
-  }
-
-  // ── Discord link/login + status ────────────────────────────────────────────
-  // Returns the discord.com authorize URL the browser navigates to (login = new
-  // session, link = attach to the current account).
-  async discordStart(mode: 'login' | 'link'): Promise<{ url: string }> {
-    return this.post(`/api/auth/discord/start?mode=${mode}`, {});
-  }
-
-  // First-time Discord login chooser: create a brand-new account for the verified
-  // Discord identity (parked under `linkToken`) and start a session.
-  async discordLoginNew(linkToken: string): Promise<void> {
-    const data = await this.post('/api/auth/discord/login/new', { linkToken });
-    this.token = data.token;
-    this.username = data.username;
-  }
-
-  // First-time Discord login chooser: link the verified Discord identity to an
-  // EXISTING account (username + password, plus a 2FA code if that account has it).
-  // Returns { twoFactorRequired: true } when a code is needed (the caller re-invokes
-  // with `code`/`recoveryCode`), mirroring login(); a wrong code/password throws.
-  async discordLoginLink(
-    linkToken: string,
-    username: string,
-    password: string,
-    code = '',
-    recoveryCode = '',
-  ): Promise<{ twoFactorRequired?: boolean }> {
-    const data = await this.post('/api/auth/discord/login/link', {
-      linkToken,
-      username,
-      password,
-      code,
-      recoveryCode,
-    });
-    if (data.twoFactorRequired && !data.token) return { twoFactorRequired: true };
-    this.token = data.token;
-    this.username = data.username;
-    return {};
-  }
-
-  // Current account's Discord link status + reward points + live guild presence.
-  async discordStatus(): Promise<Record<string, unknown>> {
-    return this.get('/api/discord');
-  }
-
-  // Unlink Discord. A Discord-provisioned account (no real password yet) must send a
-  // `password` so it stays reachable after unlinking; the server 400s with
-  // 'password_required' otherwise. A normal account passes nothing.
-  async unlinkDiscord(password?: string): Promise<void> {
-    await this.delete('/api/discord', password ? { password } : {});
   }
 
   // ── GitHub link + developer-badge status ───────────────────────────────────
@@ -1444,11 +1393,6 @@ export class ClientWorld implements IWorld {
         e.mainhandItemId = w.mh ?? null; // equipped mainhand → held weapon model (render-only)
         e.equippedItems = w.eq ?? {}; // full worn set (render-only), for the inspect window
         e.skinCatalog = w.cat === 'mech' ? 'mech' : 'class';
-        e.discordTier = w.dt ?? 0; // Discord status-tier flair (cosmetic, server-set)
-        e.discordAvatar = typeof w.dav === 'string' ? w.dav : undefined; // Discord PFP (linked)
-        e.discordName = typeof w.dnm === 'string' ? w.dnm : undefined; // Discord handle/nickname
-        e.discordJoined = typeof w.dj === 'number' ? w.dj : undefined; // Discord join epoch ms
-        e.discordRole = typeof w.dr === 'string' ? w.dr : undefined; // top staff/special role key
         e.devTier = w.dvt ?? 0; // developer-badge tier (cosmetic, server-set)
         e.devMergedPrs = typeof w.dvc === 'number' ? w.dvc : undefined; // merged-PR count
         e.githubLogin = typeof w.dgl === 'string' ? w.dgl : undefined; // GitHub login

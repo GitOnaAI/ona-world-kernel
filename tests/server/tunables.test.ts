@@ -17,7 +17,6 @@ import {
   CHARACTER_DELETE_POLICY,
   CHARACTER_RENAME_POLICY,
   CHARACTER_TAKEOVER_POLICY,
-  DISCORD_POLICY,
   MAP_MUTATION_POLICY,
   PUBLIC_READ_POLICY,
   type RateLimitPolicy,
@@ -41,7 +40,6 @@ import {
   AUTH_MAX_PER_MINUTE,
   CARD_UPLOAD_MAX_PER_MINUTE,
   CHARACTER_MUTATION_MAX_PER_MINUTE,
-  DISCORD_MAX_PER_MINUTE,
   MAP_MUTATION_MAX_PER_MINUTE,
   PUBLIC_READ_MAX_PER_MINUTE,
   REPORTS_CREATE_MAX_PER_MINUTE,
@@ -151,7 +149,6 @@ describe('rate-limit POLICIES derive from the limiter constants and hold their v
       source: REPORTS_CREATE_MAX_PER_MINUTE,
       limit: 10,
     },
-    { policy: DISCORD_POLICY, name: 'discord', source: DISCORD_MAX_PER_MINUTE, limit: 15 },
     // v0.20.0 release merge: the map editor buckets (shared with the legacy arms).
     {
       policy: MAP_MUTATION_POLICY,

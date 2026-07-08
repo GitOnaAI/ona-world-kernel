@@ -24,10 +24,9 @@
 // the read). Ambient NODE_ENV mode checks and the test-only-seam production
 // guards (the resetActiveConfigForTests-style throws) are outside this rule's
 // scope: NODE_ENV has no garbage state and those guards must stay self-contained.
-//   (1) Per-request secret gates that treat env-unset as feature-off / fail-closed
+//   (1) Per-request secret gates that treat env-unset as feature-off
 //       at request time: require_internal_secret.ts + internal.ts
-//       (RESTART_COUNTDOWN_SECRET, DISCORD_BOT_SECRET) and daily_rewards.ts
-//       (WOC_DAILY_REWARD_SERVICE_SECRET, WOC_DAILY_REWARD_SERVICE_URL).
+//       (RESTART_COUNTDOWN_SECRET).
 //   (2) Per-request dev-gate reads of ALLOW_DEV_COMMANDS: the game.ts per-tick /
 //       per-command cheat gates (alongside ANTIBOT_ENFORCE, PERF_TICK_LOG,
 //       SELF_SNAPSHOT_FULL) and the two /api/perf report gates (the main.ts legacy
@@ -38,12 +37,10 @@
 //       surviving migrated arm onto Config.allowDevCommands (the validated
 //       single-source pin); the game.ts per-command env reads stay per-command by
 //       design.
-//   (3) Domain feature-config getters that own their own env (discord.ts, github.ts
+//   (3) Domain feature-config getters that own their own env (github.ts
 //       OAuth, oauth.ts, native_attestation.ts, email/, auth.ts banlist,
-//       chat_filter_db.ts, woc_balance.ts, perf_report.ts, TRUSTED_PROXY_IPS in
-//       ratelimit.ts), plus daily_rewards.ts's module-load cache-TTL test knob
-//       WOC_DAILY_REWARD_CONFIG_TTL_MS (a garbage value degrades to cache-off,
-//       never breaks a request).
+//       chat_filter_db.ts, perf_report.ts, TRUSTED_PROXY_IPS in
+//       ratelimit.ts).
 //   (4) The security-header / enforce-flag middlewares keep their own
 //       `env = process.env` seam (security_headers.ts HSTS-in-prod,
 //       content_type.ts API_CONTENT_TYPE_ENFORCE, origin_check.ts

@@ -145,33 +145,6 @@ export const ERROR_CODES = deepFreeze({
   // A mutating request carried a clear cross-site Origin that is neither
   // same-origin nor allowlisted (server/http/middleware/origin_check.ts).
   'origin.cross_site': { params: [] },
-
-  // --- Discord family codes. These ride ALONGSIDE the untouched legacy
-  // prose in the server/discord.ts { error } bodies (additive; the format stays
-  // JSON, never problem+json). The shared rate-limit prose { error: 'rate limited' }
-  // is NOT coded here: it is the cross-cutting rate_limit.exceeded identity whose
-  // coded emission lands on the migrated path via the rateLimit(policy) middleware,
-  // and Discord's DISCORD_POLICY stays UNMOUNTED (its keying is entangled with the
-  // handler; mounting would switch the body to problem+json, out of scope). ---
-
-  // identity: "Discord integration is not configured" (feature-off 503 on start)
-  'discord.not_configured': { params: [] },
-  // identity: "expired" (the one-time OAuth/pending-login handoff token expired)
-  'discord.expired': { params: [] },
-  // identity: "already_linked" (this Discord identity is linked to another account)
-  'discord.already_linked': { params: [] },
-  // identity: "password_required" (unlink a Discord-only account needs a password)
-  'discord.password_required': { params: [] },
-  // identity: "unknown swag item" (the swagId is not a known reward)
-  'discord.unknown_swag': { params: [] },
-  // identity: "link your Discord account first" (swag claim needs a linked account)
-  'discord.link_required': { params: [] },
-  // identity: "claimed" (this swag reward was already claimed)
-  'discord.swag_claimed': { params: [] },
-  // identity: "tier" (status tier too low to claim this swag reward)
-  'discord.swag_tier': { params: [] },
-  // identity: "points" (not enough reward points to claim this swag reward)
-  'discord.swag_points': { params: [] },
 } as const);
 
 /** A stable error code: one of the keys of ERROR_CODES. */

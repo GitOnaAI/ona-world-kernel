@@ -25,7 +25,6 @@ Postgres and serves the built client from `dist/`.
 | `ratelimit.ts` | per-IP sliding-window limiter + `X-Forwarded-For` resolution |
 | `internal.ts` | secret-gated `/internal/*` ops endpoints (e.g. restart-countdown trigger) |
 | `ws_buffer.ts` | buffers in-flight WS frames during the async auth handshake, then replays them |
-| `woc_balance.ts` | the sole Solana RPC reader: holder-tier flair and connected-wallet balance, cached |
 | `player_card.ts` | shareable player-card PNGs, Open Graph unfurl, referral capture |
 | `perf_report.ts` / `provider_usage.ts` | rate-limited client perf-report ingestion / process-local provider and usage telemetry for the admin dashboard |
 
@@ -42,7 +41,7 @@ Postgres and serves the built client from `dist/`.
 - **SQL lives only in `db.ts` and `*_db.ts`.** Logic modules (`game.ts`,
   `social.ts`, `admin.ts`) carry zero raw SQL: `SocialService` talks to a
   `SocialDb` interface so tests use an in-memory fake. Don't inline `pool.query` in a logic module.
-  `wallet_link.ts` (pure, IO-free, unit-testable without a DB) versus `wallet.ts` (DB+HTTP shell) is the canonical IO/pure split to copy, mirroring `chat_filter.ts`/`chat_filter_db.ts` and `SocialService`/`SocialDb`.
+  `chat_filter.ts`/`chat_filter_db.ts` and `SocialService`/`SocialDb` are the canonical IO/pure splits to copy.
 - **`ALLOW_DEV_COMMANDS=1` gates `dev_level`/`dev_teleport`/`dev_give`** (dev/E2E only, **never prod**).
 
 ## Persistence model

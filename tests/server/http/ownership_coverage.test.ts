@@ -42,8 +42,6 @@ import { ADMIN_AUTH_REQUIRED } from '../../../server/http/middleware/require_adm
 import {
   DEPLOY_SECRET_ENV,
   DEPLOY_SECRET_HEADER,
-  DISCORD_SECRET_ENV,
-  DISCORD_SECRET_HEADER,
 } from '../../../server/http/middleware/require_internal_secret';
 import { withErrors } from '../../../server/http/middleware/with_errors';
 import { apiRoutes } from '../../../server/http/registry';
@@ -559,13 +557,13 @@ describe('admin auth-mounting sweep: every non-login admin route 401s an unauthe
 // The analogous gate-mounting sweep the admin-surface QA mandated for every future
 // authed surface: requireInternalSecret carries no meta marker, so no metadata
 // clause can catch a forgotten gate; only this functional sweep can. An ungated
-// /internal route would serve the Discord-bot / deploy / payout ops surface to
+// /internal route would serve the deploy ops surface to
 // the open internet. It drives each route's real middleware chain twice,
 // asserting the gate short-circuits with the legacy bodies BEFORE the handler:
-//   1. env secret UNSET  -> the deploy/discord gates hide with the feature-off
+//   1. env secret UNSET  -> the deploy gate hides with the feature-off
 //      404 { ...error: 'unknown endpoint' } (anti-enumeration);
 //   2. env secret SET + a WRONG header secret -> 401 { ...error: 'not
-//      authenticated' } on both gates.
+//      authenticated' }.
 // A negative control proves the sweep detects a route that forgot the gate.
 // -------------------------------------------------------------------------
 
@@ -582,31 +580,22 @@ const RIGHT_SECRET = 'sweep-expected-secret-value';
 const WRONG_SECRET = 'sweep-presented-wrong-value';
 
 // Which (header, env var) pair a route's gate enforces, plus the body the gate
-// answers when its env secret is UNSET: restart-countdown carries the deploy
-// pair, every discord route the bot pair.
-function gatePairFor(route: RouteDef): {
+// answers when its env secret is UNSET: restart-countdown carries the deploy pair.
+function gatePairFor(_route: RouteDef): {
   header: string;
   envVar: string;
   unsetStatus: number;
   unsetBody: Record<string, unknown>;
 } {
-  if (route.path === '/internal/restart-countdown') {
-    return {
-      header: DEPLOY_SECRET_HEADER,
-      envVar: DEPLOY_SECRET_ENV,
-      unsetStatus: 404,
-      unsetBody: INTERNAL_FEATURE_OFF,
-    };
-  }
   return {
-    header: DISCORD_SECRET_HEADER,
-    envVar: DISCORD_SECRET_ENV,
+    header: DEPLOY_SECRET_HEADER,
+    envVar: DEPLOY_SECRET_ENV,
     unsetStatus: 404,
     unsetBody: INTERNAL_FEATURE_OFF,
   };
 }
 
-const SWEPT_SECRET_ENVS = [DEPLOY_SECRET_ENV, DISCORD_SECRET_ENV] as const;
+const SWEPT_SECRET_ENVS = [DEPLOY_SECRET_ENV] as const;
 
 describe('internal secret-gate mounting sweep: every /internal route is gated', () => {
   const savedSecrets = new Map<string, string | undefined>();
@@ -635,8 +624,8 @@ describe('internal secret-gate mounting sweep: every /internal route is gated', 
     vi.restoreAllMocks();
   });
 
-  it('selects the full 9-route internal surface (restart-countdown + the Discord-bot routes)', () => {
-    expect(internalSurfaceRoutes.length).toBe(9);
+  it('selects the full 1-route internal surface (restart-countdown)', () => {
+    expect(internalSurfaceRoutes.length).toBe(1);
   });
 
   for (const route of internalSurfaceRoutes) {

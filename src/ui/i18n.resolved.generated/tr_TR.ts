@@ -1282,17 +1282,6 @@ export const tr_TR: EnTranslations = {
     },
     "origin": {
       "cross_site": "Güvenlik nedeniyle istek engellendi."
-    },
-    "discord": {
-      "not_configured": "Discord entegrasyonu şu anda kullanılamıyor.",
-      "expired": "Bu Discord girişinin süresi doldu. Lütfen tekrar Discord ile giriş yapın.",
-      "already_linked": "Bu Discord hesabı zaten başka bir hesaba bağlı.",
-      "password_required": "Discord hesabınızın bağlantısını kaldırmadan önce bir parola belirleyin.",
-      "unknown_swag": "Bu ödül mevcut değil.",
-      "link_required": "Önce Discord hesabınızı bağlayın.",
-      "swag_claimed": "Bu ödülü zaten aldınız.",
-      "swag_tier": "Bunu almak için daha yüksek bir rütbeye ulaşın.",
-      "swag_points": "Yeterli puan yok."
     }
   },
   "guide": {

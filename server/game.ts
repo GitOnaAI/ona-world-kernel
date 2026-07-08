@@ -13,7 +13,6 @@ import {
   zoneAt,
 } from '../src/sim/data';
 import { devTierIndexForMergedPrs } from '../src/sim/dev_tier';
-import { parseRelayCommand } from '../src/sim/discord_relay';
 import type { PickAction } from '../src/sim/lockpick';
 import { sanitizeMarketQuery } from '../src/sim/market_query';
 import { parseMoveInputFrame } from '../src/sim/move_input';
@@ -67,9 +66,6 @@ import {
   saveMarketState,
   touchCharacterLogin,
 } from './db';
-import { enqueueActivity } from './discord_activity';
-import { discordFlairForAccount, grantRewardPoints } from './discord_db';
-import { enqueueRelay } from './discord_relay';
 import { formatDuration } from './duration';
 import { mergedPrsForLogin } from './github_contributors';
 import { githubForAccount } from './github_db';
@@ -329,16 +325,10 @@ const HEAVY_SELF_EVENTS = new Set<string>([
   'summonDemon',
 ]);
 
-// How often to re-broadcast online players' cosmetic flair (Discord link,
-// developer badge). The underlying reads are cached inside their own modules,
-// which is the real freshness floor.
+// How often to re-broadcast online players' cosmetic flair (developer badge).
+// The underlying reads are cached inside their own modules, which is the real
+// freshness floor.
 const FLAIR_REFRESH_MS = 60_000;
-// Reward points for in-game playtime: a grant every PLAYTIME_GRANT_MS to each
-// online account that was active (gave input) since the last grant. Ties points
-// to real engagement, not idling. Discord activity grants the rest (bot-driven).
-const PLAYTIME_GRANT_MS = 5 * 60_000;
-const PLAYTIME_POINTS = 10;
-const RELAY_COOLDOWN_MS = 8_000; // min gap between a player's "!" community posts
 const ADMIN_LOCATION_POI_RADIUS = 32;
 
 export interface ClientSession {
@@ -564,11 +554,6 @@ function identityFields(e: Entity): Record<string, unknown> {
       break;
     }
   }
-  if (e.discordTier) out.dt = e.discordTier; // Discord status-tier flair (cosmetic)
-  if (e.discordAvatar) out.dav = e.discordAvatar; // Discord PFP (linked indicator)
-  if (e.discordName) out.dnm = e.discordName; // Discord handle / nickname (nameplate)
-  if (e.discordJoined) out.dj = e.discordJoined; // Discord join epoch ms (member since)
-  if (e.discordRole) out.dr = e.discordRole; // top staff/special role key (name color + tag)
   if (e.devTier) out.dvt = e.devTier; // developer-badge tier (cosmetic)
   if (e.devMergedPrs) out.dvc = e.devMergedPrs; // merged-PR count, for inspect/card
   if (e.githubLogin) out.dgl = e.githubLogin; // GitHub login (inspect readout + profile link)
@@ -757,9 +742,6 @@ export class GameServer {
   private flairRefreshInterval: NodeJS.Timeout | null = null;
   private keepaliveInterval: NodeJS.Timeout | null = null;
   private flairRefreshing = false; // overlap guard for the refresh cycle
-  private playtimeInterval: NodeJS.Timeout | null = null;
-  private lastPlaytimeGrantAt = new Map<number, number>(); // accountId -> sim time of last grant
-  private relayCooldown = new Map<number, number>(); // accountId -> last "!" relay post (ms)
   private saveTimer = 0;
   private socialPosTimer = 0;
   private saveAllInFlight: Promise<void> | null = null;
@@ -1121,10 +1103,6 @@ export class GameServer {
     this.flairRefreshInterval = setInterval(() => {
       void this.refreshAllFlair();
     }, FLAIR_REFRESH_MS);
-    // Reward in-game playtime: grant points to active online accounts off-loop.
-    this.playtimeInterval = setInterval(() => {
-      void this.grantPlaytimePoints();
-    }, PLAYTIME_GRANT_MS);
     this.keepaliveInterval = setInterval(() => {
       this.pingLiveSessions();
     }, WS_KEEPALIVE_PING_MS);
@@ -1166,93 +1144,7 @@ export class GameServer {
   stop(): void {
     if (this.interval) clearInterval(this.interval);
     if (this.flairRefreshInterval) clearInterval(this.flairRefreshInterval);
-    if (this.playtimeInterval) clearInterval(this.playtimeInterval);
     if (this.keepaliveInterval) clearInterval(this.keepaliveInterval);
-  }
-
-  // Grant playtime reward points to each online account that has been ACTIVE (gave
-  // input recently), so points reflect real engagement rather than idling. Lifetime
-  // points are monotonic, so this also nudges the Discord status tier over time.
-  private async grantPlaytimePoints(): Promise<void> {
-    const windowSecs = PLAYTIME_GRANT_MS / 1000;
-    for (const session of this.clients.values()) {
-      if (this.sim.time - session.lastInputAt > windowSecs) continue; // idle: skip
-      const last = this.lastPlaytimeGrantAt.get(session.accountId);
-      if (last !== undefined && this.sim.time - last < windowSecs) continue;
-      this.lastPlaytimeGrantAt.set(session.accountId, this.sim.time);
-      try {
-        await grantRewardPoints(pool, session.accountId, PLAYTIME_POINTS, 'playtime');
-      } catch (err) {
-        console.error('playtime reward grant failed:', err);
-      }
-    }
-  }
-
-  // Refresh one player's linked-Discord flair (status tier + PFP + nickname +
-  // member-since + staff role) for nearby players' nameplates / inspect cards.
-  private async refreshDiscordFlair(session: ClientSession): Promise<void> {
-    const flair = await discordFlairForAccount(pool, session.accountId);
-    if (this.clients.get(session.pid) !== session) return;
-    const e = this.sim.entities.get(session.pid);
-    if (!e) return;
-    const tier = flair?.tier ?? 0;
-    const avatar = flair?.avatarUrl ?? undefined;
-    const name = flair?.name ?? undefined;
-    const joined = flair?.joinedAtMs ?? undefined;
-    const role = flair?.role ?? undefined;
-    if (
-      e.discordTier !== tier ||
-      e.discordAvatar !== avatar ||
-      e.discordName !== name ||
-      e.discordJoined !== joined ||
-      e.discordRole !== role
-    ) {
-      // identity diff re-broadcasts the linked-Discord flair to nearby players
-      e.discordTier = tier;
-      e.discordAvatar = avatar;
-      e.discordName = name;
-      e.discordJoined = joined;
-      e.discordRole = role;
-    }
-  }
-
-  // Intercept a leading "!" community command in chat (lfg/wts/...): broadcast it
-  // in-world and hand it to the bot for Discord cross-post. Returns true when it
-  // consumed the line (so it is not sent as normal chat).
-  private handleRelayCommand(session: ClientSession, text: string): boolean {
-    const parsed = parseRelayCommand(text);
-    if (!parsed) return false; // unknown "!word" -> treat as normal chat
-    const now = Date.now();
-    if (now - (this.relayCooldown.get(session.accountId) ?? 0) < RELAY_COOLDOWN_MS) return true;
-    this.relayCooldown.set(session.accountId, now);
-    const { command, message } = parsed;
-    const e = this.sim.entities.get(session.pid);
-    const cls = e ? e.templateId.charAt(0).toUpperCase() + e.templateId.slice(1) : '';
-    const zone = e
-      ? e.dungeonId
-        ? (DUNGEONS[e.dungeonId]?.name ?? e.dungeonId)
-        : zoneAt(e.pos.z).name
-      : REALM;
-    // In-game: a system broadcast everyone sees (variable-routed; S3 guard skips it).
-    this.broadcastSystem(`[${command.tag}] ${session.name}: ${message || command.label}`);
-    // Out-of-game: hand off to the bot, which posts a rich embed with a Respond button.
-    enqueueRelay({
-      commandId: command.id,
-      tag: command.tag,
-      label: command.label,
-      color: command.color,
-      accountId: session.accountId,
-      characterName: session.name,
-      level: e?.level ?? 1,
-      className: cls,
-      realm: REALM,
-      zone,
-      message,
-      profileUrl: REALM_PUBLIC_ORIGIN
-        ? `${REALM_PUBLIC_ORIGIN}/c/${encodeURIComponent(session.name)}`
-        : null,
-    });
-    return true;
   }
 
   // Update one player's developer-badge flair from their linked GitHub login and
@@ -1294,14 +1186,9 @@ export class GameServer {
     try {
       await Promise.all(
         [...this.clients.values()].map((session) =>
-          Promise.all([
-            this.refreshDiscordFlair(session).catch((err) =>
-              console.error('discord flair refresh failed:', err),
-            ),
-            this.refreshDevBadge(session).catch((err) =>
-              console.error('dev badge refresh failed:', err),
-            ),
-          ]),
+          this.refreshDevBadge(session).catch((err) =>
+            console.error('dev badge refresh failed:', err),
+          ),
         ),
       );
     } finally {
@@ -1457,19 +1344,6 @@ export class GameServer {
     void grantAccountMechChroma(session.accountId, chromaId)
       .then((cosmetics) => this.updateLiveAccountCosmetics(session.accountId, cosmetics))
       .catch((err) => console.error('failed to save account mech chroma:', err));
-  }
-
-  /**
-   * Grant a mech-chroma cosmetic to an account by id (a Discord swag claim, whose
-   * points/claim are already resolved durably server-side). Best-effort live update:
-   * persist the grant, then push the refreshed cosmetics to any online session on the
-   * account. The live push is a no-op when the account is offline. Injected into the
-   * ported Discord swag route via configureDiscordRuntime (server/discord.ts).
-   */
-  grantMechChromaToAccount(accountId: number, chromaId: string): void {
-    void grantAccountMechChroma(accountId, chromaId)
-      .then((cosmetics) => this.updateLiveAccountCosmetics(accountId, cosmetics))
-      .catch((err) => console.error('failed to grant swag mech chroma:', err));
   }
 
   private unequipAccountMechChroma(session: ClientSession, chromaId: string): void {
@@ -1657,9 +1531,6 @@ export class GameServer {
       list: [{ type: 'log', text: `${name} has entered World of ClaudeCraft.`, color: '#ffd100' }],
     });
     void this.initSocial(session);
-    void this.refreshDiscordFlair(session).catch((err) =>
-      console.error('discord flair refresh failed:', err),
-    );
     // Stamp the developer-badge flair from the linked GitHub login (best-effort:
     // a contributor-stats read must never affect joining the world).
     void this.refreshDevBadge(session).catch((err) =>
@@ -2689,9 +2560,6 @@ export class GameServer {
         // message is routed anywhere. Soft (cosmetic) words are NOT touched here
         // — clients mask those locally when their profanity filter is on.
         if (this.enforceChatPolicy(session, text)) break;
-        // "!" community commands (lfg/wts/...): broadcast in-world + cross-post to
-        // Discord, then stop (not normal chat).
-        if (text.startsWith('!') && this.handleRelayCommand(session, text)) break;
         // guild and officer chat are persistent + cross-zone, so they live in
         // the server's SocialService rather than the sim (no guild concept).
         // MMO convention: /g is guild; /general remains world chat.
@@ -3697,17 +3565,10 @@ export class GameServer {
     return { otherPid, otherName: this.sim.meta(otherPid)?.name ?? '?', state: d.state };
   }
 
-  // Public profile URL for a character name, or null when no public origin is set.
-  private profileUrlFor(name: string): string | null {
-    return REALM_PUBLIC_ORIGIN ? `${REALM_PUBLIC_ORIGIN}/c/${encodeURIComponent(name)}` : null;
-  }
-
-  // Scan a tick's events for "significant activity" (max-level ding, rare drop,
-  // duel result, arena win) and enqueue a card for the Discord bot to post. The
-  // drain endpoint resolves which players are linked and tags them; the queue
-  // dedupes so one moment yields one card.
+  // Scan a tick's events for marketing-relevant milestones (the level-5 ding
+  // feeds the Meta CAPI tracker). Formerly this also enqueued "significant
+  // activity" cards for the Discord bot; that integration was removed.
   private detectActivity(events: SimEvent[]): void {
-    const now = Date.now();
     for (const ev of events) {
       if (ev.type === 'levelup' && ev.level === 5 && ev.pid !== undefined) {
         const s = this.clients.get(ev.pid);
@@ -3723,83 +3584,6 @@ export class GameServer {
             s.sourceUrl,
           );
         }
-      }
-      if (ev.type === 'levelup' && ev.level === MAX_LEVEL && ev.pid !== undefined) {
-        const s = this.clients.get(ev.pid);
-        if (!s) continue;
-        enqueueActivity(
-          {
-            kind: 'levelup',
-            accountIds: [s.accountId],
-            names: [s.name],
-            realm: REALM,
-            profileUrl: this.profileUrlFor(s.name),
-            level: ev.level,
-          },
-          `levelup:${s.accountId}`,
-          now,
-        );
-      } else if (
-        (ev.type === 'lootRoll' || ev.type === 'masterLoot') &&
-        (ev.quality === 'epic' || ev.quality === 'legendary')
-      ) {
-        // A genuinely rare item dropped (roll-worthy); one card per drop (rollId).
-        const s = ev.pid !== undefined ? this.clients.get(ev.pid) : undefined;
-        enqueueActivity(
-          {
-            kind: 'rareloot',
-            accountIds: s ? [s.accountId] : [],
-            names: s ? [s.name] : [],
-            realm: REALM,
-            profileUrl: s ? this.profileUrlFor(s.name) : null,
-            itemName: ev.itemName,
-            quality: ev.quality,
-          },
-          `rareloot:${ev.rollId}`,
-          now,
-        );
-      } else if (ev.type === 'duelEnd') {
-        const w = this.sessionByName(ev.winnerName);
-        const l = this.sessionByName(ev.loserName);
-        const accountIds: number[] = [];
-        const names: string[] = [];
-        if (w) {
-          accountIds.push(w.accountId);
-          names.push(w.name);
-        }
-        if (l) {
-          accountIds.push(l.accountId);
-          names.push(l.name);
-        }
-        enqueueActivity(
-          {
-            kind: 'duel',
-            accountIds,
-            names,
-            realm: REALM,
-            profileUrl: this.profileUrlFor(ev.winnerName),
-            winnerName: ev.winnerName,
-            loserName: ev.loserName,
-          },
-          `duel:${ev.winnerName}:${ev.loserName}`,
-          now,
-        );
-      } else if (ev.type === 'arenaEnd' && !ev.draw && ev.pid !== undefined) {
-        const s = this.clients.get(ev.pid);
-        if (!s) continue;
-        if (!ev.won) continue;
-        enqueueActivity(
-          {
-            kind: 'arena',
-            accountIds: [s.accountId],
-            names: [s.name],
-            realm: REALM,
-            profileUrl: this.profileUrlFor(s.name),
-            ratingDelta: ev.ratingAfter - ev.ratingBefore,
-          },
-          `arena:${s.accountId}:${ev.ratingAfter}`,
-          now,
-        );
       }
     }
   }

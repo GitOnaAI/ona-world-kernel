@@ -1282,17 +1282,6 @@ export const zh_TW: EnTranslations = {
     },
     "origin": {
       "cross_site": "出於安全原因，請求已被封鎖。"
-    },
-    "discord": {
-      "not_configured": "Discord 整合目前無法使用。",
-      "expired": "該 Discord 登入已過期，請重新使用 Discord 登入。",
-      "already_linked": "該 Discord 帳號已連結到另一個帳號。",
-      "password_required": "取消連結 Discord 帳號前請先設定密碼。",
-      "unknown_swag": "該獎勵無法使用。",
-      "link_required": "請先連結你的 Discord 帳號。",
-      "swag_claimed": "你已經領取過此獎勵。",
-      "swag_tier": "達到更高階級才能領取此項目。",
-      "swag_points": "點數不足。"
     }
   },
   "guide": {

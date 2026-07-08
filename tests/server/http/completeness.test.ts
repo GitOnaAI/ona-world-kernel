@@ -93,20 +93,8 @@ function isCovered(
 // The legacy /api ladder (must-serve set) and the source-derived served set.
 // -------------------------------------------------------------------------
 
-// The swag-claim orphan is an unreachable handler with no dispatch arm today (see
-// the swagClaimOrphanUnreachable known deviation), so it is intentionally NOT
-// served and is excluded from the must-serve set. Referencing the deviation keeps
-// the exclusion documented, not silent.
-const ORPHAN_DEVIATION = KNOWN_DEVIATIONS.find(
-  (d) => d.id === DEVIATION_ID.swagClaimOrphanUnreachable,
-);
-const EXCLUDED_PATHS = new Set<string>(ORPHAN_DEVIATION?.routes ?? []);
-
-// Every legacy /api ladder row (dispatcher === main handleApi), minus the
-// documented unreachable orphan.
-const legacyLadder = SURFACE_INVENTORY.filter(
-  (r) => r.dispatcher === DISPATCH.mainApi && !EXCLUDED_PATHS.has(r.path),
-);
+// Every legacy /api ladder row (dispatcher === main handleApi).
+const legacyLadder = SURFACE_INVENTORY.filter((r) => r.dispatcher === DISPATCH.mainApi);
 
 // Read main.ts as a FILE (never import: main constructs a pg pool at load) and
 // re-derive the set of /api paths the CURRENT handleApi still serves (extend
@@ -169,7 +157,7 @@ describe('registry completeness: the legacy /api ladder is fully covered', () =>
   });
 });
 
-describe('registry completeness: migrated baseline (public reads + auth + characters + account + card + reports/telemetry + discord)', () => {
+describe('registry completeness: migrated baseline (public reads + auth + characters + account + card + reports/telemetry)', () => {
   // The exact routes migrated onto RouteDefs so far: the public
   // reads (GET, server/leaderboard.ts), the auth credential surface (POST,
   // server/auth_routes.ts), the owner-gated character surface
@@ -233,16 +221,6 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     { method: 'POST', path: '/api/bug-reports' },
     { method: 'POST', path: '/api/perf-report' },
     { method: 'POST', path: '/api/site-presence' },
-    // The Discord family (server/discord.ts). The OAuth start/callback
-    // pair, the two first-login chooser routes, the GET/DELETE /api/discord status +
-    // unlink pair, and the previously-orphaned swag claim (now reachable).
-    { method: 'POST', path: '/api/auth/discord/start' },
-    { method: 'GET', path: '/api/auth/discord/callback' },
-    { method: 'POST', path: '/api/auth/discord/login/new' },
-    { method: 'POST', path: '/api/auth/discord/login/link' },
-    { method: 'GET', path: '/api/discord' },
-    { method: 'DELETE', path: '/api/discord' },
-    { method: 'POST', path: '/api/discord/swag/claim' },
     // The release-merge late-arrival families. The GitHub link family
     // (server/github.ts) and the desktop-login handoff pair
     // (server/desktop_login_routes.ts, on the fused register/login budget).
@@ -298,17 +276,6 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // Each migrated route must also be an inventory ladder route AND retain its
     // legacy arm (rollback), so the flag can roll each one back per route.
     for (const route of MIGRATED_ROUTES) {
-      // The Discord swag-claim is the one exception: it was an unreachable orphan
-      // (no legacy arm ever existed), so it is registered router-owned ONLY.
-      // It has no rollback arm to retain, so assert the orphan shape (router-owned,
-      // NOT legacy-served) and skip the must-be-a-ladder-route requirement. Its
-      // dedicated 'excludes the documented unreachable swag-claim orphan' test pins
-      // the SURFACE_INVENTORY unreachable flag + the deviation.
-      if (EXCLUDED_PATHS.has(route.path)) {
-        expect(isRouterOwned(apiRegistry, route)).toBe(true);
-        expect(legacyServes(route, legacyServed)).toBe(false);
-        continue;
-      }
       const row = legacyLadder.find((r) => r.path === route.path && r.method === route.method);
       expect(
         row,
@@ -332,21 +299,6 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
   it('the router-owned UNION delegate-served set still covers the whole ladder', () => {
     const covered = legacyLadder.filter((r) => isCovered(r, apiRegistry, legacyServed));
     expect(covered.length).toBe(legacyLadder.length);
-  });
-
-  it('excludes the documented unreachable swag-claim orphan from the must-serve set', () => {
-    expect(ORPHAN_DEVIATION).toBeDefined();
-    expect(ORPHAN_DEVIATION?.routes).toContain('/api/discord/swag/claim');
-    const orphanRow = SURFACE_INVENTORY.find((r) => r.path === '/api/discord/swag/claim');
-    expect(orphanRow?.unreachable).toBe(true);
-    expect(orphanRow?.dispatcher).toBe(DISPATCH.mainApi);
-    expect(legacyLadder.some((r) => r.path === '/api/discord/swag/claim')).toBe(false);
-    // The source does not serve it either, so including it in the must-serve set
-    // would (correctly) fail the coverage gate; the exclusion is what keeps the
-    // gate honest rather than red on a by-design orphan.
-    expect(legacyServes({ method: 'POST', path: '/api/discord/swag/claim' }, legacyServed)).toBe(
-      false,
-    );
   });
 });
 
@@ -465,8 +417,8 @@ describe('registry completeness: oauth + internal surfaces (server/oauth.ts, ser
   it('derives the expected non-empty ladders', () => {
     expect(oauthPostLadder.length).toBe(5);
     expect(oauthGetLadder.length).toBe(2);
-    // 9 = restart-countdown + the 8 Discord-bot routes.
-    expect(internalLadder.length).toBe(9);
+    // 1 = restart-countdown.
+    expect(internalLadder.length).toBe(1);
   });
 
   it('registers exactly the oauth POST ladder routes', () => {

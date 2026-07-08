@@ -1282,17 +1282,6 @@ export const id_ID: EnTranslations = {
     },
     "origin": {
       "cross_site": "Permintaan diblokir karena alasan keamanan."
-    },
-    "discord": {
-      "not_configured": "Integrasi Discord tidak tersedia saat ini.",
-      "expired": "Proses masuk Discord itu telah kedaluwarsa. Silakan masuk dengan Discord lagi.",
-      "already_linked": "Akun Discord itu sudah tertaut ke akun lain.",
-      "password_required": "Atur kata sandi sebelum memutus tautan akun Discord Anda.",
-      "unknown_swag": "Hadiah itu tidak tersedia.",
-      "link_required": "Tautkan akun Discord Anda terlebih dahulu.",
-      "swag_claimed": "Anda sudah mengklaim hadiah ini.",
-      "swag_tier": "Capai peringkat yang lebih tinggi untuk mengklaim ini.",
-      "swag_points": "Poin tidak cukup."
     }
   },
   "guide": {

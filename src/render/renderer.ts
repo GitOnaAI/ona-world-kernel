@@ -30,7 +30,6 @@ import type { DelveModuleId } from '../sim/delve_layout';
 import type { BiomeId } from '../sim/types';
 import { ALL_CLASSES, type Entity, type SimEvent } from '../sim/types';
 import { groundHeight, waterLevelAt, zoneBiomeAt } from '../sim/world';
-import { attachAvatarFallback } from '../ui/avatar_fallback';
 import { tEntity } from '../ui/entity_i18n';
 import type { IWorld } from '../world_api';
 import { isVisuallyDead } from './anim_state';
@@ -510,8 +509,6 @@ export interface EntityView {
   comboSig: string; // cheap-diff for the combo pip row
   devTierEl: HTMLImageElement; // developer-badge flair badge (other players)
   devTierValue: number; // last-applied devTier, to diff cheaply
-  discordEl: HTMLImageElement; // linked-Discord PFP next to the name (other players)
-  discordAvatarSig: string; // last-applied discord avatar URL, to diff cheaply
   sparkle?: THREE.Sprite; // ground objects
   objectMesh?: THREE.Object3D;
   objectPoolKey: string | null;
@@ -3346,16 +3343,6 @@ export class Renderer {
     devTierEl.className = 'np-dev-tier';
     devTierEl.alt = '';
     devTierEl.style.display = 'none';
-    // linked-Discord PFP, shown inline before the name for other players
-    const discordEl = document.createElement('img');
-    discordEl.className = 'np-discord';
-    discordEl.alt = '';
-    discordEl.referrerPolicy = 'no-referrer';
-    discordEl.style.display = 'none';
-    // The avatar is the one nameplate image sourced from an external URL (Discord's
-    // CDN); if it fails to load, hide it rather than leave the browser's broken-image
-    // placeholder on the plate. Attached once here; the element is reused per entity.
-    attachAvatarFallback(discordEl);
     const nameEl = document.createElement('div');
     nameEl.className = 'np-name';
     nameEl.textContent = e.kind === 'object' ? objectDisplayName(e) : e.name;
@@ -3377,18 +3364,7 @@ export class Renderer {
     const castLabel = document.createElement('div');
     castLabel.className = 'np-castlabel';
     castBar.append(castFill, castLabel);
-    np.append(
-      emoteEl,
-      raidMark,
-      comboRow,
-      marker,
-      devTierEl,
-      discordEl,
-      nameEl,
-      guildEl,
-      hpBar,
-      castBar,
-    );
+    np.append(emoteEl, raidMark, comboRow, marker, devTierEl, nameEl, guildEl, hpBar, castBar);
     this.nameplateLayer.appendChild(np);
 
     // object views gate their own casters; character shadows live in visual
@@ -3443,7 +3419,6 @@ export class Renderer {
       castFill,
       castLabel,
       devTierEl,
-      discordEl,
       sparkle,
       objectMesh,
       objectPoolKey,
@@ -3455,7 +3430,6 @@ export class Renderer {
       nameplateHpWidth: '',
       comboSig: '',
       devTierValue: 0,
-      discordAvatarSig: '',
       objectCasters,
       viewLights,
       shadowOn: true,

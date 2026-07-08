@@ -14,7 +14,6 @@ import {
   resetAuthFailures,
   resetCardUploadRateLimits,
   resetCharacterMutationRateLimits,
-  resetDiscordRateLimits,
   resetPublicReadRateLimits,
   resetRateLimitClock,
   resetRateLimits,
@@ -62,7 +61,6 @@ export interface RunParityOpts {
 async function isolatePass(extraReset?: () => Promise<void> | void): Promise<void> {
   resetRateLimits();
   resetCardUploadRateLimits();
-  resetDiscordRateLimits();
   resetPublicReadRateLimits();
   // The per-account character-mutation limiters are separate buckets, so a
   // create/rename/delete/takeover 429 on one pass must not bleed into the next.

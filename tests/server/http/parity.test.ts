@@ -34,12 +34,9 @@
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
-  DISCORD_MAX_PER_MINUTE,
-  discordRateLimited,
   resetAuthFailures,
   resetCardUploadRateLimits,
   resetCharacterMutationRateLimits,
-  resetDiscordRateLimits,
   resetPublicReadRateLimits,
   resetRateLimitClock,
   resetRateLimits,
@@ -72,15 +69,6 @@ const DEV_COMMANDS_ENV = 'ALLOW_DEV_COMMANDS';
 // pre-auth 413 fires before any db read.
 const HEADER_CONTENT_LENGTH = 'content-length';
 const OVERSIZE_CONTENT_LENGTH = '999999999';
-const DISCORD_ENV_KEYS = [
-  'DISCORD_CLIENT_ID',
-  'DISCORD_CLIENT_SECRET',
-  'DISCORD_GUILD_ID',
-] as const;
-
-function clearDiscordConfigEnv(): void {
-  for (const key of DISCORD_ENV_KEYS) delete process.env[key];
-}
 // A CORS Origin the server reflects: a genuine member of the native-app allowlist,
 // which maybeCors reflects regardless of the REALMS env (REALM_ORIGINS is empty in
 // tests). Read from the source set so a change to the allowlist keeps the test honest.
@@ -168,21 +156,6 @@ const API_REQUEST_CORPUS: readonly ApiRequestSpec[] = [
     body: {},
   },
 
-  // --- Discord contract paths, unconfigured / no auth (characterization block 8)
-  {
-    name: 'discord_start_unconfigured_503',
-    method: 'POST',
-    url: '/api/auth/discord/start',
-    body: {},
-  },
-  { name: 'discord_status_get_noauth_401', method: 'GET', url: '/api/discord' },
-  { name: 'discord_unlink_delete_noauth_401', method: 'DELETE', url: '/api/discord' },
-  {
-    name: 'discord_callback_error_bounce',
-    method: 'GET',
-    url: '/api/auth/discord/callback?code=x&state=y',
-  },
-
   // --- bearer-auth denial contracts, no Authorization (characterization block 9)
   { name: 'characters_get_noauth_401', method: 'GET', url: '/api/characters' },
   { name: 'me_characters_get_noauth_401', method: 'GET', url: '/api/me/characters' },
@@ -263,7 +236,6 @@ function isKnownDeviationPath(path: string): boolean {
 function isolate(): void {
   resetRateLimits();
   resetCardUploadRateLimits();
-  resetDiscordRateLimits();
   resetPublicReadRateLimits();
   // Keep in lockstep with isolatePass: the per-account character-mutation
   // buckets are separate, so a create/rename/delete/takeover 429 on one pass must not
@@ -297,7 +269,6 @@ let oldDispatch: Dispatch;
 let newDispatch: Dispatch;
 let report: ParityReport;
 let savedDevCommands: string | undefined;
-let savedDiscordEnv: Partial<Record<(typeof DISCORD_ENV_KEYS)[number], string | undefined>>;
 
 // Capture one fixture request through BOTH modes, each preceded by a full limiter
 // reset, and return the two normalized responses for a focused named assertion.
@@ -339,17 +310,10 @@ beforeAll(async () => {
   // Force the /api/perf dev gate off so GET /api/perf is a deterministic 404.
   savedDevCommands = process.env[DEV_COMMANDS_ENV];
   process.env[DEV_COMMANDS_ENV] = '0';
-  savedDiscordEnv = {};
-  for (const key of DISCORD_ENV_KEYS) {
-    savedDiscordEnv[key] = process.env[key];
-  }
-  clearDiscordConfigEnv();
   // Pin the GitHub releases proxy deterministic (unreachable GitHub -> empty feed).
   vi.stubGlobal('fetch', () => Promise.reject(new Error('network disabled for parity harness')));
 
   const main = (await import('../../../server/main')) as MainModule;
-  // server/db.ts loads .env during the main import, so clear again after import.
-  clearDiscordConfigEnv();
   oldDispatch = makeModedDispatch(main, 'legacy');
   newDispatch = makeModedDispatch(main, 'new');
 
@@ -363,11 +327,6 @@ afterAll(async () => {
   vi.unstubAllGlobals();
   if (savedDevCommands === undefined) delete process.env[DEV_COMMANDS_ENV];
   else process.env[DEV_COMMANDS_ENV] = savedDevCommands;
-  for (const key of DISCORD_ENV_KEYS) {
-    const value = savedDiscordEnv[key];
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
-  }
 });
 
 describe('/api dispatch parity (legacy flag vs new flag)', () => {
@@ -574,91 +533,6 @@ describe('/api dispatch parity (legacy flag vs new flag)', () => {
     expect(newCap.status).toBe(oldCap.status);
     expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
   });
-
-  // ---- Discord re-pins ------------------------------------------
-  // The newLimiterDiscord deviation lists /api/auth/discord/start,
-  // /api/auth/discord/callback and /api/discord, so the aggregate path-scoped filter
-  // masks EVERY divergence on those paths. The four discord corpus fixtures never hit
-  // the limiter / isIpBlocked / a DB read (start + callback answer from a null
-  // discordConfig; status + unlink 401 at the guard DB-free), so each must stay
-  // byte-identical old-vs-new; these dedicated captureBothModes assertions re-pin that
-  // identity the masking would otherwise hide (mirrors the reports/card re-pins).
-
-  it('POST /api/auth/discord/start unconfigured is identical old-vs-new and is a 503 (re-pins masked /start)', async () => {
-    // No DISCORD_CLIENT_ID in the harness env, so discordConfig() is null and
-    // handleDiscordStart answers 503 { error: 'Discord integration is not configured' }
-    // before the rate-limit; the new-path isIpBlocked gate passes (the harness IP is
-    // not blocked), so both flags land the identical 503.
-    const { oldCap, newCap } = await captureBothModes(() =>
-      makeReq({ method: 'POST', url: '/api/auth/discord/start', body: {} }),
-    );
-    expect(oldCap.status).toBe(503);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('GET /api/auth/discord/callback unconfigured is identical old-vs-new HTML bounce (re-pins masked /callback)', async () => {
-    // discordConfig() null -> handleDiscordCallback answers the HTML bouncePage 503
-    // { ok: false, mode: 'login', error: 'not_configured' } (never problem+json). The
-    // new path passes the isIpBlocked gate first, so the bounce is byte-identical.
-    const { oldCap, newCap } = await captureBothModes(() =>
-      makeReq({ method: 'GET', url: '/api/auth/discord/callback' }),
-    );
-    expect(oldCap.status).toBe(503);
-    expect(oldCap.headers['content-type']).toContain('text/html');
-    expect(newCap.headers['content-type']).toContain('text/html');
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('GET /api/discord with no auth is identical old-vs-new and is a 401 (re-pins masked /api/discord)', async () => {
-    // A no-bearer status read 401s at the shared activeGuard (DB-free) with
-    // { error: 'not authenticated' }, byte-identical on both flags.
-    const { oldCap, newCap } = await captureBothModes(() =>
-      makeReq({ method: 'GET', url: '/api/discord' }),
-    );
-    expect(oldCap.status).toBe(401);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('DELETE /api/discord with no auth is identical old-vs-new and is a 401 (completes the masked /api/discord re-pin)', async () => {
-    // The unlink arm shares the same guard; a no-bearer DELETE 401s DB-free, so the
-    // masking cannot hide an auth-shape break on either method of /api/discord.
-    const { oldCap, newCap } = await captureBothModes(() =>
-      makeReq({ method: 'DELETE', url: '/api/discord' }),
-    );
-    expect(oldCap.status).toBe(401);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  // The two chooser routes (login/new + login/link) are ALSO masked by
-  // newLimiterDiscord but have no corpus fixture (every non-429 branch reads the db:
-  // the pending-login token lookup is the first thing after the body). Their one
-  // deterministic, db-free branch is the shared handler self-limit (checked BEFORE
-  // the body read on both the legacy arm and the RouteDef), so each is re-pinned by
-  // draining the discord bucket before each pass and proving the 429 byte-identical.
-  for (const chooserPath of ['/api/auth/discord/login/new', '/api/auth/discord/login/link']) {
-    it(`POST ${chooserPath} with a drained bucket is identical old-vs-new and is a 429 (re-pins masked chooser route)`, async () => {
-      const drainedCapture = async (dispatch: Dispatch) => {
-        isolate();
-        // handleDiscordLoginNew/Link self-limit with discordRateLimited(req, 0): the
-        // ip bucket (127.0.0.1, same source as the fixture request) fills to the cap,
-        // so the replayed request below is the over-cap attempt on BOTH modes.
-        for (let i = 0; i < DISCORD_MAX_PER_MINUTE; i++) {
-          discordRateLimited(makeReq({ method: 'POST', url: chooserPath }), 0);
-        }
-        return normalizeResponse(
-          await captureResponse(dispatch, makeReq({ method: 'POST', url: chooserPath, body: {} })),
-        );
-      };
-      const oldCap = await drainedCapture(oldDispatch);
-      const newCap = await drainedCapture(newDispatch);
-      expect(oldCap.status).toBe(429);
-      expect(newCap.status).toBe(oldCap.status);
-      expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-    });
-  }
 
   it('CORS + OPTIONS preflight is byte-identical old-vs-new for an /api route and a public-cors path', async () => {
     // Representative /api route: maybeCors reflects the Origin, the 204 short-circuit
@@ -927,15 +801,12 @@ describe('/oauth dispatch parity (legacy flag vs new flag)', () => {
 
 describe('/internal dispatch parity (legacy flag vs new flag)', () => {
   const DEPLOY_ENV = 'RESTART_COUNTDOWN_SECRET';
-  const DISCORD_ENV = 'DISCORD_BOT_SECRET';
   const DEPLOY_HEADER = 'x-woc-deploy-secret';
-  const DISCORD_HEADER = 'x-woc-discord-secret';
   const PARITY_SECRET = 'parity-internal-secret';
 
   it('POST /internal/restart-countdown with the env secret unset is the feature-off 404, identical old-vs-new', async () => {
-    const { oldCap, newCap } = await captureWithEnv(
-      { [DEPLOY_ENV]: undefined, [DISCORD_ENV]: undefined },
-      () => makeReq({ method: 'POST', url: '/internal/restart-countdown', body: {} }),
+    const { oldCap, newCap } = await captureWithEnv({ [DEPLOY_ENV]: undefined }, () =>
+      makeReq({ method: 'POST', url: '/internal/restart-countdown', body: {} }),
     );
     expect(oldCap.status).toBe(404);
     expect(newCap.status).toBe(oldCap.status);
@@ -973,100 +844,12 @@ describe('/internal dispatch parity (legacy flag vs new flag)', () => {
     expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
   });
 
-  it('GET /internal/discord/flex with the env secret unset is the feature-off 404, identical old-vs-new', async () => {
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: undefined }, () =>
-      makeReq({ method: 'GET', url: '/internal/discord/flex' }),
-    );
-    expect(oldCap.status).toBe(404);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('GET /internal/discord/flex with a wrong secret is a 401, identical old-vs-new', async () => {
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: PARITY_SECRET }, () =>
-      makeReq({
-        method: 'GET',
-        url: '/internal/discord/flex',
-        headers: { [DISCORD_HEADER]: 'wrong-secret' },
-      }),
-    );
-    expect(oldCap.status).toBe(401);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('POST /internal/discord/presence with the correct secret is an authed 200 through the migrated chain, identical old-vs-new', async () => {
-    // A REAL gate-pass + handler run on both flags, db-free: an empty body clamps to
-    // zero counts and the handler writes only the in-memory presence cache.
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: PARITY_SECRET }, () =>
-      makeReq({
-        method: 'POST',
-        url: '/internal/discord/presence',
-        headers: { [DISCORD_HEADER]: PARITY_SECRET },
-        body: {},
-      }),
-    );
-    expect(oldCap.status).toBe(200);
-    expect(JSON.parse(oldCap.body as string)).toEqual({
-      success: true,
-      data: { received: true },
-      error: null,
-    });
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('POST /internal/discord/members-meta with the correct secret and no members is an authed 200 { updated: 0 }, identical old-vs-new', async () => {
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: PARITY_SECRET }, () =>
-      makeReq({
-        method: 'POST',
-        url: '/internal/discord/members-meta',
-        headers: { [DISCORD_HEADER]: PARITY_SECRET },
-        body: {},
-      }),
-    );
-    expect(oldCap.status).toBe(200);
-    expect(JSON.parse(oldCap.body as string)).toEqual({
-      success: true,
-      data: { updated: 0 },
-      error: null,
-    });
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('an unknown /internal/discord subpath with the correct secret delegates to the legacy gate-then-404, identical old-vs-new', async () => {
-    // Off the route table entirely: the dispatcher delegates, the legacy gate
-    // passes, and the ladder's terminal arm answers 404 'unknown endpoint'.
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: PARITY_SECRET }, () =>
-      makeReq({
-        method: 'GET',
-        url: '/internal/discord/this-endpoint-does-not-exist',
-        headers: { [DISCORD_HEADER]: PARITY_SECRET },
-      }),
-    );
-    expect(oldCap.status).toBe(404);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
-  it('a HEAD to a migrated internal GET delegates to the legacy gate (feature-off 404), identical old-vs-new', async () => {
-    // The router synthesizes HEAD from GET (head: true), and the dispatcher
-    // delegates a head match to the legacy ladder, where the unset env answers the
-    // feature-off 404 exactly as a GET would (Node suppresses the HEAD body).
-    const { oldCap, newCap } = await captureWithEnv({ [DISCORD_ENV]: undefined }, () =>
-      makeReq({ method: 'HEAD', url: '/internal/discord/flex' }),
-    );
-    expect(oldCap.status).toBe(404);
-    expect(newCap.status).toBe(oldCap.status);
-    expect(stableStringify(newCap)).toBe(stableStringify(oldCap));
-  });
-
   it('an unregistered /internal path falls through to the ladder 404, identical old-vs-new', async () => {
     // Not a registered route: the new path delegates to the legacy ladder, which
     // lands handleInternalApi's terminal 404 'unknown endpoint' with no gate
     // involved, byte-identical.
-    const { oldCap, newCap } = await captureWithEnv(
-      { [DEPLOY_ENV]: undefined, [DISCORD_ENV]: undefined },
-      () => makeReq({ method: 'GET', url: '/internal/this-endpoint-does-not-exist' }),
+    const { oldCap, newCap } = await captureWithEnv({ [DEPLOY_ENV]: undefined }, () =>
+      makeReq({ method: 'GET', url: '/internal/this-endpoint-does-not-exist' }),
     );
     expect(oldCap.status).toBe(404);
     expect(newCap.status).toBe(oldCap.status);
@@ -1080,7 +863,7 @@ describe('/internal dispatch parity (legacy flag vs new flag)', () => {
 // deviation (the *BodyValidationRemap hang-counterfactual class), which MASKS
 // its whole path in the corpus-wide known-deviations filter above, so these
 // dedicated captureBothModes assertions re-pin the db-free contract points
-// byte-identical old-vs-new (the reports/discord re-pin rule; the head-parity
+// byte-identical old-vs-new (the reports re-pin rule; the head-parity
 // gotcha). All cases are db-free: the no-auth 401s reject a missing bearer
 // before any resolver, the github callback answers its unconfigured 503 before
 // any state read, the exchange 401 is an in-process Map miss, and the ops
@@ -1202,17 +985,13 @@ describe('/api + /internal late-arrival dispatch parity (legacy flag vs new flag
 //     and every populated leaderboard/character/account success body: all reach
 //     pool.query against the pool-less test db (hang or pool-500), so they are not
 //     db-free contract paths. Deferred exactly as characterization defers them.
-//   - GET /api/auth/discord/callback SUCCESS bounce: embeds a live session token in
-//     inlined HTML the normalizer returns verbatim (non-deterministic + a privacy
-//     flag); only the error bounce is replayed.
 //   - The /admin/api authenticated reads/writes: they reach pool.query against the
 //     pool-less test db. The admin surface runs through its own flag-gated
 //     dispatcher, so the DB-FREE admin contract paths ARE replayed old-vs-new in the
 //     '/admin/api dispatch parity' block above (the 401 gate + the login db-free 401);
 //     only the authed bodies are deferred, exactly as characterization defers them.
 //   - The /oauth/* and /internal/* db-touching success paths (a real token exchange,
-//     a consent approval, the discord flex/roles/grant/member/relay/activity
-//     reads and writes, the authed restart-countdown): all reach pool.query or the
+//     a consent approval, the authed restart-countdown): all reach pool.query or the
 //     singleton GameServer. Both surfaces run through their own
 //     flag-gated dispatchers, so the DB-FREE contract paths ARE replayed old-vs-new
 //     in the '/oauth dispatch parity' and '/internal dispatch parity' blocks above

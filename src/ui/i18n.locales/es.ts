@@ -6050,18 +6050,6 @@ export const es: Partial<Record<TranslationKey, string>> = {
   'apiError.character.taken_over': 'Otra sesión tomó el control de tu personaje.',
   'apiError.db.conflict':
     'Ese cambio entró en conflicto con otra actualización. Inténtalo de nuevo.',
-  'apiError.discord.already_linked': 'Esa cuenta de Discord ya está vinculada a otra cuenta.',
-  'apiError.discord.expired':
-    'El inicio de sesión de Discord expiró. Inicia sesión con Discord de nuevo.',
-  'apiError.discord.link_required': 'Primero vincula tu cuenta de Discord.',
-  'apiError.discord.not_configured':
-    'La integración con Discord no está disponible en este momento.',
-  'apiError.discord.password_required':
-    'Establece una contraseña antes de desvincular tu cuenta de Discord.',
-  'apiError.discord.swag_claimed': 'Ya has reclamado esta recompensa.',
-  'apiError.discord.swag_points': 'Puntos insuficientes.',
-  'apiError.discord.swag_tier': 'Alcanza un rango superior para reclamar esto.',
-  'apiError.discord.unknown_swag': 'Esa recompensa no está disponible.',
   'apiError.email.invalid': 'Introduce una dirección de correo electrónico válida.',
   'apiError.email.unchanged': 'Esa ya es tu dirección de correo electrónico.',
   'apiError.internal.error': 'Algo salió mal de nuestro lado. Inténtalo de nuevo.',

@@ -410,33 +410,6 @@ export function resetAssetUploadRateLimits(): void {
   assetUploadAccountAttempts.clear();
 }
 
-// Discord link/status/reward endpoints share one dedicated bucket (per IP AND
-// per account), separate from login/register so an OAuth-link or reward-claim
-// flood can't lock a user out of logging in. accountId 0 keys the unauthenticated
-// start/callback legs on IP only (the account isn't resolved yet).
-export const DISCORD_MAX_PER_MINUTE = 15;
-const discordIpAttempts = new Map<string, number[]>();
-const discordAccountAttempts = new Map<number, number[]>();
-
-export function discordRateLimited(req: http.IncomingMessage, accountId: number): RateLimitOutcome {
-  const ip = recordSlidingWindowAttempt(discordIpAttempts, requestIp(req), DISCORD_MAX_PER_MINUTE);
-  // accountId 0 (unauthenticated start/callback) records IP only, so the IP
-  // outcome IS the result; a positive account fuses its own bucket in.
-  if (accountId <= 0) return ip;
-  const account = recordSlidingWindowAttempt(
-    discordAccountAttempts,
-    accountId,
-    DISCORD_MAX_PER_MINUTE,
-  );
-  return mergeFusedOutcomes(ip, account);
-}
-
-/** Reset Discord throttles. Test-only: keeps scoped buckets isolated. */
-export function resetDiscordRateLimits(): void {
-  discordIpAttempts.clear();
-  discordAccountAttempts.clear();
-}
-
 // GitHub link/status endpoints share one dedicated bucket (per IP AND per
 // account), separate from login so an OAuth-link flood can't lock a user out of
 // logging in. accountId 0 keys the unauthenticated callback leg on IP only.
@@ -604,7 +577,7 @@ function isThrottled(times: number[], windowStart: number): boolean {
  * auth_failures_total{kind="throttled"} observability signal when the outcome is a
  * lockout rejection (allowed false), so /metrics can count throttled attempts.
  * That count is exact only under an assumption every current caller honors: the
- * three callers (server/auth_routes.ts, server/discord.ts, server/main.ts) all
+ * callers (server/auth_routes.ts, server/main.ts) all
  * gate on the result and reject the request when allowed is false, so one
  * lockout-outcome check equals one rejected attempt. A future caller that only
  * inspects the status without rejecting must split this predicate instead of

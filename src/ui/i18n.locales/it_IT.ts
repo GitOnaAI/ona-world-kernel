@@ -6041,16 +6041,6 @@ export const it_IT: Partial<Record<TranslationKey, string>> = {
     "Il tuo personaggio è stato preso in controllo da un'altra sessione.",
   'apiError.db.conflict':
     'Questa modifica è entrata in conflitto con un altro aggiornamento. Riprova.',
-  'apiError.discord.already_linked': 'Questo account Discord è già collegato a un altro account.',
-  'apiError.discord.expired': "L'accesso con Discord è scaduto. Accedi di nuovo con Discord.",
-  'apiError.discord.link_required': 'Collega prima il tuo account Discord.',
-  'apiError.discord.not_configured': "L'integrazione con Discord non è disponibile al momento.",
-  'apiError.discord.password_required':
-    'Imposta una password prima di scollegare il tuo account Discord.',
-  'apiError.discord.swag_claimed': 'Hai già riscattato questa ricompensa.',
-  'apiError.discord.swag_points': 'Punti insufficienti.',
-  'apiError.discord.swag_tier': 'Raggiungi un grado più alto per riscattarla.',
-  'apiError.discord.unknown_swag': 'Questa ricompensa non è disponibile.',
   'apiError.email.invalid': 'Inserisci un indirizzo email valido.',
   'apiError.email.unchanged': 'Questo è già il tuo indirizzo email.',
   'apiError.internal.error': 'Qualcosa è andato storto dalla nostra parte. Riprova.',

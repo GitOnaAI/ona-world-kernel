@@ -5949,18 +5949,6 @@ export const vi_VN: Partial<Record<TranslationKey, string>> = {
   'apiError.character.rename_required': 'Nhân vật này phải được đổi tên trước khi vào thế giới.',
   'apiError.character.taken_over': 'Nhân vật của bạn đã bị một phiên khác chiếm quyền.',
   'apiError.db.conflict': 'Thay đổi đó xung đột với một cập nhật khác. Vui lòng thử lại.',
-  'apiError.discord.already_linked':
-    'Tài khoản Discord đó đã được liên kết với một tài khoản khác.',
-  'apiError.discord.expired':
-    'Lượt đăng nhập Discord đó đã hết hạn. Vui lòng đăng nhập lại bằng Discord.',
-  'apiError.discord.link_required': 'Hãy liên kết tài khoản Discord của bạn trước.',
-  'apiError.discord.not_configured': 'Tích hợp Discord hiện không khả dụng.',
-  'apiError.discord.password_required':
-    'Hãy đặt mật khẩu trước khi hủy liên kết tài khoản Discord của bạn.',
-  'apiError.discord.swag_claimed': 'Bạn đã nhận phần thưởng này rồi.',
-  'apiError.discord.swag_points': 'Không đủ điểm.',
-  'apiError.discord.swag_tier': 'Hãy đạt cấp bậc cao hơn để nhận phần thưởng này.',
-  'apiError.discord.unknown_swag': 'Phần thưởng đó không khả dụng.',
   'apiError.email.invalid': 'Hãy nhập một địa chỉ email hợp lệ.',
   'apiError.email.unchanged': 'Đó đã là địa chỉ email của bạn.',
   'apiError.internal.error': 'Đã có lỗi xảy ra ở phía chúng tôi. Vui lòng thử lại.',

@@ -1282,17 +1282,6 @@ export const da_DK: EnTranslations = {
     },
     "origin": {
       "cross_site": "Anmodningen blev blokeret af sikkerhedsmæssige årsager."
-    },
-    "discord": {
-      "not_configured": "Discord-integration er ikke tilgængelig lige nu.",
-      "expired": "Det Discord-login er udløbet. Log venligst ind med Discord igen.",
-      "already_linked": "Den Discord-konto er allerede knyttet til en anden konto.",
-      "password_required": "Angiv en adgangskode, før du fjerner tilknytningen til din Discord-konto.",
-      "unknown_swag": "Den belønning er ikke tilgængelig.",
-      "link_required": "Knyt din Discord-konto først.",
-      "swag_claimed": "Du har allerede indløst denne belønning.",
-      "swag_tier": "Nå en højere rang for at indløse denne.",
-      "swag_points": "Ikke nok point."
     }
   },
   "guide": {

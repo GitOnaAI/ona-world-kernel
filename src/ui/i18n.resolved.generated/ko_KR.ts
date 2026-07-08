@@ -1282,17 +1282,6 @@ export const ko_KR: EnTranslations = {
     },
     "origin": {
       "cross_site": "보안상의 이유로 요청이 차단되었습니다."
-    },
-    "discord": {
-      "not_configured": "현재 Discord 연동을 사용할 수 없습니다.",
-      "expired": "이 Discord 로그인이 만료되었습니다. Discord로 다시 로그인해 주세요.",
-      "already_linked": "이 Discord 계정은 이미 다른 계정에 연결되어 있습니다.",
-      "password_required": "Discord 계정 연결을 해제하기 전에 비밀번호를 설정하세요.",
-      "unknown_swag": "해당 보상은 사용할 수 없습니다.",
-      "link_required": "먼저 Discord 계정을 연결하세요.",
-      "swag_claimed": "이미 이 보상을 받았습니다.",
-      "swag_tier": "이 보상을 받으려면 더 높은 등급에 도달하세요.",
-      "swag_points": "포인트가 부족합니다."
     }
   },
   "guide": {

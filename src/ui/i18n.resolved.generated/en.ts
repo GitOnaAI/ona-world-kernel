@@ -1282,17 +1282,6 @@ export const en: EnTranslations = {
     },
     "origin": {
       "cross_site": "Request blocked for security reasons."
-    },
-    "discord": {
-      "not_configured": "Discord integration is not available right now.",
-      "expired": "That Discord sign-in expired. Please sign in with Discord again.",
-      "already_linked": "That Discord account is already linked to another account.",
-      "password_required": "Set a password before unlinking your Discord account.",
-      "unknown_swag": "That reward is not available.",
-      "link_required": "Link your Discord account first.",
-      "swag_claimed": "You have already claimed this reward.",
-      "swag_tier": "Reach a higher rank to claim this.",
-      "swag_points": "Not enough points."
     }
   },
   "guide": {

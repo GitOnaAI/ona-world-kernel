@@ -12,8 +12,7 @@
 // process sees no change: tier-1 records first and the fixed window counts a
 // subset of the sliding window, so tier-2 can never reject when tier-1 allowed.
 //
-// DISCORD_POLICY stays UNMOUNTED (no route attaches it); it exists for the
-// client code-matcher wiring. PUBLIC_READ_POLICY is MOUNTED since the v0.20.0
+// PUBLIC_READ_POLICY is MOUNTED since the v0.20.0
 // third-slice merge: GET /api/maps/public (maps_routes.ts) and the GET
 // /api/assets/:file byte read (user_assets_routes.ts) attach it, sharing the
 // legacy tier-1 bucket and adding the tier-2 global backstop on the new path.
@@ -26,8 +25,6 @@ import {
   type CharacterMutationAction,
   cardUploadRateLimited,
   characterMutationRateLimited,
-  DISCORD_MAX_PER_MINUTE,
-  discordRateLimited,
   MAP_MUTATION_MAX_PER_MINUTE,
   mapMutationRateLimited,
   mergeFusedOutcomes,
@@ -265,20 +262,5 @@ export const REPORTS_CREATE_POLICY: RateLimitPolicy = {
   limit: REPORTS_CREATE_MAX_PER_MINUTE,
   windowSeconds: WINDOW_SECONDS,
   tier1: (ctx) => reportsCreateRateLimited(ctx.req, ctxAccountId(ctx)),
-  tier2: 'global',
-};
-
-// AUTHENTICATED Discord legs only (link / status / reward). It requires
-// ctx.account (ctxAccountId 500s without it), so it must mount BEHIND requireAccount.
-// UNMOUNTED today (the Discord family migrated parity-first with legacy prose
-// bodies; wiring the coded adapter waits on the client code-matcher). The
-// UNAUTHENTICATED start/callback legs run the same underlying limiter IP-only via
-// discordRateLimited(req, 0).
-export const DISCORD_POLICY: RateLimitPolicy = {
-  name: 'discord',
-  keyClass: 'ip+account',
-  limit: DISCORD_MAX_PER_MINUTE,
-  windowSeconds: WINDOW_SECONDS,
-  tier1: (ctx) => discordRateLimited(ctx.req, ctxAccountId(ctx)),
   tier2: 'global',
 };

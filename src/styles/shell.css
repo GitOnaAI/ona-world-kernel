@@ -3112,8 +3112,6 @@
     align-items: end;
   }
   body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel .auth-title,
-  body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel #btn-login-discord,
-  body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel #auth-or-divider,
   body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel #cf-turnstile-container,
   body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel #login-error,
   body.native-app.mobile-touch[data-start-panel="login-panel"] #login-panel .auth-actions,

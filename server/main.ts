@@ -99,16 +99,6 @@ import {
   handleDesktopLoginExchange,
   issueDesktopLoginCode,
 } from './desktop_login';
-import {
-  configureDiscordRuntime,
-  handleDiscordCallback,
-  handleDiscordLoginLink,
-  handleDiscordLoginNew,
-  handleDiscordStart,
-  handleDiscordStatus,
-  handleDiscordUnlink,
-} from './discord';
-import { pruneDiscordOAuthStates, pruneDiscordPendingLogins } from './discord_db';
 import { emailAccountCreated } from './email';
 import { GameServer } from './game';
 import {
@@ -181,7 +171,6 @@ import {
   authThrottled,
   cardUploadRateLimited,
   clearAuthFailures,
-  discordRateLimited,
   githubRateLimited,
   mapMutationRateLimited,
   publicReadRateLimited,
@@ -1536,56 +1525,10 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
       const token = new URL(req.url ?? '', 'http://localhost').searchParams.get('token') ?? '';
       return handleEmailUnsubscribe(res, token);
     }
-    // Discord integration: OAuth login/link, link status, unlink. `start` returns
-    // the authorize URL (the browser then navigates to Discord); `callback` is the
-    // discord.com -> us redirect (no auth/Origin, so it is NOT gated by the
-    // web-login guard, which is login/register-only). Mutations go through
-    // bearerActiveAccount; the dedicated Discord rate-limit bucket guards them.
-    if (req.method === 'POST' && url === '/api/auth/discord/start') {
-      const mode =
-        new URL(req.url ?? '/', 'http://localhost').searchParams.get('mode') === 'link'
-          ? 'link'
-          : 'login';
-      let accountId: number | null = null;
-      if (mode === 'link') {
-        accountId = await bearerActiveAccount(req, res);
-        if (accountId === null) return;
-      }
-      if (!discordRateLimited(req, accountId ?? 0).allowed)
-        return json(res, 429, { error: 'rate limited' });
-      return handleDiscordStart(req, res, { mode, accountId });
-    }
-    if (req.method === 'GET' && url === '/api/auth/discord/callback') {
-      return handleDiscordCallback(req, res);
-    }
-    // First-time-login chooser endpoints. Unauthenticated like /callback: the
-    // authorization is the single-use pending-login token (minted only after a
-    // verified Discord OAuth), and the handlers carry their own Discord rate-limit
-    // bucket + (for the link path) the same password/2FA/moderation checks as login.
-    if (req.method === 'POST' && url === '/api/auth/discord/login/new') {
-      return handleDiscordLoginNew(req, res, (ip) => liveGame().isIpBlocked(ip));
-    }
-    if (req.method === 'POST' && url === '/api/auth/discord/login/link') {
-      return handleDiscordLoginLink(req, res, (ip) => liveGame().isIpBlocked(ip));
-    }
-    if (req.method === 'GET' && url === '/api/discord') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      if (!discordRateLimited(req, accountId).allowed)
-        return json(res, 429, { error: 'rate limited' });
-      return handleDiscordStatus(req, res, accountId);
-    }
-    if (req.method === 'DELETE' && url === '/api/discord') {
-      const accountId = await bearerActiveAccount(req, res);
-      if (accountId === null) return;
-      if (!discordRateLimited(req, accountId).allowed)
-        return json(res, 429, { error: 'rate limited' });
-      return handleDiscordUnlink(req, res, accountId);
-    }
     // GitHub OAuth link (developer badge). Link-only: the start leg resolves the
     // caller's account first, so the verified GitHub identity attaches to a known
     // account. The callback carries no Origin (a github.com redirect) and is
-    // exempt from the web-login Origin guard, exactly like the Discord callback.
+    // exempt from the web-login Origin guard.
     if (req.method === 'POST' && url === '/api/auth/github/start') {
       const accountId = await bearerActiveAccount(req, res);
       if (accountId === null) return;
@@ -1853,16 +1796,6 @@ configureCardRuntime({
 // stay intact as the flag-off rollback path.
 configureReportsRuntime({
   reportTargetForPid: (pid) => liveGame().reportTargetForPid(pid),
-});
-
-// Inject the two main.ts-local game-session hooks the ported Discord routes
-// (server/discord.ts) need but cannot import without a cycle: the moderation
-// IP-block check (applied on start + callback to close the PR #1044/#1075 review
-// gap) and the live mech-chroma grant for a cosmetic swag claim. The legacy
-// handleApi Discord arms stay intact as the flag-off rollback path.
-configureDiscordRuntime({
-  isIpBlocked: (ip) => liveGame().isIpBlocked(ip),
-  grantCosmetic: (accountId, chromaId) => liveGame().grantMechChromaToAccount(accountId, chromaId),
 });
 
 // configureAdminRuntime(game) and configureInternalRuntime(game) pass the live
@@ -2178,12 +2111,6 @@ export async function startServer(): Promise<http.Server> {
     );
     void pruneExpiredOAuthGrants(pool).catch((err) =>
       console.error('oauth grant prune failed:', err),
-    );
-    void pruneDiscordOAuthStates(pool).catch((err) =>
-      console.error('discord oauth state prune failed:', err),
-    );
-    void pruneDiscordPendingLogins(pool).catch((err) =>
-      console.error('discord pending login prune failed:', err),
     );
     void pruneGitHubOAuthStates(pool).catch((err) =>
       console.error('github oauth state prune failed:', err),

@@ -97,16 +97,6 @@ export const API_ERROR_KEYS = {
   'body.unsupported_media_type': 'apiError.body.unsupported_media_type',
   'origin.cross_site': 'apiError.origin.cross_site',
 
-  // discord: Discord link / sign-in / reward-claim failures.
-  'discord.not_configured': 'apiError.discord.not_configured',
-  'discord.expired': 'apiError.discord.expired',
-  'discord.already_linked': 'apiError.discord.already_linked',
-  'discord.password_required': 'apiError.discord.password_required',
-  'discord.unknown_swag': 'apiError.discord.unknown_swag',
-  'discord.link_required': 'apiError.discord.link_required',
-  'discord.swag_claimed': 'apiError.discord.swag_claimed',
-  'discord.swag_tier': 'apiError.discord.swag_tier',
-  'discord.swag_points': 'apiError.discord.swag_points',
 } satisfies Record<string, TranslationKey>;
 
 /** The message of an Error, or the string form of any other thrown value. */

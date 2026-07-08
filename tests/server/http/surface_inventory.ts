@@ -58,7 +58,6 @@ export type HttpMethod = (typeof HTTP_METHODS)[number];
 //                 (bearerActiveAccount in main, fullSessionAccount in oauth)
 //   admin         an admin account (isAdminAccount)
 //   secret-deploy the x-woc-deploy-secret shared secret (RESTART_COUNTDOWN_SECRET)
-//   secret-discord the x-woc-discord-secret shared secret (DISCORD_BOT_SECRET)
 //   dev-gated     guarded by ALLOW_DEV_COMMANDS=1
 export const AUTH_SCOPE = {
   public: 'public',
@@ -66,7 +65,6 @@ export const AUTH_SCOPE = {
   full: 'full',
   admin: 'admin',
   secretDeploy: 'secret-deploy',
-  secretDiscord: 'secret-discord',
   devGated: 'dev-gated',
 } as const;
 export type AuthScope = (typeof AUTH_SCOPE)[keyof typeof AUTH_SCOPE];
@@ -616,66 +614,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     requireOwnedExpected: null,
   },
   // mode=login is unauthenticated; mode=link requires a full session.
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/auth/discord/start',
-    handler: 'handleApi arm: /api/auth/discord/start (handleDiscordStart)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.public,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/auth/discord/callback',
-    handler: 'handleApi arm: /api/auth/discord/callback (handleDiscordCallback)',
-    contentType: HTML,
-    authScope: AUTH_SCOPE.public,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/auth/discord/login/new',
-    handler: 'handleApi arm: /api/auth/discord/login/new (handleDiscordLoginNew)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.public,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/auth/discord/login/link',
-    handler: 'handleApi arm: /api/auth/discord/login/link (handleDiscordLoginLink)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.public,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'GET',
-    path: '/api/discord',
-    handler: 'handleApi arm: /api/discord (GET, handleDiscordStatus)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'DELETE',
-    path: '/api/discord',
-    handler: 'handleApi arm: /api/discord (DELETE, handleDiscordUnlink)',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-  },
   // GitHub OAuth link (developer badge), mirroring the Discord link flow. Start
   // is link-only (it resolves the caller's account first, so it needs a full
   // session, unlike the Discord login-or-link start); the callback carries no
@@ -891,17 +829,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
 
   // Orphan: the handler is exported but no dispatcher routes to it. Excluded
   // from the freshness gate's source comparison (it has no dispatch arm).
-  {
-    dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/discord/swag/claim',
-    handler: 'handleSwagClaim',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
-    limiter: 'discordRateLimited',
-    requireOwnedExpected: null,
-    unreachable: true,
-  },
 
   // -------------------------------------------------------------------------
   // admin handleAdminApi (/admin/api/*)
@@ -1479,86 +1406,6 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     handler: 'handleInternalApi arm: /internal/restart-countdown',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.secretDeploy,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'GET',
-    path: '/internal/discord/flex',
-    handler: 'handleDiscordInternal arm: /internal/discord/flex',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'GET',
-    path: '/internal/discord/roles',
-    handler: 'handleDiscordInternal arm: /internal/discord/roles',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/discord/presence',
-    handler: 'handleDiscordInternal arm: /internal/discord/presence',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/discord/grant',
-    handler: 'handleDiscordInternal arm: /internal/discord/grant',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/discord/member',
-    handler: 'handleDiscordInternal arm: /internal/discord/member',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'GET',
-    path: '/internal/discord/relay',
-    handler: 'handleDiscordInternal arm: /internal/discord/relay',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'GET',
-    path: '/internal/discord/activity',
-    handler: 'handleDiscordInternal arm: /internal/discord/activity',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
-    limiter: null,
-    requireOwnedExpected: null,
-  },
-  {
-    dispatcher: DISPATCH.internal,
-    method: 'POST',
-    path: '/internal/discord/members-meta',
-    handler: 'handleDiscordInternal arm: /internal/discord/members-meta',
-    contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.secretDiscord,
     limiter: null,
     requireOwnedExpected: null,
   },

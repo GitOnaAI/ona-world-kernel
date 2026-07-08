@@ -15,7 +15,6 @@ import {
   recordAuthFailure,
   resetAuthFailures,
   resetCardUploadRateLimits,
-  resetDiscordRateLimits,
   resetPublicReadRateLimits,
   resetRateLimitClock,
   resetRateLimits,
@@ -48,7 +47,6 @@ function resetAll() {
   resetRateLimits();
   resetAuthFailures();
   resetCardUploadRateLimits();
-  resetDiscordRateLimits();
   resetPublicReadRateLimits();
   resetRateLimitClock();
 }

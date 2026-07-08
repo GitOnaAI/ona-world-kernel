@@ -18,7 +18,6 @@
 
 import * as THREE from 'three';
 import { ABILITIES, MOBS, QUESTS } from '../sim/data';
-import { specialRoleColor } from '../sim/discord_roles';
 import { type Entity, isQuestTurnInNpc } from '../sim/types';
 import {
   devTierBadgeDataUrl,
@@ -27,22 +26,9 @@ import {
   devTierNameOutlineColor,
 } from '../ui/dev_tier';
 import { tEntity } from '../ui/entity_i18n';
-import { formatNumber, type TranslationKey, t } from '../ui/i18n';
+import { formatNumber, t } from '../ui/i18n';
 import { raidMarkerDataUrl } from '../ui/icons';
 import { type IWorld, OVERHEAD_EMOTES } from '../world_api';
-
-// Staff/special Discord role -> localized nameplate tag label key.
-const DISCORD_ROLE_TAG_KEYS: Record<string, TranslationKey> = {
-  levyst: 'hudChrome.discord.roleTag.levyst',
-  admin: 'hudChrome.discord.roleTag.admin',
-  devs: 'hudChrome.discord.roleTag.devs',
-  mods: 'hudChrome.discord.roleTag.mods',
-  artists: 'hudChrome.discord.roleTag.artists',
-};
-function discordRoleTag(key: string | undefined): string {
-  const tk = key ? DISCORD_ROLE_TAG_KEYS[key] : undefined;
-  return tk ? t(tk) : '';
-}
 
 import { castBarState } from './cast_bar';
 import { mobDisplayName, npcDisplayName, objectDisplayName } from './entity_labels';
@@ -202,22 +188,18 @@ export class NameplatePainter {
         const nameDisplay = suppressSelf ? 'none' : '';
         const hpDisplay = e.dead || suppressSelf ? 'none' : '';
         const guild = suppressSelf ? '' : e.guild;
-        // Staff/special Discord role: tint the name + prefix a tag.
-        const roleKey = suppressSelf ? undefined : e.discordRole;
-        const roleColor = specialRoleColor(roleKey);
-        const roleTag = discordRoleTag(roleKey);
-        const displayName = roleTag ? `[${roleTag}] ${e.name}` : e.name;
+        const displayName = e.name;
         // Significant-contributor outline: a glowing outline drawn on top of the
-        // existing name color (Discord staff or default) for a high dev tier, so
-        // both read at once. Null for non-significant tiers, for a suppressed self
-        // plate, and when the player has turned developer badges off.
+        // default name color for a high dev tier. Null for non-significant tiers,
+        // for a suppressed self plate, and when the player has turned developer
+        // badges off.
         const devOutline =
           suppressSelf || !showDevBadges ? null : devTierNameOutlineColor(e.devTier ?? 0);
         this.setNameplateStatic(
           v,
-          `player|${displayName}|${roleColor ?? ''}|${guild}|${nameDisplay}|${hpDisplay}|${opacity}|${devOutline ?? ''}`,
+          `player|${displayName}|${guild}|${nameDisplay}|${hpDisplay}|${opacity}|${devOutline ?? ''}`,
           displayName,
-          roleColor ?? '#7fb8ff',
+          '#7fb8ff',
           hpDisplay,
           '',
           'np-marker',
@@ -229,8 +211,6 @@ export class NameplatePainter {
         v.nameEl.style.display = nameDisplay;
         // Developer-badge flair.
         this.setNameplateDevTier(v, suppressSelf || !showDevBadges ? 0 : (e.devTier ?? 0));
-        // Linked-Discord PFP indicator.
-        this.setNameplateDiscord(v, suppressSelf ? undefined : e.discordAvatar, e.discordName);
         this.setNameplateHp(v, e);
       } else if (e.kind === 'npc' || (!e.hostile && e.questIds.length > 0)) {
         const npcName =
@@ -389,28 +369,6 @@ export class NameplatePainter {
     } else {
       v.devTierEl.removeAttribute('src');
       v.devTierEl.style.display = 'none';
-    }
-  }
-
-  // Show/hide the linked-Discord PFP on a player's nameplate. Cheap-diffed on the
-  // avatar URL so the external image is only (re)fetched when it changes.
-  private setNameplateDiscord(
-    v: EntityView,
-    avatar: string | undefined,
-    name: string | undefined,
-  ): void {
-    const sig = avatar ?? '';
-    if (sig === v.discordAvatarSig) return;
-    v.discordAvatarSig = sig;
-    if (avatar) {
-      v.discordEl.src = avatar;
-      v.discordEl.title = name
-        ? t('hudChrome.discord.linkedTitle', { name })
-        : t('hudChrome.discord.title');
-      v.discordEl.style.display = '';
-    } else {
-      v.discordEl.removeAttribute('src');
-      v.discordEl.style.display = 'none';
     }
   }
 

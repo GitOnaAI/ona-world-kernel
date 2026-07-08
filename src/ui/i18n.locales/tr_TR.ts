@@ -5922,17 +5922,6 @@ export const tr_TR: Partial<Record<TranslationKey, string>> = {
     'Bu karakter dünyaya girmeden önce yeniden adlandırılmalıdır.',
   'apiError.character.taken_over': 'Karakteriniz başka bir oturum tarafından devralındı.',
   'apiError.db.conflict': 'Bu değişiklik başka bir güncellemeyle çakıştı. Lütfen tekrar deneyin.',
-  'apiError.discord.already_linked': 'Bu Discord hesabı zaten başka bir hesaba bağlı.',
-  'apiError.discord.expired':
-    'Bu Discord girişinin süresi doldu. Lütfen tekrar Discord ile giriş yapın.',
-  'apiError.discord.link_required': 'Önce Discord hesabınızı bağlayın.',
-  'apiError.discord.not_configured': 'Discord entegrasyonu şu anda kullanılamıyor.',
-  'apiError.discord.password_required':
-    'Discord hesabınızın bağlantısını kaldırmadan önce bir parola belirleyin.',
-  'apiError.discord.swag_claimed': 'Bu ödülü zaten aldınız.',
-  'apiError.discord.swag_points': 'Yeterli puan yok.',
-  'apiError.discord.swag_tier': 'Bunu almak için daha yüksek bir rütbeye ulaşın.',
-  'apiError.discord.unknown_swag': 'Bu ödül mevcut değil.',
   'apiError.email.invalid': 'Geçerli bir e-posta adresi girin.',
   'apiError.email.unchanged': 'Bu zaten sizin e-posta adresiniz.',
   'apiError.internal.error': 'Bizim tarafımızda bir şeyler ters gitti. Lütfen tekrar deneyin.',

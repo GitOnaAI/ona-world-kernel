@@ -1282,17 +1282,6 @@ export const ja_JP: EnTranslations = {
     },
     "origin": {
       "cross_site": "セキュリティ上の理由によりリクエストがブロックされました。"
-    },
-    "discord": {
-      "not_configured": "Discord連携は現在利用できません。",
-      "expired": "このDiscordログインは期限切れです。もう一度Discordでログインしてください。",
-      "already_linked": "そのDiscordアカウントは既に別のアカウントに連携されています。",
-      "password_required": "Discordアカウントの連携を解除する前にパスワードを設定してください。",
-      "unknown_swag": "その報酬は利用できません。",
-      "link_required": "まずDiscordアカウントを連携してください。",
-      "swag_claimed": "この報酬は既に受け取っています。",
-      "swag_tier": "これを受け取るにはより高いランクが必要です。",
-      "swag_points": "ポイントが足りません。"
     }
   },
   "guide": {

@@ -1282,17 +1282,6 @@ export const vi_VN: EnTranslations = {
     },
     "origin": {
       "cross_site": "Yêu cầu đã bị chặn vì lý do bảo mật."
-    },
-    "discord": {
-      "not_configured": "Tích hợp Discord hiện không khả dụng.",
-      "expired": "Lượt đăng nhập Discord đó đã hết hạn. Vui lòng đăng nhập lại bằng Discord.",
-      "already_linked": "Tài khoản Discord đó đã được liên kết với một tài khoản khác.",
-      "password_required": "Hãy đặt mật khẩu trước khi hủy liên kết tài khoản Discord của bạn.",
-      "unknown_swag": "Phần thưởng đó không khả dụng.",
-      "link_required": "Hãy liên kết tài khoản Discord của bạn trước.",
-      "swag_claimed": "Bạn đã nhận phần thưởng này rồi.",
-      "swag_tier": "Hãy đạt cấp bậc cao hơn để nhận phần thưởng này.",
-      "swag_points": "Không đủ điểm."
     }
   },
   "guide": {

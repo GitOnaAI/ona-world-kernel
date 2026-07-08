@@ -1282,17 +1282,6 @@ export const nl_NL: EnTranslations = {
     },
     "origin": {
       "cross_site": "Verzoek geblokkeerd om veiligheidsredenen."
-    },
-    "discord": {
-      "not_configured": "Discord-integratie is momenteel niet beschikbaar.",
-      "expired": "Die Discord-aanmelding is verlopen. Meld je opnieuw aan met Discord.",
-      "already_linked": "Dat Discord-account is al gekoppeld aan een ander account.",
-      "password_required": "Stel een wachtwoord in voordat je je Discord-account ontkoppelt.",
-      "unknown_swag": "Die beloning is niet beschikbaar.",
-      "link_required": "Koppel eerst je Discord-account.",
-      "swag_claimed": "Je hebt deze beloning al geclaimd.",
-      "swag_tier": "Bereik een hogere rang om dit te claimen.",
-      "swag_points": "Niet genoeg punten."
     }
   },
   "guide": {

@@ -6098,17 +6098,6 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'apiError.character.taken_over': 'Votre personnage a été pris en main par une autre session.',
   'apiError.db.conflict':
     'Cette modification est entrée en conflit avec une autre mise à jour. Veuillez réessayer.',
-  'apiError.discord.already_linked': 'Ce compte Discord est déjà lié à un autre compte.',
-  'apiError.discord.expired':
-    'Cette connexion Discord a expiré. Veuillez vous reconnecter avec Discord.',
-  'apiError.discord.link_required': "Liez d'abord votre compte Discord.",
-  'apiError.discord.not_configured': "L'intégration Discord n'est pas disponible pour le moment.",
-  'apiError.discord.password_required':
-    'Définissez un mot de passe avant de dissocier votre compte Discord.',
-  'apiError.discord.swag_claimed': 'Vous avez déjà réclamé cette récompense.',
-  'apiError.discord.swag_points': 'Points insuffisants.',
-  'apiError.discord.swag_tier': 'Atteignez un rang supérieur pour la réclamer.',
-  'apiError.discord.unknown_swag': "Cette récompense n'est pas disponible.",
   'apiError.email.invalid': 'Saisissez une adresse e-mail valide.',
   'apiError.email.unchanged': "C'est déjà votre adresse e-mail.",
   'apiError.internal.error': 'Une erreur est survenue de notre côté. Veuillez réessayer.',

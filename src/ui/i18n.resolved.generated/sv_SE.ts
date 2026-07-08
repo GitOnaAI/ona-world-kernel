@@ -1282,17 +1282,6 @@ export const sv_SE: EnTranslations = {
     },
     "origin": {
       "cross_site": "Begäran blockerades av säkerhetsskäl."
-    },
-    "discord": {
-      "not_configured": "Discord-integrationen är inte tillgänglig just nu.",
-      "expired": "Den Discord-inloggningen har gått ut. Logga in med Discord igen.",
-      "already_linked": "Det Discord-kontot är redan kopplat till ett annat konto.",
-      "password_required": "Ange ett lösenord innan du kopplar bort ditt Discord-konto.",
-      "unknown_swag": "Den belöningen är inte tillgänglig.",
-      "link_required": "Koppla ditt Discord-konto först.",
-      "swag_claimed": "Du har redan hämtat den här belöningen.",
-      "swag_tier": "Nå en högre rang för att hämta den här.",
-      "swag_points": "Inte tillräckligt med poäng."
     }
   },
   "guide": {

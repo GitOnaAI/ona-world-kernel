@@ -62,11 +62,6 @@ describe('registry', () => {
     // The secondary bar's slots exist and default to the numpad row.
     expect(BIND_ACTIONS.find((a) => a.id === 'slot12')?.defaults).toEqual(['Numpad1']);
     expect(BIND_ACTIONS.find((a) => a.id === 'slot22')?.defaults).toEqual(['NumpadDecimal']);
-    // Discord is a rebindable Interface window toggle (default U).
-    const discord = BIND_ACTIONS.find((a) => a.id === 'discord');
-    expect(discord?.category).toBe('Interface');
-    expect(discord?.kind).toBe('edge');
-    expect(discord?.defaults).toEqual(['KeyU']);
   });
 });
 
@@ -93,7 +88,7 @@ describe('Keybinds defaults', () => {
     expect(kb.actionForCode('Equal')).toBe('slot11');
     expect(kb.actionForCode('KeyH')).toBe('targetFriendly');
     expect(kb.actionForCode('KeyJ')).toBe('targetFriendlyNext');
-    expect(kb.actionForCode('KeyU')).toBe('discord');
+    expect(kb.actionForCode('KeyU')).toBe(null);
     expect(kb.actionForCode('KeyZ')).toBe(null);
   });
 

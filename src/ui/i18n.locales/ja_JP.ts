@@ -5880,18 +5880,6 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'apiError.two_factor.already_enabled': '二段階認証は既に有効です。',
   'apiError.two_factor.not_enabled': '二段階認証は有効になっていません。',
   'apiError.origin.cross_site': 'セキュリティ上の理由によりリクエストがブロックされました。',
-  'apiError.discord.not_configured': 'Discord連携は現在利用できません。',
-  'apiError.discord.expired':
-    'このDiscordログインは期限切れです。もう一度Discordでログインしてください。',
-  'apiError.discord.already_linked':
-    'そのDiscordアカウントは既に別のアカウントに連携されています。',
-  'apiError.discord.password_required':
-    'Discordアカウントの連携を解除する前にパスワードを設定してください。',
-  'apiError.discord.unknown_swag': 'その報酬は利用できません。',
-  'apiError.discord.link_required': 'まずDiscordアカウントを連携してください。',
-  'apiError.discord.swag_claimed': 'この報酬は既に受け取っています。',
-  'apiError.discord.swag_tier': 'これを受け取るにはより高いランクが必要です。',
-  'apiError.discord.swag_points': 'ポイントが足りません。',
   // The Ravenpost mailbox (M16 non-Latin fill)
   'hudChrome.mailbox.title': 'メールボックス',
   'hudChrome.mailbox.subtitle': 'レイヴンポスト',
