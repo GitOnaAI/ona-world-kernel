@@ -77,7 +77,7 @@ function resolveDesktopOrigins({ packagedMetadata, env, isPackaged } = {}) {
     return '';
   };
   const apiOrigin =
-    pick(env?.VITE_DESKTOP_API_ORIGIN, stamped.apiOrigin) || 'https://worldofclaudecraft.com';
+    pick(env?.VITE_DESKTOP_API_ORIGIN, stamped.apiOrigin) || 'https://onaworld.example';
   const loginOrigin = pick(env?.VITE_DESKTOP_LOGIN_ORIGIN, stamped.loginOrigin) || apiOrigin;
   return { apiOrigin, loginOrigin };
 }

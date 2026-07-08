@@ -10559,7 +10559,7 @@ export class Hud {
       devMergedPrs: showDevBadges ? (p.devMergedPrs ?? null) : null,
       referralHandle: referral?.slug ?? this.cardSlug(p.name),
       referralCount: referral?.count ?? null,
-      siteUrl: 'worldofclaudecraft.com',
+      siteUrl: 'onaworld.example',
     };
   }
 

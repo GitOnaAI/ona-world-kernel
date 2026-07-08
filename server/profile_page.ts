@@ -47,7 +47,7 @@ function toSheetRank(rank: { rank: number; total: number } | null): SheetRank | 
   return rank ? { scope: 'realm', rank: rank.rank, total: rank.total } : null;
 }
 
-const GAME_NAME = 'World of ClaudeCraft';
+const GAME_NAME = 'Ona World Kernel';
 
 // ── GET /c/:name ───────────────────────────────────────────────────────────
 

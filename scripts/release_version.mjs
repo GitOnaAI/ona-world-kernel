@@ -6,7 +6,7 @@ import { planVersionSync } from './version_sync.mjs';
 
 const VERSION_RE = /^\d+\.\d+\.\d+$/;
 const RELEASE_REF_RE = /(?:^|refs\/heads\/)release\/v?(\d+\.\d+\.\d+)$/;
-const MAC_DMG_RE = /world-of-claudecraft-\d+\.\d+\.\d+-mac-universal\.dmg/g;
+const MAC_DMG_RE = /ona-world-kernel-\d+\.\d+\.\d+-mac-universal\.dmg/g;
 const GAME_VERSION_RE = /(<div\b[^>]*\bid=["']game-version["'][^>]*>)v[^<]*(<\/div>)/;
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -85,7 +85,7 @@ export function setDesktopDownloadVersion(html, version, path) {
   MAC_DMG_RE.lastIndex = 0;
   return html.replace(
     MAC_DMG_RE,
-    `world-of-claudecraft-${normalizeVersion(version)}-mac-universal.dmg`,
+    `ona-world-kernel-${normalizeVersion(version)}-mac-universal.dmg`,
   );
 }
 
@@ -193,7 +193,7 @@ export function collectReleaseVersionFailures({
     }
   }
 
-  const expectedArtifact = `world-of-claudecraft-${expected}-mac-universal.dmg`;
+  const expectedArtifact = `ona-world-kernel-${expected}-mac-universal.dmg`;
   for (const [path, html] of Object.entries(htmlFiles)) {
     const gameVersion = readGameVersion(html);
     if (gameVersion !== expected) {

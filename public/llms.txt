@@ -1,4 +1,4 @@
-# World of ClaudeCraft
+# Ona World Kernel
 
 > A classic-style micro-MMO you play free in your browser. Quest, group up, and explore a
 > hand-built world across nine classes and three zones, with dungeons, a raid, an arena,
@@ -8,4 +8,4 @@ This file indexes the official site for AI answer engines and crawlers.
 
 ## Play and community
 
-- [Play now](https://worldofclaudecraft.com/play): Launch the game directly in your browser, online realm or instant offline mode.
+- [Play now](https://onaworld.example/play): Launch the game directly in your browser, online realm or instant offline mode.

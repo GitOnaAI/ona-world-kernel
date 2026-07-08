@@ -202,7 +202,7 @@ describe('worklist assembly (deterministic + blocked-prose segregation, end to e
     es: {},
   };
   const glossarySrc = {
-    verbatim: [{ term: 'World of ClaudeCraft', note: 'brand' }],
+    verbatim: [{ term: 'Ona World Kernel', note: 'brand' }],
     categories: { classNames: { keyPatterns: ['classes.mage', 'classes.warrior'] } },
   };
   const P = { state: 'pending' };
@@ -286,7 +286,7 @@ describe('worklist assembly (deterministic + blocked-prose segregation, end to e
   it('ships the glossary in every batch and resolves each term per-locale (own overlay -> English)', () => {
     const { batchObjs } = buildWorklistOutputs(makeFixture());
     const de = batchObjs.get('de_DE');
-    expect(de.glossary.verbatim.map((v: any) => v.term)).toContain('World of ClaudeCraft');
+    expect(de.glossary.verbatim.map((v: any) => v.term)).toContain('Ona World Kernel');
     expect(de.glossary.terms.length).toBeGreaterThan(0);
     // classes.warrior is translated in the de_DE overlay -> established localized form
     expect(de.glossary.terms.find((t: any) => t.key === 'classes.warrior').localized).toBe(

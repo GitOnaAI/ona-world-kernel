@@ -1,7 +1,7 @@
 {
-  "name": "World of ClaudeCraft",
-  "short_name": "ClaudeCraft",
-  "description": "World of ClaudeCraft mobile realm",
+  "name": "Ona World Kernel",
+  "short_name": "Ona World",
+  "description": "Ona World Kernel mobile realm",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",

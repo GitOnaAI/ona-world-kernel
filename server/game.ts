@@ -1517,7 +1517,7 @@ export class GameServer {
     // broadcast it to everyone (and likewise don't broadcast departures below).
     this.send(session, {
       t: 'events',
-      list: [{ type: 'log', text: `${name} has entered World of ClaudeCraft.`, color: '#ffd100' }],
+      list: [{ type: 'log', text: `${name} has entered Ona World Kernel.`, color: '#ffd100' }],
     });
     void this.initSocial(session);
     // Stamp the developer-badge flair from the linked GitHub login (best-effort:

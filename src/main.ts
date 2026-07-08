@@ -175,7 +175,7 @@ import { hydrateIcons } from './ui/ui_icons';
 import { formatXp } from './ui/xp_bar';
 import type { IWorld, LeaderboardEntry } from './world_api';
 
-const WORLD_SEED = 20061; // fixed: World of ClaudeCraft is a persistent place
+const WORLD_SEED = 20061; // fixed: Ona World Kernel is a persistent place
 const CLICK_MOVE_TURN_RATE = 4.2; // rad/sec; responsive turning while the camera stays decoupled from click spam
 const CLICK_MOVE_WAYPOINT_STOP = 0.8; // yards; intermediate A* corners should roll through, not stutter-stop
 const CLICK_MOVE_REROUTE_DISTANCE = 4; // yards; live entity targets can move this far before we recompute the path
@@ -226,7 +226,7 @@ function isNativeRuntime(): boolean {
   return cap?.isNativePlatform?.() === true;
 }
 
-const SITE_URL = 'https://worldofclaudecraft.com/';
+const SITE_URL = 'https://onaworld.example/';
 
 const RESOURCE_KEYS = {
   mana: 'classDetails.resources.mana',
@@ -3210,7 +3210,7 @@ async function completeDesktopBrowserLogin(): Promise<boolean> {
   try {
     const { code } = await api.createDesktopLoginCode();
     if (!code) throw new Error('missing desktop login code');
-    location.href = `worldofclaudecraft://desktop-login?code=${encodeURIComponent(code)}`;
+    location.href = `onaworld://desktop-login?code=${encodeURIComponent(code)}`;
   } catch (err) {
     loginError(userFacingApiError(err));
     show('#login-panel');
@@ -4288,51 +4288,43 @@ function updateSeoMetadata(lang: SupportedLanguage): void {
 
   const jsonLd = document.getElementById('structured-data') as HTMLScriptElement | null;
   if (jsonLd) {
-    const sameAs = [
-      'https://github.com/levy-street/world-of-claudecraft',
-      'https://discord.gg/GjhnUsBtw',
-      'https://www.youtube.com/@WoClaudeCraft',
-      'https://x.com/WoClaudecraft',
-      'https://www.instagram.com/worldofclaudecraft/',
-      'https://www.tiktok.com/@worldofclaudecraft',
-      'https://www.reddit.com/r/WorldofClaudecraft/',
-    ];
+    const sameAs = ['https://github.com/GitOnaAI/ona-world-kernel'];
     jsonLd.textContent = JSON.stringify(
       {
         '@context': 'https://schema.org',
         '@graph': [
           {
             '@type': 'WebSite',
-            '@id': 'https://worldofclaudecraft.com/#website',
-            name: 'World of ClaudeCraft',
-            alternateName: 'World of Claudecraft',
+            '@id': 'https://onaworld.example/#website',
+            name: 'Ona World Kernel',
+            alternateName: 'Ona World Kernel',
             url: canonicalHref,
             inLanguage: languageTag(lang),
             description: t('seo.description'),
-            publisher: { '@id': 'https://worldofclaudecraft.com/#organization' },
+            publisher: { '@id': 'https://onaworld.example/#organization' },
           },
           {
             '@type': 'Organization',
-            '@id': 'https://worldofclaudecraft.com/#organization',
-            name: 'World of ClaudeCraft',
-            url: 'https://worldofclaudecraft.com/',
-            logo: 'https://worldofclaudecraft.com/woc_logo_square.webp',
+            '@id': 'https://onaworld.example/#organization',
+            name: 'Ona World Kernel',
+            url: 'https://onaworld.example/',
+            logo: 'https://onaworld.example/woc_logo_square.webp',
             sameAs,
           },
           {
             '@type': 'VideoGame',
-            '@id': 'https://worldofclaudecraft.com/#game',
-            name: 'World of ClaudeCraft',
-            alternateName: 'World of Claudecraft',
+            '@id': 'https://onaworld.example/#game',
+            name: 'Ona World Kernel',
+            alternateName: 'Ona World Kernel',
             genre: t('seo.genre'),
             playMode: t('seo.playMode'),
             applicationCategory: t('seo.applicationCategory'),
             operatingSystem: t('seo.operatingSystem'),
             url: canonicalHref,
-            image: 'https://worldofclaudecraft.com/woc_logo_square.webp',
+            image: 'https://onaworld.example/woc_logo_square.webp',
             description: t('seo.description'),
             inLanguage: languageTag(lang),
-            publisher: { '@id': 'https://worldofclaudecraft.com/#organization' },
+            publisher: { '@id': 'https://onaworld.example/#organization' },
             sameAs,
           },
         ],

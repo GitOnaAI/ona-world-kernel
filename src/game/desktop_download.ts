@@ -7,17 +7,17 @@
 export type DesktopPlatform = 'mac' | 'win' | 'linux' | 'other';
 
 // The published desktop build on the update host. Bump in lockstep with the
-// artifacts uploaded to updates.worldofclaudecraft.com/desktop/ at release
+// artifacts uploaded to updates.onaworld.example/desktop/ at release
 // (see docs/desktop-release.md). The static hrefs in index.html carry the same
 // version as a no-JS fallback.
 export const DESKTOP_VERSION = '0.22.0';
-const DESKTOP_HOST = 'https://updates.worldofclaudecraft.com/desktop';
+const DESKTOP_HOST = 'https://updates.onaworld.example/desktop';
 
 // electron-builder website-channel artifact names (docs/desktop-release.md):
 // mac ships one universal dmg. Linux and Windows are not published yet, so they
 // have no entries here.
 const ARTIFACT: Partial<Record<DesktopPlatform, string>> = {
-  mac: `world-of-claudecraft-${DESKTOP_VERSION}-mac-universal.dmg`,
+  mac: `ona-world-kernel-${DESKTOP_VERSION}-mac-universal.dmg`,
 };
 
 // Full download URL for a platform, or null when no artifact is published for it.

@@ -76,7 +76,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'guild.rankLeader': 'the Guild Master',
     'guild.rankOfficer': 'an Officer',
     'guild.rankMember': 'a Member',
-    'world.entered': '{name} has entered World of ClaudeCraft.',
+    'world.entered': '{name} has entered Ona World Kernel.',
     'world.left': '{name} has left the world. ({reason})',
     'world.leaveLogout': 'logged out',
     'world.leaveDisconnect': 'disconnected',
@@ -194,7 +194,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'guild.rankLeader': 'o Mestre da Guilda',
     'guild.rankOfficer': 'um Oficial',
     'guild.rankMember': 'um Membro',
-    'world.entered': '{name} entrou em World of ClaudeCraft.',
+    'world.entered': '{name} entrou em Ona World Kernel.',
     'world.left': '{name} saiu do mundo. ({reason})',
     'world.leaveLogout': 'desconectou-se',
     'world.leaveDisconnect': 'desconectado',
@@ -464,7 +464,7 @@ const RULES: Rule[] = [
     build: (m) => tServer('friends.noLongerIgnored', { name: m[1] }),
   },
   {
-    re: /^(.+) has entered World of ClaudeCraft\.$/,
+    re: /^(.+) has entered Ona World Kernel\.$/,
     build: (m) => tServer('world.entered', { name: m[1] }),
   },
   {

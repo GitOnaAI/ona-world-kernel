@@ -11,7 +11,7 @@ import {
 
 const PACKAGE_JSON = JSON.stringify(
   {
-    name: 'world-of-claudecraft',
+    name: 'ona-world-kernel',
     version: '0.20.0',
     private: true,
   },
@@ -21,12 +21,12 @@ const PACKAGE_JSON = JSON.stringify(
 
 const PACKAGE_LOCK = JSON.stringify(
   {
-    name: 'world-of-claudecraft',
+    name: 'ona-world-kernel',
     version: '0.20.0',
     lockfileVersion: 3,
     packages: {
       '': {
-        name: 'world-of-claudecraft',
+        name: 'ona-world-kernel',
         version: '0.20.0',
       },
       'node_modules/example': {
@@ -50,7 +50,7 @@ MARKETING_VERSION = 0.20.0;
 CURRENT_PROJECT_VERSION = 4;
 MARKETING_VERSION = 0.20.0;`;
 
-const INDEX_HTML = `<a href="https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-0.20.0-mac-universal.dmg">Download</a>
+const INDEX_HTML = `<a href="https://updates.onaworld.example/desktop/ona-world-kernel-0.20.0-mac-universal.dmg">Download</a>
 <div id="game-version">v0.10</div>`;
 
 describe('inferExpectedReleaseVersion', () => {
@@ -92,7 +92,7 @@ describe('release version transforms', () => {
   it('updates package.json without disturbing surrounding fields', () => {
     const out = JSON.parse(setPackageVersion(PACKAGE_JSON, '0.21.0'));
     expect(out.version).toBe('0.21.0');
-    expect(out.name).toBe('world-of-claudecraft');
+    expect(out.name).toBe('ona-world-kernel');
     expect(out.private).toBe(true);
   });
 
@@ -105,8 +105,8 @@ describe('release version transforms', () => {
 
   it('updates macOS desktop artifact links', () => {
     const out = setDesktopDownloadVersion(INDEX_HTML, '0.21.0', 'index.html');
-    expect(out).toContain('world-of-claudecraft-0.21.0-mac-universal.dmg');
-    expect(out).not.toContain('world-of-claudecraft-0.20.0-mac-universal.dmg');
+    expect(out).toContain('ona-world-kernel-0.21.0-mac-universal.dmg');
+    expect(out).not.toContain('ona-world-kernel-0.20.0-mac-universal.dmg');
   });
 
   it('updates the visible page version text', () => {
@@ -133,7 +133,7 @@ describe('planReleaseVersion', () => {
     expect(JSON.parse(plan.packageLock).packages[''].version).toBe('0.21.0');
     expect(plan.gradle).toContain('versionName "0.21.0"');
     expect(plan.pbxproj.match(/MARKETING_VERSION = 0\.21\.0;/g)).toHaveLength(2);
-    expect(plan.htmlFiles['index.html']).toContain('world-of-claudecraft-0.21.0-mac-universal.dmg');
+    expect(plan.htmlFiles['index.html']).toContain('ona-world-kernel-0.21.0-mac-universal.dmg');
     expect(plan.htmlFiles['play.html']).toContain('<div id="game-version">v0.21.0</div>');
   });
 });

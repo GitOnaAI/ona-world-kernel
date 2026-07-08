@@ -21,7 +21,7 @@ describe('i18n Translation Foundation', () => {
     expect(getLanguage()).toBe('en');
     expect(t('nav.home')).toBe('Home');
     expect(t('stats.playersOnline')).toBe('Players Online');
-    expect(t('footer.copyright')).toBe('2026 World of ClaudeCraft');
+    expect(t('footer.copyright')).toBe('2026 Ona World Kernel');
     expect(t('footer.githubLabel')).toBe('Open Source Project');
     expect(t('nav.highscores')).toBe('High Scores');
     expect(t('nav.wiki')).toBe('Wiki');
@@ -44,7 +44,7 @@ describe('i18n Translation Foundation', () => {
     expect(getLanguage()).toBe('pt_BR');
     expect(t('nav.home')).toBe('Início');
     expect(t('stats.playersOnline')).toBe('Jogadores online');
-    expect(t('footer.copyright')).toBe('2026 World of ClaudeCraft');
+    expect(t('footer.copyright')).toBe('2026 Ona World Kernel');
     expect(t('footer.githubLabel')).toBe('Projeto de código aberto');
     expect(t('nav.highscores')).toBe('Recordes');
     expect(t('nav.wiki')).toBe('Wiki');
@@ -183,10 +183,10 @@ describe('Api URL helpers', () => {
   });
 
   it('resolves native or realm calls against an absolute origin', () => {
-    expect(apiUrl('/api/status', 'https://worldofclaudecraft.com/')).toBe(
-      'https://worldofclaudecraft.com/api/status',
+    expect(apiUrl('/api/status', 'https://onaworld.example/')).toBe(
+      'https://onaworld.example/api/status',
     );
-    expect(apiUrl('https://realm.example.com/api/status', 'https://worldofclaudecraft.com')).toBe(
+    expect(apiUrl('https://realm.example.com/api/status', 'https://onaworld.example')).toBe(
       'https://realm.example.com/api/status',
     );
   });

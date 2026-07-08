@@ -116,9 +116,9 @@ function fakeRuntime(overrides: Partial<LeaderboardRuntime> = {}): LeaderboardRu
     getGuildLeaderboard: async () => [],
     getDevLeaderboard: async () => [],
     getReleases: async () => [],
-    githubRepo: 'levy-street/world-of-claudecraft',
+    githubRepo: 'GitOnaAI/ona-world-kernel',
     releasesMaxLimit: 20,
-    publicOrigin: () => 'https://worldofclaudecraft.com',
+    publicOrigin: () => 'https://onaworld.example',
     toSheetRank: (rank) => (rank ? { scope: 'realm', rank: rank.rank, total: rank.total } : null),
     ...overrides,
   };
@@ -328,7 +328,7 @@ describe('readProjectStats', () => {
 describe('readPublicSheet (FakeCharactersDb, resolved by name)', () => {
   const sheetDeps = {
     realm: REALM_NAME,
-    origin: 'https://worldofclaudecraft.com',
+    origin: 'https://onaworld.example',
     toSheetRank: (rank: { rank: number; total: number } | null): SheetRank | null =>
       rank ? { scope: 'realm', rank: rank.rank, total: rank.total } : null,
   };

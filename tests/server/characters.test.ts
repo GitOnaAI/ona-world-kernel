@@ -100,7 +100,7 @@ function fakeRuntime(overrides: Partial<CharactersRuntime> = {}): CharactersRunt
     rekeyMailOwner: () => false,
     saveMail: async () => {},
     initialCharacterState: () => st(),
-    publicOrigin: () => 'https://worldofclaudecraft.com',
+    publicOrigin: () => 'https://onaworld.example',
     ...overrides,
   };
 }
@@ -400,7 +400,7 @@ describe('owner sheet handler', () => {
       guildNameForCharacter: async () => 'Guildy',
       lifetimeXpRankForCharacter: async () => ({ rank: 2, total: 50 }),
     });
-    installRuntime({ publicOrigin: () => 'https://worldofclaudecraft.com' });
+    installRuntime({ publicOrigin: () => 'https://onaworld.example' });
     const row = charRow({
       id: 3,
       name: 'Sheety',

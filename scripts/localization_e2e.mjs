@@ -79,8 +79,8 @@ function languageTag(locale) {
 
 function siteUrlForLocale(locale) {
   return locale === 'en'
-    ? 'https://worldofclaudecraft.com/'
-    : `https://worldofclaudecraft.com/?lang=${locale}`;
+    ? 'https://onaworld.example/'
+    : `https://onaworld.example/?lang=${locale}`;
 }
 
 function localUrlForLocale(locale) {

@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://worldofclaudecraft.com/</loc>
+    <loc>https://onaworld.example/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/links</loc>
+    <loc>https://onaworld.example/links</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/merch</loc>
+    <loc>https://onaworld.example/merch</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/press</loc>
+    <loc>https://onaworld.example/press</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/play</loc>
+    <loc>https://onaworld.example/play</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/privacy</loc>
+    <loc>https://onaworld.example/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/terms</loc>
+    <loc>https://onaworld.example/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/data-deletion</loc>
+    <loc>https://onaworld.example/data-deletion</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://worldofclaudecraft.com/support</loc>
+    <loc>https://onaworld.example/support</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

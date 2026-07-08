@@ -7,13 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const indexPath = path.resolve(__dirname, '../index.html');
 const expectedAlternates = [
-  { hreflang: 'en', href: 'https://worldofclaudecraft.com/' },
-  { hreflang: 'pt-BR', href: 'https://worldofclaudecraft.com/?lang=pt_BR' },
-  { hreflang: 'x-default', href: 'https://worldofclaudecraft.com/' },
+  { hreflang: 'en', href: 'https://onaworld.example/' },
+  { hreflang: 'pt-BR', href: 'https://onaworld.example/?lang=pt_BR' },
+  { hreflang: 'x-default', href: 'https://onaworld.example/' },
 ];
 
 function audit() {
-  console.log('--- World of ClaudeCraft: Local SEO & A11y Audit ---');
+  console.log('--- Ona World Kernel: Local SEO & A11y Audit ---');
   if (!fs.existsSync(indexPath)) {
     console.error(`Error: index.html not found at ${indexPath}`);
     process.exit(1);
@@ -189,7 +189,7 @@ function audit() {
 
   // 8. Canonical Link Check
   const hasCanonical =
-    html.includes('rel="canonical"') && html.includes('href="https://worldofclaudecraft.com/"');
+    html.includes('rel="canonical"') && html.includes('href="https://onaworld.example/"');
   checks.push({
     category: 'SEO',
     name: 'Canonical link tag is present and correct',
@@ -197,7 +197,7 @@ function audit() {
     score: hasCanonical ? 10 : 0,
     maxScore: 10,
     details: hasCanonical
-      ? 'Found rel="canonical" pointing to worldofclaudecraft.com.'
+      ? 'Found rel="canonical" pointing to onaworld.example.'
       : 'Missing rel="canonical" link tag.',
   });
 

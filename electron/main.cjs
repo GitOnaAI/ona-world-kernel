@@ -37,7 +37,7 @@ const { DEFAULT_SHELL_STRINGS, sanitizeShellStrings } = require('./shell_strings
 const { attachRendererCrashRecovery, installProcessCrashGuards } = require('./crash_guard.cjs');
 const { initUpdater } = require('./updater.cjs');
 
-const APP_ORIGIN = 'app://worldofclaudecraft';
+const APP_ORIGIN = 'app://onaworld';
 // The Vite dev server URL is a DEV-ONLY seam (electron-dev.mjs sets it): its
 // origin joins the trusted set for BOTH navigation and IPC-sender trust, and it
 // is loaded as the UI, so a packaged build must never honor it from runtime
@@ -46,7 +46,7 @@ const APP_ORIGIN = 'app://worldofclaudecraft';
 const devServerUrl = app.isPackaged ? undefined : process.env.VITE_DEV_SERVER_URL;
 // Origins the main frame may navigate to (app origin, plus the dev server in dev).
 const appOrigins = appNavigationOrigins(APP_ORIGIN, devServerUrl);
-const deepLinkProtocol = 'worldofclaudecraft';
+const deepLinkProtocol = 'onaworld';
 let mainWindow = null;
 let pendingLoginCode = null;
 // Session cap counter for the renderer console mirror (used by the
@@ -77,7 +77,7 @@ const desktopConfig = resolveDesktopConfig({
 // what the Vite client bundle was baked with; loginOrigin is main-process-only);
 // the VITE_DESKTOP_* env pair is honored on unpackaged checkouts only,
 // mirroring the WOC_DISTRIBUTION hatch closure.
-const apiOrigin = deriveOrigin(desktopConfig.apiOrigin) || 'https://worldofclaudecraft.com';
+const apiOrigin = deriveOrigin(desktopConfig.apiOrigin) || 'https://onaworld.example';
 const desktopLoginOrigin = desktopConfig.loginOrigin.replace(/\/+$/, '');
 
 // Crashpad must start before any window exists so native crashes in EVERY
@@ -87,10 +87,10 @@ const desktopLoginOrigin = desktopConfig.loginOrigin.replace(/\/+$/, '');
 // build time, https-only) they upload compressed and rate-limited. No extra
 // user data rides along: the report carries only process/version metadata.
 crashReporter.start({
-  productName: 'World of ClaudeCraft',
+  productName: 'Ona World Kernel',
   // companyName is deprecated in Electron 43; the metadata field survives as
   // the _companyName global extra.
-  globalExtra: { _companyName: 'World of ClaudeCraft' },
+  globalExtra: { _companyName: 'Ona World Kernel' },
   submitURL: desktopConfig.crashSubmitUrl || undefined,
   uploadToServer: desktopConfig.crashSubmitUrl !== '',
   compress: true,
@@ -193,7 +193,7 @@ function createMainWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 720,
-    title: 'World of ClaudeCraft',
+    title: 'Ona World Kernel',
     backgroundColor: '#05070a',
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
@@ -350,7 +350,7 @@ function handleDeepLink(url) {
   } catch {
     return;
   }
-  if (parsed.protocol !== 'worldofclaudecraft:' || parsed.hostname !== 'desktop-login') return;
+  if (parsed.protocol !== 'onaworld:' || parsed.hostname !== 'desktop-login') return;
   const code = parsed.searchParams.get('code');
   if (!code) return;
   deliverLoginCode(code);

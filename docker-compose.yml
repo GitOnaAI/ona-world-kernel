@@ -62,7 +62,7 @@ services:
       # Runtime: GitHub OAuth for the in-game developer badge. Both id+secret must be
       # set to enable "Link GitHub"; empty hides it. GITHUB_REPO
       # selects which repo's contributor stats back the badge (code default:
-      # levy-street/world-of-claudecraft); GITHUB_TOKEN lifts the GitHub API rate limit
+      # GitOnaAI/ona-world-kernel); GITHUB_TOKEN lifts the GitHub API rate limit
       # for the contributor + News/Releases fetches. See .env.example.
       GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID:-}
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET:-}

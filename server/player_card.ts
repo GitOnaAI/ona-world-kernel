@@ -35,11 +35,11 @@ const CARD_PNG_DIMENSIONS = [
 const MAX_CARD_DECODED_BYTES = (2400 * 4 + 1) * 1260;
 const MAX_SLUG_LENGTH = 64;
 const MAX_SLUG_ATTEMPTS = 25;
-const DEFAULT_PRODUCTION_PUBLIC_ORIGIN = 'https://worldofclaudecraft.com';
+const DEFAULT_PRODUCTION_PUBLIC_ORIGIN = 'https://onaworld.example';
 const TRUSTED_PUBLIC_HOST_ORIGINS = new Map([
-  ['worldofclaudecraft.com', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
-  ['www.worldofclaudecraft.com', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
-  ['dev.worldofclaudecraft.com', 'https://dev.worldofclaudecraft.com'],
+  ['onaworld.example', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
+  ['www.onaworld.example', DEFAULT_PRODUCTION_PUBLIC_ORIGIN],
+  ['dev.onaworld.example', 'https://dev.onaworld.example'],
 ]);
 const CARD_NOT_FOUND_HEADERS = {
   'Content-Type': 'text/plain',
@@ -91,27 +91,27 @@ const EN_CLASSES: Record<PlayerClassKey, string> = {
 
 export const PUBLIC_CARD_COPY: Record<PublicCardLocale, PublicCardCopy> = {
   en: {
-    gameName: 'World of Claudecraft',
+    gameName: 'Ona World Kernel',
     unknownClass: 'Adventurer',
     levelClass: 'Level {level} {className}',
-    description: '{name} is forging a legend in World of Claudecraft. Join the realm.',
+    description: '{name} is forging a legend in Ona World Kernel. Join the realm.',
     cta: 'Forge your legend',
     missingTitle: 'Card not found',
     missingHeading: 'This card is no longer available.',
     missingDescription: 'It may have been retired or never existed.',
-    missingCta: 'Enter World of Claudecraft',
+    missingCta: 'Enter Ona World Kernel',
     classes: EN_CLASSES,
   },
   pt_BR: {
-    gameName: 'World of Claudecraft',
+    gameName: 'Ona World Kernel',
     unknownClass: 'Aventureiro',
     levelClass: 'Nível {level} {className}',
-    description: '{name} está forjando uma lenda em World of Claudecraft. Entre no reino.',
+    description: '{name} está forjando uma lenda em Ona World Kernel. Entre no reino.',
     cta: 'Forje sua lenda',
     missingTitle: 'Cartão não encontrado',
     missingHeading: 'Este cartão não está mais disponível.',
     missingDescription: 'Ele pode ter sido removido ou nunca ter existido.',
-    missingCta: 'Entrar em World of Claudecraft',
+    missingCta: 'Entrar em Ona World Kernel',
     classes: {
       warrior: 'Guerreiro',
       paladin: 'Paladino',

@@ -31,7 +31,7 @@ describe('loadConfig', () => {
     expect(cfg.allowDevCommands).toBe(false);
     expect(cfg.turnstileSecret).toBe('');
     expect(cfg.maxWsPerIpHard).toBe(20);
-    expect(cfg.githubRepo).toBe('levy-street/world-of-claudecraft');
+    expect(cfg.githubRepo).toBe('GitOnaAI/ona-world-kernel');
     expect(cfg.githubToken).toBe('');
     expect(cfg.chatLogRetentionDays).toBe(90);
     expect(cfg.perfReportRetentionDays).toBe(14);

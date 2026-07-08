@@ -46,7 +46,7 @@ describe('detectDesktopPlatform', () => {
 describe('desktopDownloadUrl', () => {
   it('builds the mac universal dmg URL', () => {
     expect(desktopDownloadUrl('mac')).toBe(
-      `https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-${DESKTOP_VERSION}-mac-universal.dmg`,
+      `https://updates.onaworld.example/desktop/ona-world-kernel-${DESKTOP_VERSION}-mac-universal.dmg`,
     );
   });
 

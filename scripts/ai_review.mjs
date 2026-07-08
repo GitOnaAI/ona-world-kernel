@@ -187,7 +187,7 @@ git whenever you need the complete picture.`
     : `The checkout may be the PR's BASE branch, so a file the diff itself adds may exist only in the
 diff text; that is expected, never a finding.`;
 
-const prompt = `You are a thorough, constructive senior code reviewer for World of ClaudeCraft, a TypeScript
+const prompt = `You are a thorough, constructive senior code reviewer for Ona World Kernel, a TypeScript
 micro-MMO and reinforcement-learning environment built on one deterministic 20 Hz simulation core
 (see CLAUDE.md at the repo root for the architecture and the invariants; read it first).
 
