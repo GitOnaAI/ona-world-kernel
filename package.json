@@ -24,6 +24,7 @@
     "electron:build": "node scripts/electron-build.mjs build",
     "electron:build:steam": "node scripts/electron-build.mjs build steam",
     "preview": "vite preview",
+    "previews:render": "node scripts/render_asset_previews.mjs",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "biome lint .",

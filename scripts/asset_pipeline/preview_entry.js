@@ -11,7 +11,11 @@ import * as THREE from 'three';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  preserveDrawingBuffer: true,
+  alpha: true,
+});
 renderer.setPixelRatio(1);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
@@ -46,7 +50,7 @@ function parseGlb(b64) {
   });
 }
 
-function frame(scene, obj, yaw, size) {
+function frame(scene, obj, yaw, size, transparent = false) {
   obj.rotation.set(0, yaw, 0);
   obj.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(obj);
@@ -59,7 +63,7 @@ function frame(scene, obj, yaw, size) {
   cam.position.set(center.x, center.y + dist * 0.1, center.z + dist);
   cam.lookAt(center);
   renderer.setSize(size, size);
-  renderer.setClearColor(0x1a1e26, 1);
+  renderer.setClearColor(0x1a1e26, transparent ? 0 : 1);
   renderer.render(scene, cam);
   return renderer.domElement.toDataURL('image/png');
 }
@@ -84,10 +88,12 @@ const ALL_YAWS = [
 
 // opts.views: subset of view names to render (default all five).
 // opts.clips: render one mid-pose frame per animation clip (default true).
+// opts.transparent: alpha-0 background instead of the neutral studio gray.
 window.renderViews = async (b64, opts = {}) => {
   const size = opts.size ?? 512;
   const wanted = opts.views ?? ALL_YAWS.map(([n]) => n);
   const withClips = opts.clips ?? true;
+  const transparent = opts.transparent ?? false;
   const gltf = await parseGlb(b64);
   const scene = new THREE.Scene();
   scene.add(makeLights());
@@ -96,7 +102,8 @@ window.renderViews = async (b64, opts = {}) => {
 
   const shots = [];
   for (const [name, yaw] of ALL_YAWS) {
-    if (wanted.includes(name)) shots.push({ name, dataUrl: frame(scene, obj, yaw, size) });
+    if (wanted.includes(name))
+      shots.push({ name, dataUrl: frame(scene, obj, yaw, size, transparent) });
   }
 
   const clips = withClips ? (gltf.animations ?? []) : [];
@@ -109,7 +116,7 @@ window.renderViews = async (b64, opts = {}) => {
       obj.updateMatrixWorld(true);
       shots.push({
         name: `clip_${clip.name.replace(/[^a-zA-Z0-9_]+/g, '_')}`,
-        dataUrl: frame(scene, obj, -Math.PI / 5, size),
+        dataUrl: frame(scene, obj, -Math.PI / 5, size, transparent),
       });
       action.stop();
       mixer.uncacheClip(clip);
