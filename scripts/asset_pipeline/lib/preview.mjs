@@ -80,11 +80,20 @@ function writeDataUrl(dataUrl, dest) {
 
 /** Render turntable + per-clip previews of a GLB into outDir. Returns paths.
  *  opts.views limits the turntable set (e.g. ['hero']); opts.clips toggles the
- *  per-animation pose frames. */
-export async function renderPreviews(glbPath, outDir, { size = 512, views, clips } = {}) {
+ *  per-animation pose frames; opts.transparent renders on an alpha-0 background. */
+export async function renderPreviews(
+  glbPath,
+  outDir,
+  { size = 512, views, clips, transparent } = {},
+) {
   const b64 = readFileSync(glbPath).toString('base64');
   const shots = await withPage((page) =>
-    page.evaluate((data, opts) => window.renderViews(data, opts), b64, { size, views, clips }),
+    page.evaluate((data, opts) => window.renderViews(data, opts), b64, {
+      size,
+      views,
+      clips,
+      transparent,
+    }),
   );
   return shots.map((s) => writeDataUrl(s.dataUrl, join(outDir, `${s.name}.png`)));
 }
@@ -105,13 +114,14 @@ export async function renderPreviewsIfPossible(glbPath, outDir, opts = {}) {
 }
 
 /** Render a single hero-view thumbnail of a GLB to `dest`. */
-export async function renderThumb(glbPath, dest, { size = 256 } = {}) {
+export async function renderThumb(glbPath, dest, { size = 256, transparent } = {}) {
   const b64 = readFileSync(glbPath).toString('base64');
   const shots = await withPage((page) =>
     page.evaluate((data, opts) => window.renderViews(data, opts), b64, {
       size,
       views: ['hero'],
       clips: false,
+      transparent,
     }),
   );
   if (!shots.length) throw new Error(`no hero render for ${glbPath}`);
