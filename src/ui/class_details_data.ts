@@ -74,7 +74,14 @@ export const CLASS_DETAILS: Record<PlayerClass, ClassDetails> = {
     roleType: 'hybrid',
     armorKey: 'classDetails.armor.leatherCloth',
     weaponsKey: 'classDetails.weapons.staves',
-  }
+  },
+  // Rootwarden: hunter-style ranged profile, but MAIL armor (roster difference).
+  rootwarden: {
+    roleKey: 'classDetails.roles.rootwarden',
+    roleType: 'ranged',
+    armorKey: 'classDetails.armor.chainLeatherCloth',
+    weaponsKey: 'classDetails.weapons.axesSwords',
+  },
 };
 
 // Three curated "signature" abilities per class, shown on the select screen.
@@ -89,5 +96,6 @@ export const SIGNATURE_ABILITIES: Record<PlayerClass, string[]> = {
   shaman: ['lightning_bolt', 'rockbiter_weapon', 'ghost_wolf'],
   mage: ['fireball', 'frostbolt', 'polymorph'],
   warlock: ['shadow_bolt', 'corruption', 'life_tap'],
-  druid: ['wrath', 'bear_form', 'rejuvenation']
+  druid: ['wrath', 'bear_form', 'rejuvenation'],
+  rootwarden: ['venomroot_sting', 'trueroot_shot', 'ancestral_shot'],
 };

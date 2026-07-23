@@ -2181,7 +2181,9 @@ export const pt_BR: EnTranslations = {
     "shamanAria": "Classe Xamã",
     "mageAria": "Classe Mago",
     "warlockAria": "Classe Bruxo",
-    "druidAria": "Classe Druida"
+    "druidAria": "Classe Druida",
+    "rootwarden": "Rootwarden",
+    "rootwardenAria": "Rootwarden class"
   },
   "controls": {
     "title": "Guia de controles",
@@ -2895,7 +2897,8 @@ export const pt_BR: EnTranslations = {
       "shaman": "Curador / DPS corpo a corpo ou à distância",
       "mage": "DPS à distância",
       "warlock": "DPS à distância",
-      "druid": "Tanque / Curador / DPS corpo a corpo ou à distância"
+      "druid": "Tanque / Curador / DPS corpo a corpo ou à distância",
+      "rootwarden": "Ranged DPS"
     },
     "armor": {
       "chainLeatherCloth": "Malha, couro, tecido",
@@ -2919,7 +2922,8 @@ export const pt_BR: EnTranslations = {
       "shaman": "Xamãs comandam os elementos, imbuem armas com poder, chocam inimigos com relâmpagos e restauram aliados.",
       "mage": "Magos manipulam Fogo, Gelo e força arcana para destruir inimigos, conjurar água e congelar ameaças.",
       "warlock": "Bruxos invocam demônios, aplicam maldições e magia de dano contínuo, e sugam a vida dos inimigos para resistir.",
-      "druid": "Druidas canalizam a natureza, curam feridas, enredam inimigos e assumem formas animais para defender ou causar dano."
+      "druid": "Druidas canalizam a natureza, curam feridas, enredam inimigos e assumem formas animais para defender ou causar dano.",
+      "rootwarden": "Rootwardens are ancestral wilds-keepers who fight beside a bonded kindred spirit, striking foes with ancestral and trueroot shots, snaring them with venomroot and entangling fire, and calling on beast marks to suit the moment."
     },
     "aria": "Detalhes de classe para {className}: função {role}. Atributos iniciais: Força {str}, Agilidade {agi}, Vigor {sta}, Intelecto {int}, Espírito {spi}.",
     "statBarAria": "{stat}: {value} de 25"
@@ -4470,6 +4474,66 @@ export const pt_BR: EnTranslations = {
         "name": "Invocar Wraithborn",
         "description": "Vincula um Wraithborn à sua vontade, um demônio de elite que faz chover pesado dano Sombrio à distância. Uma longa recarga limita seu poder devastador. Invocar um novo demônio dispensa o atual. Você só pode ter um demônio por vez."
       },
+      "thornclaw_strike": {
+        "name": "Thornclaw Strike",
+        "description": "A strong melee attack that increases damage by 5. Activates on your next swing."
+      },
+      "mark_of_the_hawk": {
+        "name": "Mark of the Hawk",
+        "description": "Call on the hawk ancestor, increasing attack power by 20 for 30 min."
+      },
+      "venomroot_sting": {
+        "name": "Venomroot Sting",
+        "description": "Stings the target, dealing {damage} Nature damage over 15 sec."
+      },
+      "ancestral_shot": {
+        "name": "Ancestral Shot",
+        "description": "An instant shot that deals {damage} Arcane damage."
+      },
+      "entangling_shot": {
+        "name": "Entangling Shot",
+        "description": "Snares the target, slowing movement by 50% for 4 sec."
+      },
+      "wildroot_bite": {
+        "name": "Wildroot Bite",
+        "description": "Counterattack after the target dodges for weapon damage plus 12. Cannot be dodged."
+      },
+      "rootsnare": {
+        "name": "Rootsnare",
+        "description": "Inflicts a wound that slows the enemy by 40% for 10 sec."
+      },
+      "bond_kindred_spirit": {
+        "name": "Bond Kindred Spirit",
+        "description": "Begins bonding a beast as your kindred spirit. It must be your level or lower and not an elite. Your pet follows you, attacks your enemies, and holds threat of its own. You may have one pet at a time."
+      },
+      "release_kindred_spirit": {
+        "name": "Release Kindred Spirit",
+        "description": "Releases your kindred spirit back to the wild."
+      },
+      "revive_kindred_spirit": {
+        "name": "Revive Kindred Spirit",
+        "description": "Revives your fallen kindred spirit and returns it to your side."
+      },
+      "mark_of_the_fox": {
+        "name": "Mark of the Fox",
+        "description": "Call on the fox ancestor, increasing your dodge chance by 8% for 30 min."
+      },
+      "mark_of_the_stag": {
+        "name": "Mark of the Stag",
+        "description": "Call on the stag ancestor, increasing movement speed by 30% for 30 min."
+      },
+      "trueroot_shot": {
+        "name": "Trueroot Shot",
+        "description": "A carefully drawn shot that deals {damage} damage."
+      },
+      "ancestors_haste": {
+        "name": "Ancestor's Haste",
+        "description": "Increases your attack speed by 40% for 15 sec."
+      },
+      "root_barrage": {
+        "name": "Root Barrage",
+        "description": "Rains thorns on the target area, dealing {damage} damage to enemies caught in it."
+      },
       "bear_charge": {
         "name": "Investida de Bruin",
         "description": "Investe contra um inimigo, gera 9 de raiva e o atordoa por 1 s. Alcance de 8 a 25 m. Apenas Forma de Bruin."
@@ -5889,6 +5953,27 @@ export const pt_BR: EnTranslations = {
       "thunzharr_stormling": {
         "name": "Elemental de tormenta desperto"
       },
+      "kharzoth_thrallguard": {
+        "name": "Kharzoth Thrall-Guard"
+      },
+      "kharzoth_slavehound": {
+        "name": "Kharzoth Slave-Hound"
+      },
+      "kharzoth_overseer": {
+        "name": "Kharzoth Overseer"
+      },
+      "kharzoth_chainwarden": {
+        "name": "Kharzoth Chain-Warden"
+      },
+      "kharzoth_slavedriver": {
+        "name": "Kharzoth Slavedriver"
+      },
+      "pitmaster_vorgal": {
+        "name": "Pitmaster Vorgal"
+      },
+      "vharaeth_avatar": {
+        "name": "Avatar of Vharaeth"
+      },
       "ironvein_foreman": {
         "name": "Capataz Veio de Ferro"
       },
@@ -6118,6 +6203,21 @@ export const pt_BR: EnTranslations = {
         "name": "O Guardião Pálido",
         "title": "Vigia dos Mortos",
         "greeting": "Descanse agora, espírito. Posso devolver você ao seu corpo, mas a travessia de volta deixa você fraco."
+      },
+      "warden_kaelis": {
+        "name": "Warden Kaelis",
+        "title": "Keeper of Ashroot",
+        "greeting": "Speak low, {className}. Every soul in this refuge slipped a Kharzoth chain, and the Dominion counts its losses."
+      },
+      "steward_orin": {
+        "name": "Steward Orin",
+        "title": "Camp Steward",
+        "greeting": "Scavenged, salvaged, and shared. Take what you need, {playerName}, and leave what you can."
+      },
+      "rootspeaker_ysha": {
+        "name": "Rootspeaker Ysha",
+        "title": "Voice of the Kindred",
+        "greeting": "The old roots remember what the Dominion tried to burn out of us, {playerName}. Listen, and they will remember through you."
       },
       "tidewatcher_ondrel": {
         "name": "Ondrel Vane",
@@ -6928,6 +7028,36 @@ export const pt_BR: EnTranslations = {
           }
         }
       },
+      "q_kharzoth_first_steps": {
+        "title": "First Steps Free",
+        "text": "You made it out of the pits, {playerName}, but the Dominion's thrall-guards still patrol the approaches. Thin them out so the refuge stays hidden. Fell 4 Kharzoth Thrall-Guards.",
+        "completion": "Steadier already. That's the first thing the Dominion takes from you, {playerName}: the belief you can still fight back.",
+        "objectives": {
+          "0": {
+            "label": "Kharzoth Thrall-Guard slain"
+          }
+        }
+      },
+      "q_kharzoth_ancestors_call": {
+        "title": "The Ancestors' Call",
+        "text": "I felt it the moment you slipped your chain, {playerName}: the old roots stirring. The slave-hounds hunt the pit trails; outlast their pack and the ancestors will know your name. Slay 5 Kharzoth Slave-Hounds.",
+        "completion": "They are watching now, {playerName}. Climb to Vharaeth's Overlook, north past the Chain-Yards, and stand before the trial they have set for you.",
+        "objectives": {
+          "0": {
+            "label": "Kharzoth Slave-Hound slain"
+          }
+        }
+      },
+      "q_kharzoth_trial_of_roots": {
+        "title": "The Trial of Roots",
+        "text": "This is the last of it, {playerName}. The Avatar of Vharaeth waits at the Overlook to judge what you've become. Stand before it, and endure.",
+        "completion": "The roots remember your name now, warden. Kharzoth took everything from you once. See that it never does again.",
+        "objectives": {
+          "0": {
+            "label": "Avatar of Vharaeth defeated"
+          }
+        }
+      },
       "q_drowned_choir": {
         "title": "O Coro Afogado",
         "text": "Os vadeadores não agem sozinhos. Entre eles caminham os Devotos Afogados — o culto que afundou com o templo, ainda em suas vestes apodrecidas, ainda cantando a prece desde as rochas da costa. Silencie oito deles e traga-me seis das oferendas que carregam. Eu gostaria de saber o que pretendem dar à sua deusa.",
@@ -7092,6 +7222,33 @@ export const pt_BR: EnTranslations = {
           },
           "9": {
             "label": "Santuário do Gravewyrm"
+          }
+        }
+      },
+      "kharzoth_dominion": {
+        "name": "Kharzoth Dominion",
+        "welcome": "Warden Kaelis keeps the Ashroot Refuge hidden. Beyond it, the Dominion pits swallow the free.",
+        "pois": {
+          "0": {
+            "label": "Ashroot Refuge"
+          },
+          "1": {
+            "label": "The Cinder Pits"
+          },
+          "2": {
+            "label": "Slaghollow"
+          },
+          "3": {
+            "label": "Coolant Cistern"
+          },
+          "4": {
+            "label": "The Chain-Yards"
+          },
+          "5": {
+            "label": "Embergate"
+          },
+          "6": {
+            "label": "Vharaeth's Overlook"
           }
         }
       }

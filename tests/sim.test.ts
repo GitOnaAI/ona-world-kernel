@@ -6,6 +6,7 @@ import {
   GROUND_OBJECTS,
   ITEMS,
   LAKE,
+  zoneAt,
 } from '../src/sim/data';
 import { ACTIONS, applyAction, encodeObs, obsSize } from '../src/sim/obs';
 import { Sim } from '../src/sim/sim';
@@ -1684,5 +1685,17 @@ describe('friendly targeting (#133)', () => {
     sim.tick();
     sim.friendlyTabTarget();
     expect(sim.player.targetId).toBe(77);
+  });
+});
+
+describe('class-conditional spawn (rootwarden origin zone)', () => {
+  it('a new rootwarden spawns in the Kharzoth Dominion, not the shared zone1 playerStart', () => {
+    const sim = new Sim({ seed: 42, playerClass: 'rootwarden', autoEquip: true });
+    expect(zoneAt(sim.player.pos.z).id).toBe('kharzoth_dominion');
+  });
+
+  it('other classes still spawn at the shared zone1 playerStart', () => {
+    const sim = makeSim('warrior');
+    expect(zoneAt(sim.player.pos.z).id).not.toBe('kharzoth_dominion');
   });
 });

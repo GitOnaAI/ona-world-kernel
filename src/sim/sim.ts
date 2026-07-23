@@ -82,6 +82,7 @@ import type { DelveShopGate, DelveShopOffer } from './data';
 import {
   abilitiesKnownAt,
   arenaOrigin,
+  BUILTIN_WORLD,
   CLASSES,
   COMMON_RECIPES,
   DEEPFEN_SHALLOWS_LAKE,
@@ -102,6 +103,7 @@ import {
   isDelvePos,
   MOBS,
   QUESTS,
+  ROOTWARDEN_START,
   SPIRIT_HEALER_NPC_ID,
   zoneAt,
 } from './data';
@@ -109,6 +111,7 @@ import * as companionMod from './delves/companion';
 import * as lockpickMod from './delves/lockpick_controller';
 import * as runsMod from './delves/runs';
 import * as nythraxis from './encounters/nythraxis';
+import * as vharaeth from './encounters/vharaeth';
 // A3: ARENA_SPAWNS_A_2v2/B_2v2 (read only by the moved fiestaRevive) now live with
 // social/fiesta.ts. The dungeon-wall consts (DUNGEON_WALL_HW/X) are now read only by
 // delves/runs.ts + render/dungeon.ts; W11 dropped the stranded sim.ts import. I2a's delve
@@ -1418,7 +1421,14 @@ export class Sim {
       const dungeon = dungeonAt(savedPos.x) ?? DUNGEON_LIST[0];
       savedPos = { x: dungeon.doorPos.x, z: dungeon.doorPos.z - 4 };
     }
-    const playerStart = (this.cfg.world ?? getActiveWorldContent()).playerStart;
+    const worldContent = this.cfg.world ?? getActiveWorldContent();
+    // Rootwarden's origin is the Ashroot Refuge (Kharzoth Dominion), not the
+    // shared zone1 playerStart, but only on the builtin world: a custom editor
+    // map may not carry the Kharzoth zone at all, so it keeps its own start.
+    const playerStart =
+      cls === 'rootwarden' && worldContent === BUILTIN_WORLD
+        ? ROOTWARDEN_START
+        : worldContent.playerStart;
     const startPos = savedPos
       ? this.groundPos(savedPos.x, savedPos.z)
       : this.groundPos(playerStart.x, playerStart.z);
@@ -2486,6 +2496,9 @@ export class Sim {
       // keeps its .bind delegate (foreign callers + a test reach sim.resetNythraxisEncounter).
       updateNythraxisEncounter: (boss) => nythraxis.updateNythraxisEncounter(sim.ctx, boss),
       resetNythraxisEncounter: sim.resetNythraxisEncounter.bind(sim),
+      // TK-5: the Vharaeth overworld trial driver (encounters/vharaeth.ts); late-bound
+      // arrow (mob/locomotion.ts updateMob layers it over the normal AI via ctx).
+      updateVharaethEncounter: (boss) => vharaeth.updateVharaethEncounter(sim.ctx, boss),
       updateFearMovement: sim.updateFearMovement.bind(sim),
       // M4 mob death lifecycle: the five execution bodies live in mob/lifecycle.ts;
       // handleDeath (combat/damage.ts) + the updateMob corpse-tick reach them through
@@ -2504,7 +2517,12 @@ export class Sim {
       detonateCorpse: (dead) => lifecycle.detonateCorpse(sim.ctx, dead),
       // N1: the Nythraxis death dialogue now lives in encounters/nythraxis.ts; late-bound
       // arrow (updateMob's dead-branch fires it via ctx for every dead mob; draws no rng).
-      onBossDeath: (mob) => nythraxis.onBossDeath(sim.ctx, mob),
+      // TK-5: the Vharaeth recognition line rides the same hook (both id-guarded, so each
+      // no-ops for a mob that is not its boss; neither draws rng).
+      onBossDeath: (mob) => {
+        nythraxis.onBossDeath(sim.ctx, mob);
+        vharaeth.onVharaethDeath(sim.ctx, mob);
+      },
       // M3 mob on-hit affix cascade seam: effectiveArmor (cleave splash armor) +
       // the devour recalc wrapper. Both stay on Sim; the cascade reaches them via ctx.
       effectiveArmor: sim.effectiveArmor.bind(sim),

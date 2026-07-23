@@ -947,9 +947,11 @@ describe('delve reward chest + surface exit flow', () => {
 
   it('the Bountiful roll is deterministic for a given seed', () => {
     // Read the raw roll via enterReliquary (enterFinale pins it false). Same seed
-    // ⇒ same outcome; seed 122 is known to roll Bountiful under the current world
+    // ⇒ same outcome; seed 12 is known to roll Bountiful under the current world
     // content (the derived run.seed shifts whenever upstream ctor spawns change —
-    // re-probe candidate seeds if this goes red after a content addition).
+    // re-probe candidate seeds if this goes red after a content addition; seed
+    // 122 rolled Bountiful before the Kharzoth Dominion zone's ambient camp mobs
+    // shifted the shared construction-time rng stream, re-probed to 12).
     const rollFor = (seed: number) => {
       const s = makeSim('warrior', seed);
       s.setPlayerLevel(DELVES.collapsed_reliquary.minLevel);
@@ -957,7 +959,7 @@ describe('delve reward chest + surface exit flow', () => {
       return s.delveRunForPlayer(s.playerId)?.bountiful;
     };
     expect(rollFor(1234)).toBe(rollFor(1234));
-    expect(rollFor(122)).toBe(true);
+    expect(rollFor(12)).toBe(true);
   });
 
   it('a Bountiful Coffer refuses the lower antes and only opens at Hard-tier + Premium ante', () => {

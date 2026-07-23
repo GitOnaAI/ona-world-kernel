@@ -369,6 +369,15 @@ export const SKINS: Record<string, (string | null)[]> = {
     `${SKINS_DIR}/druid/alt_suit_prismatic.png`,
     `${SKINS_DIR}/druid/alt_suit_chrome.png`,
   ],
+  // Seeded with just the default (white) texture; `skin --apply` appends the
+  // green/red/blue color variants here (registerClassSkin), bumping
+  // SKIN_COUNTS.rootwarden (src/sim/content/skins.ts) in lockstep.
+  player_rootwarden: [
+    null,
+    `${SKINS_DIR}/rootwarden/alt_a.png`,
+    `${SKINS_DIR}/rootwarden/alt_b.png`,
+    `${SKINS_DIR}/rootwarden/alt_c.png`,
+  ],
   // Combat Mech chromas — every index is a real full-model texture (no null
   // default; the embedded base texture is not one of the rewards).
   player_mech: MECH_CHROMAS.map(mechChromaUrl),
@@ -497,6 +506,17 @@ export const VISUALS: Record<string, VisualDef> = {
     clips: kaykit(['2H_Melee_Attack_Chop']),
     // dedicated druid model (own texture, ships a Backpack mesh)
     attach: [{ url: `${WEAPONS}/staff.glb`, bone: 'handslot.r' }],
+    weaponSlots: [0],
+  },
+  player_rootwarden: {
+    // Generated via the asset-pipeline `skinmodel` lane (derived from the
+    // hunter reference model), then copied into chars/players/ alongside the
+    // other 9 base class models so it works like any of them (the `skin`
+    // color-variant lane keys off this directory + CLASS_MODELS.rootwarden).
+    url: `${PLAYERS}/rootwarden.glb`,
+    height: HUMANOID_H,
+    clips: kaykit(['2H_Ranged_Shoot']),
+    attach: [{ url: `${WEAPONS}/crossbow_1handed.glb`, bone: 'handslot.r' }],
     weaponSlots: [0],
   },
 

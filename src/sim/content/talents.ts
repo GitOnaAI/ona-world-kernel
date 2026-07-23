@@ -19,6 +19,7 @@ import {
   PALADIN_TALENTS,
   PRIEST_TALENTS,
   ROGUE_TALENTS,
+  ROOTWARDEN_TALENTS,
   SHAMAN_TALENTS,
   WARLOCK_TALENTS,
 } from './talents_classic';
@@ -187,6 +188,7 @@ export const TALENTS: Partial<Record<PlayerClass, ClassTalents>> = {
   mage: MAGE_TALENTS,
   warlock: WARLOCK_TALENTS,
   druid: DRUID_TALENTS,
+  rootwarden: ROOTWARDEN_TALENTS,
 };
 
 export function talentsFor(cls: PlayerClass): ClassTalents | null {

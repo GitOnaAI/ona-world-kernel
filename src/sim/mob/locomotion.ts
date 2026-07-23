@@ -42,6 +42,7 @@ import {
   SISTER_NHALIA_BOSS_ID,
   TOLLING_BELL_TEMPLATE_ID,
   type Vec3,
+  VHARAETH_BOSS_ID,
 } from '../types';
 import { groundHeight, waterLevelAt } from '../world';
 import { rallyFleeingAllies } from './social_aggro';
@@ -154,6 +155,10 @@ export function updateMob(ctx: SimContext, mob: Entity): void {
         return;
     } else {
       ctx.updateBossMechanics(mob);
+      // TK-5: the Vharaeth trial script layers over the normal AI (unlike Nythraxis,
+      // which replaces it): run the driver while engaged, then fall through to the
+      // usual chase/attack/leash switch so Vharaeth moves and swings like an elite.
+      if (mob.templateId === VHARAETH_BOSS_ID) ctx.updateVharaethEncounter(mob);
     }
   }
 

@@ -304,6 +304,8 @@ export const en = {
     mageAria: 'Mage class',
     warlockAria: 'Warlock class',
     druidAria: 'Druid class',
+    rootwarden: 'Rootwarden',
+    rootwardenAria: 'Rootwarden class',
   },
   controls: {
     title: 'Controls Guide',

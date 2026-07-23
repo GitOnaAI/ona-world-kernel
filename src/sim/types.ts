@@ -77,12 +77,14 @@ export type PlayerClass =
   | 'shaman'
   | 'mage'
   | 'warlock'
-  | 'druid';
+  | 'druid'
+  | 'rootwarden';
 
-// Classes that command a persistent pet (hunter beast, warlock demon). Pure
-// predicate, here so the pet-command slice imports it without a sim.ts cycle.
+// Classes that command a persistent pet (hunter beast, warlock demon, rootwarden
+// kindred spirit). Pure predicate, here so the pet-command slice imports it
+// without a sim.ts cycle.
 export function isPetClass(cls: PlayerClass): boolean {
-  return cls === 'hunter' || cls === 'warlock';
+  return cls === 'hunter' || cls === 'warlock' || cls === 'rootwarden';
 }
 // '1v1'/'2v2' are the ranked Ashen Coliseum ladders; 'fiesta' is the
 // dopamine-maxxed 2v2 party mode (score-based, respawns, augments, a shrinking
@@ -111,6 +113,7 @@ export const ALL_CLASSES: PlayerClass[] = [
   'mage',
   'warlock',
   'druid',
+  'rootwarden',
 ];
 export type ResourceType = 'rage' | 'mana' | 'energy';
 export const OVERHEAD_EMOTE_IDS = [
@@ -1603,6 +1606,7 @@ export interface Entity {
   enraged: boolean; // enrage mechanic active
   healedThisPull: boolean; // desperation self-heal already used this pull
   nythraxis?: NythraxisEncounterState; // sim-only state for the Nythraxis raid encounter
+  vharaeth?: VharaethEncounterState; // sim-only state for the Vharaeth overworld trial (TK-5)
   spawnPos: Vec3;
   leashAnchor: Vec3 | null; // refreshed by hostile player/pet actions; spawnPos remains the true home
   evadeStall: number; // seconds an evading mob has failed to get closer to home; snaps it home if it can't path back (e.g. across water)
@@ -1714,6 +1718,19 @@ export interface NythraxisEncounterState {
   wardChannels: NythraxisWardChannel[];
   finalStand: boolean;
   deathSpoken: boolean;
+}
+
+// Vharaeth's Overlook trial (TK-5): a small, solo-scale scripted encounter in the
+// Kharzoth Dominion (levels 1 to 8). Deliberately MUCH smaller than the Nythraxis
+// raid state: three phases (intro dialogue on engage, a rng-drawing judgment pulse
+// at half health, then a recognition line on death) and no adds/lockout/relic chain.
+export interface VharaethEncounterState {
+  phase: 'intro' | 'trial' | 'dead';
+  introSpoken: boolean; // opener yells fired once on first engage
+  trialSpoken: boolean; // half-health trial announcement fired once
+  dialogueToken: number; // stale-scheduled-yell guard (mirrors the Nythraxis token)
+  trialTimer: number; // seconds until the next Ancestral Judgment pulse (phase 'trial')
+  deathSpoken: boolean; // final recognition line fired once (onVharaethDeath)
 }
 
 export type ErrorReason = 'target_dead';
@@ -2188,6 +2205,10 @@ export const SISTER_NHALIA_BOSS_ID = 'sister_nhalia_drowned_canticle';
 // The Tolling Bells projectile mob (Drowned Litany finale): moved exclusively by
 // the boss driver. Shared with mob/locomotion.ts so the AI dispatcher skips it.
 export const TOLLING_BELL_TEMPLATE_ID = 'tolling_bell';
+// Vharaeth's Overlook trial elite (TK-5). A stable, memorable id: the origin quest
+// chain (TK-6) uses it as a `{type:'kill',targetMobId}` objective. Shared with
+// mob/locomotion.ts (the encounter dispatch) and encounters/vharaeth.ts.
+export const VHARAETH_BOSS_ID = 'vharaeth_avatar';
 
 export function xpForLevel(level: number): number {
   return XP_TABLE[Math.min(level - 1, XP_TABLE.length - 1)];

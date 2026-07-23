@@ -191,6 +191,7 @@ export const shellStrings = {
         mage: 'Ranged DPS',
         warlock: 'Ranged DPS',
         druid: 'Tank / Healer / Melee or Ranged DPS',
+        rootwarden: 'Ranged DPS',
       },
       armor: {
         chainLeatherCloth: 'Chainmail, Leather, Cloth',
@@ -223,6 +224,8 @@ export const shellStrings = {
           'Warlocks summon demons, apply curses and damage-over-time magic, and leech life from enemies to endure.',
         druid:
           'Druids channel nature, healing wounds, entangling foes, and shifting into animal forms for defense or damage.',
+        rootwarden:
+          'Rootwardens are ancestral wilds-keepers who fight beside a bonded kindred spirit, striking foes with ancestral and trueroot shots, snaring them with venomroot and entangling fire, and calling on beast marks to suit the moment.',
       },
       aria: 'Class details for {className}: role {role}. Starting stats: Strength {str}, Agility {agi}, Stamina {sta}, Intellect {int}, Spirit {spi}.',
       statBarAria: '{stat}: {value} out of 25',
@@ -1213,6 +1216,7 @@ export const shellStrings = {
         mage: 'Ranged DPS',
         warlock: 'Ranged DPS',
         druid: 'Tank / Healer / Melee or Ranged DPS',
+        rootwarden: 'Ranged DPS',
       },
       armor: {
         chainLeatherCloth: 'Chainmail, Leather, Cloth',

@@ -98,6 +98,14 @@ const MOB_IDS = [
   // Thornpeak Heights world boss + its summoned adds
   'thunzharr_waking_peak',
   'thunzharr_stormling',
+  // Kharzoth Dominion (rootwarden origin zone)
+  'kharzoth_thrallguard',
+  'kharzoth_slavehound',
+  'kharzoth_overseer',
+  'kharzoth_chainwarden',
+  'kharzoth_slavedriver',
+  'pitmaster_vorgal',
+  'vharaeth_avatar',
 ] as const;
 
 const NPC_IDS = [
@@ -125,6 +133,10 @@ const NPC_IDS = [
   'brother_halven', // Collapsed Reliquary delve board NPC
   'brother_halven_marsh', // Drowned Litany delve board NPC (same character, marsh camp)
   'spirit_healer', // the graveyard angel (spawned at every graveyard + dungeon entry)
+  // Kharzoth Dominion refuge NPCs (rootwarden origin zone)
+  'warden_kaelis',
+  'steward_orin',
+  'rootspeaker_ysha',
 ] as const;
 
 const QUEST_IDS = [
@@ -204,9 +216,17 @@ const QUEST_IDS = [
   'q_mogger',
   'q_archetype_acceptance',
   'q_prof_make_amends',
+  'q_kharzoth_first_steps',
+  'q_kharzoth_ancestors_call',
+  'q_kharzoth_trial_of_roots',
 ] as const;
 
-const ZONE_IDS = ['eastbrook_vale', 'mirefen_marsh', 'thornpeak_heights'] as const;
+const ZONE_IDS = [
+  'eastbrook_vale',
+  'mirefen_marsh',
+  'thornpeak_heights',
+  'kharzoth_dominion',
+] as const;
 const DUNGEON_IDS = [
   'hollow_crypt',
   'sunken_bastion',

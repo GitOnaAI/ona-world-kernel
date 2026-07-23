@@ -49,6 +49,10 @@ provided as a courtesy.
 | Generated weapon model + icon (purple_axe) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
 | Generated weapon model + icon (purple_staff) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
 | Generated weapon model + icon (purple_wand) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (Tripo AI 3D) | Project asset |
+| Generated skin-model character (rootwarden, "an escaped-captive forest warden awakened by an ancestral wild spirit: worn simple chainmail hauberk over patched leather straps, faded rope-bound wraps, moss-green and bronze tones, subtle vine and root motifs growing across the armor, a quiver and hood of woven bark and leaves, weathered and lean, watchful hunter-tracker stance" hunter) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (gpt-image-2 redesign + Tripo build/rig/retarget) | Project asset |
+| Generated class skin atlas (rootwarden/alt_a.png) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (atlas recolor/repaint) | Project asset |
+| Generated class skin atlas (rootwarden/alt_b.png) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (atlas recolor/repaint) | Project asset |
+| Generated class skin atlas (rootwarden/alt_c.png) | World of ClaudeCraft | Project-generated via scripts/asset_pipeline (atlas recolor/repaint) | Project asset |
 
 Assets were optimized for shipping (animation clip pruning, meshopt compression,
 texture resizing) via `scripts/assets/build_assets.mjs`; raw packs are not

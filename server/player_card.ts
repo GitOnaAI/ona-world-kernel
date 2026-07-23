@@ -62,7 +62,8 @@ type PlayerClassKey =
   | 'shaman'
   | 'mage'
   | 'warlock'
-  | 'druid';
+  | 'druid'
+  | 'rootwarden';
 
 export interface PublicCardCopy {
   gameName: string;
@@ -87,6 +88,7 @@ const EN_CLASSES: Record<PlayerClassKey, string> = {
   mage: 'Mage',
   warlock: 'Warlock',
   druid: 'Druid',
+  rootwarden: 'Rootwarden',
 };
 
 export const PUBLIC_CARD_COPY: Record<PublicCardLocale, PublicCardCopy> = {
@@ -122,6 +124,7 @@ export const PUBLIC_CARD_COPY: Record<PublicCardLocale, PublicCardCopy> = {
       mage: 'Mago',
       warlock: 'Bruxo',
       druid: 'Druida',
+      rootwarden: 'Guardião das Raízes',
     },
   },
 };

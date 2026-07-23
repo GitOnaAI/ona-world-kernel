@@ -945,6 +945,7 @@ async function handleApi(req: http.IncomingMessage, res: http.ServerResponse): P
           'mage',
           'warlock',
           'druid',
+          'rootwarden',
         ];
         if (!validClasses.includes(body.class))
           return json(res, 400, { error: 'invalid class', code: 'character.invalid_class' });

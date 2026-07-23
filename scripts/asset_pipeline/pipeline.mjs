@@ -755,6 +755,7 @@ const CLASS_MODELS = {
   warlock: 'mage',
   shaman: 'barbarian',
   druid: 'druid',
+  rootwarden: 'rootwarden',
 };
 
 async function cmdSkin() {

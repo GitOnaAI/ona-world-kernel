@@ -128,6 +128,11 @@ export const SKIN_COUNTS: Record<PlayerClass, number> = {
   warlock: 6,
   shaman: 6,
   druid: 6,
+  // Starts at 1 (default only): the asset pipeline's `skin --apply` auto-bumps
+  // this by 1 per generated skin (registerClassSkin), so it reaches 4 (white
+  // default + green/red/blue) once those 3 skins are applied, in lockstep with
+  // SKINS.player_rootwarden.length.
+  rootwarden: 4,
 };
 
 /** Whether `skin` is a valid appearance index for `cls` (0 = default). */

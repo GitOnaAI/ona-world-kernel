@@ -2435,6 +2435,23 @@ const ABILITY_RECIPES: Record<string, IconRecipe> = {
   regrowth: r('nature', 'leafGreen', ['heart', { p: 'leaf', ...BR }], ['sparkle']),
   barkskin: r('earth', 'earthBrown', ['shield', { p: 'leaf', ...BR }]),
   starfire: r('arcane', 'silverWhite', ['moon', { p: 'sunburst', ...BR }], ['sparkle', 'glow']),
+  // Rootwarden (10th class): ancestral wilds/root theme, distinct from the
+  // hunter's raptor/hawk marks.
+  thornclaw_strike: r('earth', 'earthBrown', ['claw_slash', { p: 'tendrils', ...BR }]),
+  mark_of_the_hawk: r('nature', 'leafGreen', ['wing'], ['glow']),
+  venomroot_sting: r('nature', 'venom', ['tendrils', { p: 'fang', ...BR }], ['drips']),
+  ancestral_shot: r('nature', 'gold', ['arrow'], ['sparkle']),
+  entangling_shot: r('earth', 'venom', ['tendrils', { p: 'arrow', ...BR }]),
+  wildroot_bite: r('earth', 'blood', ['fang', { p: 'tendrils', ...BR }], ['motion']),
+  rootsnare: r('nature', 'earthBrown', ['tendrils'], ['arcs']),
+  bond_kindred_spirit: r('nature', 'gold', ['paw', { p: 'leaf', ...BR }], ['sparkle']),
+  release_kindred_spirit: r('shadow', 'leafGreen', ['paw'], ['arcs']),
+  revive_kindred_spirit: r('nature', 'leafGreen', ['heart', { p: 'paw', ...BR }], ['glow']),
+  mark_of_the_fox: r('earth', 'ember', ['paw']),
+  mark_of_the_stag: r('earth', 'earthBrown', ['boot', { p: 'leaf', ...BR }], ['motion']),
+  trueroot_shot: r('steel', 'gold', ['crosshair', { p: 'arrow', ...BR }]),
+  ancestors_haste: r('nature', 'gold', ['leaf'], ['motion']),
+  root_barrage: r('nature', 'venom', ['tendrils', { p: 'arrow', ...BR }], ['arcs']),
 };
 
 const ITEM_RECIPES: Record<string, IconRecipe> = {

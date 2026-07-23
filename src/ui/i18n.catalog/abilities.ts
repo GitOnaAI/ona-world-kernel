@@ -1173,6 +1173,65 @@ const classAbilityNamesEn = {
         'Summon Wraithborn',
         'Binds a Wraithborn to your will — an elite demon that rains heavy Shadow damage from afar. A long cooldown gates its devastating power. Summoning a new demon dismisses your current one. You may have one demon at a time.',
       ],
+      [
+        'thornclaw_strike',
+        'Thornclaw Strike',
+        'A strong melee attack that increases damage by 5. Activates on your next swing.',
+      ],
+      [
+        'mark_of_the_hawk',
+        'Mark of the Hawk',
+        'Call on the hawk ancestor, increasing attack power by 20 for 30 min.',
+      ],
+      [
+        'venomroot_sting',
+        'Venomroot Sting',
+        'Stings the target, dealing {damage} Nature damage over 15 sec.',
+      ],
+      ['ancestral_shot', 'Ancestral Shot', 'An instant shot that deals {damage} Arcane damage.'],
+      [
+        'entangling_shot',
+        'Entangling Shot',
+        'Snares the target, slowing movement by 50% for 4 sec.',
+      ],
+      [
+        'wildroot_bite',
+        'Wildroot Bite',
+        'Counterattack after the target dodges for weapon damage plus 12. Cannot be dodged.',
+      ],
+      ['rootsnare', 'Rootsnare', 'Inflicts a wound that slows the enemy by 40% for 10 sec.'],
+      [
+        'bond_kindred_spirit',
+        'Bond Kindred Spirit',
+        'Begins bonding a beast as your kindred spirit. It must be your level or lower and not an elite. Your pet follows you, attacks your enemies, and holds threat of its own. You may have one pet at a time.',
+      ],
+      [
+        'release_kindred_spirit',
+        'Release Kindred Spirit',
+        'Releases your kindred spirit back to the wild.',
+      ],
+      [
+        'revive_kindred_spirit',
+        'Revive Kindred Spirit',
+        'Revives your fallen kindred spirit and returns it to your side.',
+      ],
+      [
+        'mark_of_the_fox',
+        'Mark of the Fox',
+        'Call on the fox ancestor, increasing your dodge chance by 8% for 30 min.',
+      ],
+      [
+        'mark_of_the_stag',
+        'Mark of the Stag',
+        'Call on the stag ancestor, increasing movement speed by 30% for 30 min.',
+      ],
+      ['trueroot_shot', 'Trueroot Shot', 'A carefully drawn shot that deals {damage} damage.'],
+      ['ancestors_haste', "Ancestor's Haste", 'Increases your attack speed by 40% for 15 sec.'],
+      [
+        'root_barrage',
+        'Root Barrage',
+        'Rains thorns on the target area, dealing {damage} damage to enemies caught in it.',
+      ],
     ]),
   },
 };

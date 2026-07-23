@@ -236,6 +236,7 @@ function makeCtx() {
     updateBossMechanics: vi.fn(),
     updateNythraxisEncounter: vi.fn(),
     resetNythraxisEncounter: vi.fn(),
+    updateVharaethEncounter: vi.fn(),
     despawnSummonedAdds: vi.fn(),
     updateFearMovement: vi.fn(() => false),
     delveDetectMult: vi.fn(() => 1),

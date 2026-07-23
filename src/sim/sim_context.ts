@@ -414,6 +414,11 @@ export interface SimContextCallbacks {
   updateBossMechanics(mob: Entity): void;
   updateNythraxisEncounter(boss: Entity): void;
   resetNythraxisEncounter(boss: Entity): void;
+  // TK-5: the Vharaeth overworld trial driver (encounters/vharaeth.ts). Unlike the
+  // Nythraxis driver it is layered ON TOP of the normal AI (mob/locomotion.ts calls
+  // it while Vharaeth is in combat), never replacing the state machine. The death
+  // line is folded into onBossDeath's binding, so no separate callback is needed.
+  updateVharaethEncounter(boss: Entity): void;
   despawnSummonedAdds(boss: Entity): void;
   updateFearMovement(e: Entity): boolean;
   delveDetectMult(player: Entity): number;
@@ -851,6 +856,7 @@ export function createSimContext(host: SimContextHost): SimContext {
     updateBossMechanics: host.updateBossMechanics,
     updateNythraxisEncounter: host.updateNythraxisEncounter,
     resetNythraxisEncounter: host.resetNythraxisEncounter,
+    updateVharaethEncounter: host.updateVharaethEncounter,
     despawnSummonedAdds: host.despawnSummonedAdds,
     updateFearMovement: host.updateFearMovement,
     delveDetectMult: host.delveDetectMult,
