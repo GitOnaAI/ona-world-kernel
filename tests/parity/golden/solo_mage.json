@@ -15,7 +15,7 @@
       "tick": 0,
       "time": 0,
       "nextId": 460,
-      "state": "b6c52bc4",
+      "state": "8f7fb787",
       "events": "741638a5",
       "rng": {
         "draws": 0,
@@ -72,6 +72,7 @@
           "combatTimer": 99,
           "comboUntil": -1,
           "critChance": 0.056,
+          "dashDir": {},
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
           "fallStartY": 1.5,
@@ -122,7 +123,7 @@
       "tick": 20,
       "time": 1,
       "nextId": 461,
-      "state": "0362a03a",
+      "state": "75197ab8",
       "events": "7ff9ba00",
       "rng": {
         "draws": 2,
@@ -133,7 +134,7 @@
       "tick": 40,
       "time": 2,
       "nextId": 461,
-      "state": "b74226cc",
+      "state": "cc83b77a",
       "events": "fdb48e44",
       "rng": {
         "draws": 2,
@@ -144,7 +145,7 @@
       "tick": 60,
       "time": 3,
       "nextId": 461,
-      "state": "f7ba15d8",
+      "state": "a12cb8e2",
       "events": "4d5d174a",
       "rng": {
         "draws": 85,
@@ -155,7 +156,7 @@
       "tick": 80,
       "time": 4,
       "nextId": 461,
-      "state": "b28512ce",
+      "state": "6ac6360e",
       "events": "47f9052d",
       "rng": {
         "draws": 199,
@@ -166,7 +167,7 @@
       "tick": 100,
       "time": 5,
       "nextId": 461,
-      "state": "5db4e827",
+      "state": "35b7a777",
       "events": "be2d1009",
       "rng": {
         "draws": 326,
@@ -177,7 +178,7 @@
       "tick": 120,
       "time": 6,
       "nextId": 461,
-      "state": "e50ba69f",
+      "state": "3d546ee9",
       "events": "3aea2ed3",
       "rng": {
         "draws": 460,
@@ -188,7 +189,7 @@
       "tick": 128,
       "time": 6.4,
       "nextId": 461,
-      "state": "7ed8e1c5",
+      "state": "2b3b545b",
       "events": "741638a5",
       "rng": {
         "draws": 515,
@@ -253,6 +254,7 @@
           "combatTimer": 0.85,
           "comboUntil": -1,
           "critChance": 0.056,
+          "dashDir": {},
           "detonateTimer": "Infinity",
           "dodgeChance": 0.056,
           "facing": 0.022163,
@@ -331,6 +333,7 @@
           "combatTimer": 0.85,
           "comboUntil": -1,
           "critChance": 0.05,
+          "dashDir": {},
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
           "facing": -3.119429,

@@ -72,6 +72,8 @@ function baseEntity(id: number, pos: Vec3): Entity {
     chargeTargetId: null,
     chargeTimeLeft: 0,
     chargePath: [],
+    dashTimeLeft: 0,
+    dashDir: { x: 0, y: 0, z: 0 },
     followTargetId: null,
     sitting: false,
     eating: null,

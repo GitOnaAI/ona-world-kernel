@@ -1177,6 +1177,7 @@ export type AbilityEffect =
   | { type: 'gainResource'; amount: number } // bloodrage immediate
   | { type: 'selfDamagePctMax'; pct: number } // bloodrage cost
   | { type: 'charge' }
+  | { type: 'dash'; distance: number } // rootwarden bramble roll: untargeted lateral dodge-roll
   | { type: 'sunder'; armor: number; maxStacks: number } // sunder armor: stacking armor debuff + flat threat
   | { type: 'taunt' } // taunt/growl: match top threat and force-attack the caster
   | { type: 'tamePet' } // hunter tame beast: the targeted mob becomes the caster's pet
@@ -1566,6 +1567,11 @@ export interface Entity {
   chargeTargetId: number | null;
   chargeTimeLeft: number; // seconds; failsafe so a blocked charge can't run forever
   chargePath: Vec3[]; // waypoints consumed front-to-back; last leg homes on the live target
+  // rootwarden bramble roll: untargeted, fixed-distance lateral dash. Direction is
+  // captured once at cast time (current move input, or facing if none held) and
+  // held fixed for the whole roll, unlike charge which re-steers toward a target.
+  dashTimeLeft: number; // seconds remaining in the roll
+  dashDir: Vec3; // fixed world-space unit direction for the duration of the roll
   followTargetId: number | null; // /follow: auto-walk after another player until interrupted
   savedMana: number; // druid forms: mana put aside while running on rage/energy
   sitting: boolean;
@@ -1812,6 +1818,9 @@ export type SimEvent = { pid?: number } & (
   | { type: 'aura'; targetId: number; name: string; gained: boolean }
   | { type: 'castStart'; entityId: number; ability: string; time: number }
   | { type: 'castStop'; entityId: number; success: boolean }
+  // cosmetic trigger for a dodge-roll dash (rootwarden bramble roll): the
+  // renderer plays the roll one-shot; world-visible like an attack, not personal
+  | { type: 'dash'; entityId: number }
   | { type: 'comboPoint'; points: number }
   | { type: 'playerDeath' }
   | { type: 'respawn' }

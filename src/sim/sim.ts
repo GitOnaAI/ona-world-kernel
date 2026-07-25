@@ -524,6 +524,14 @@ const CHARGE_SPEED_MULT = 3; // warrior charge runs at 3x normal speed
 const CHARGE_ARRIVE_RANGE = MELEE_RANGE - 1; // stop inside melee range
 const FOLLOW_STOP_DIST = 3; // /follow trails this close behind the leader (yards)
 const FOLLOW_MAX_RANGE = 60; // give up follow once the leader is this far away
+// Auto-attack pursuit: a ranged class stops comfortably inside its max range
+// rather than walking to the target's exact position (a hunter/caster closing
+// to point-blank would be an odd, un-asked-for behavior change).
+const AUTO_ATTACK_PURSUIT_RANGED_STOP_FRACTION = 0.85;
+// rad/sec: how fast the pursuit turn eases toward the target's bearing. A full
+// about-face takes ~0.5s instead of snapping instantly (see updatePlayerAutoAttack's
+// MELEE_ARC gate: wide enough that a swing can still land mid-turn, not just after).
+const AUTO_ATTACK_PURSUIT_TURN_SPEED = Math.PI * 2;
 // Pet-AI tick tuning (PET_LEASH/PET_FOLLOW_DISTANCE/PET_PATH_*/PET_WAYPOINT_REACHED/
 // PET_ASSIST_RANGE/PET_AGGRESSIVE_RANGE/PET_OWNER_IDLE_TICKS) moved with the slice to
 // src/sim/pet/pet_ai.ts (P1a). PET_GROWL_INTERVAL + PET_TELEPORT_DISTANCE relocated to
@@ -3119,6 +3127,46 @@ export class Sim {
     return true;
   }
 
+  // Rootwarden bramble roll in flight: a fixed-direction, fixed-duration dash
+  // set once by the 'dash' effect (dashDir already carries speed baked in).
+  // Simpler than charge: no target, no path, no re-steering. Returns true while
+  // it owns the player's movement this tick (including the tick it aborts on).
+  private updateRootDashMovement(p: Entity): boolean {
+    if (p.dashTimeLeft <= 0) return false;
+    p.dashTimeLeft -= DT;
+    // A root landing mid-roll ends it in place, same as charge (isRooted(p)
+    // in its own done() bail above): the roll is forced movement, not a
+    // guaranteed-uninterruptible teleport.
+    if (isRooted(p)) {
+      p.dashTimeLeft = 0;
+      return true;
+    }
+    const nx = p.pos.x + p.dashDir.x * DT;
+    const nz = p.pos.z + p.dashDir.z * DT;
+    const step = Math.hypot(p.dashDir.x, p.dashDir.z) * DT;
+    const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
+    const h1 = groundHeight(nx, nz, this.cfg.seed);
+    // deep water and cliffs end the roll early rather than dragging the player in
+    if (
+      h1 < waterLevelAt(nx, nz) - SWIM_DEPTH ||
+      (h1 > h0 &&
+        step > 1e-5 &&
+        ((h1 - h0) / step > MAX_CLIMB_SLOPE ||
+          terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE))
+    ) {
+      p.dashTimeLeft = 0;
+      return true;
+    }
+    const resolved = this.resolveMove(p.pos.x, p.pos.z, nx, nz, BODY_RADIUS, p);
+    p.pos.x = resolved.x;
+    p.pos.z = resolved.z;
+    p.pos.y = groundHeight(resolved.x, resolved.z, this.cfg.seed);
+    p.vy = 0;
+    p.onGround = true;
+    p.fallStartY = p.pos.y;
+    return true;
+  }
+
   // /follow: a second forced-movement mode (like charge) that trails another
   // player. Returns true when it has taken over locomotion for this tick so the
   // normal input-driven movement below is skipped. Any manual movement, combat,
@@ -3188,6 +3236,69 @@ export class Sim {
     return true;
   }
 
+  // Auto-attack pursuit: while auto-attack is toggled on (p.autoAttack, set by
+  // startAutoAttack) and the target is out of the swing gate's range/facing
+  // window (see updatePlayerAutoAttack's own gate in combat/auto_attack.ts),
+  // turn to face it and walk in so the swing can fire on its own, the moment
+  // it's close enough. Any manual locomotion key cedes control back
+  // immediately, same convention as /follow (updateFollowMovement above).
+  // Returns true while it owns the player's movement/facing this tick.
+  private updateAutoAttackPursuitMovement(p: Entity, meta: PlayerMeta): boolean {
+    if (!p.autoAttack || p.targetId === null || p.castingAbility) return false;
+    const inp = meta.moveInput;
+    if (
+      inp.forward ||
+      inp.back ||
+      inp.strafeLeft ||
+      inp.strafeRight ||
+      inp.jump ||
+      inp.turnLeft ||
+      inp.turnRight
+    ) {
+      return false;
+    }
+    const t = this.entities.get(p.targetId);
+    // Invalid target: leave it be, updatePlayerAutoAttack clears p.autoAttack
+    // itself later this same tick (it runs right after updatePlayerMovement).
+    if (!t || t.dead || !this.isHostileTo(p, t)) return false;
+    const ranged = CLASSES[meta.cls].ranged;
+    const stopDist = ranged
+      ? ranged.maxRange * AUTO_ATTACK_PURSUIT_RANGED_STOP_FRACTION
+      : CHARGE_ARRIVE_RANGE;
+    const d = dist2d(p.pos, t.pos);
+    // ease toward facing the target rather than snapping, even while held in
+    // place (mirrors /follow's "always face the leader", just gradual here)
+    const desiredFacing = angleTo(p.pos, t.pos);
+    const turnStep = AUTO_ATTACK_PURSUIT_TURN_SPEED * DT;
+    const facingDelta = normAngle(desiredFacing - p.facing);
+    p.facing = normAngle(p.facing + Math.max(-turnStep, Math.min(turnStep, facingDelta)));
+    if (isStunned(p) || isRooted(p) || d <= stopDist) return true;
+    let speed = RUN_SPEED * this.moveSpeedMult(p);
+    if (this.isSwimming(p)) speed *= SWIM_SPEED_MULT;
+    const step = Math.min(speed * DT, d - stopDist);
+    const nx = p.pos.x + Math.sin(p.facing) * step;
+    const nz = p.pos.z + Math.cos(p.facing) * step;
+    const h0 = groundHeight(p.pos.x, p.pos.z, this.cfg.seed);
+    const h1 = groundHeight(nx, nz, this.cfg.seed);
+    if (h1 < waterLevelAt(nx, nz) - SWIM_DEPTH) return true; // don't wade into deep water after it
+    if (
+      h1 > h0 &&
+      step > 1e-5 &&
+      ((h1 - h0) / step > MAX_CLIMB_SLOPE ||
+        terrainSteepnessAt(nx, nz, this.cfg.seed) > MAX_CLIMB_SLOPE)
+    ) {
+      return true; // wall/cliff
+    }
+    const resolved = this.resolveMove(p.pos.x, p.pos.z, nx, nz, BODY_RADIUS, p);
+    p.pos.x = resolved.x;
+    p.pos.z = resolved.z;
+    p.pos.y = groundHeight(resolved.x, resolved.z, this.cfg.seed);
+    p.vy = 0;
+    p.onGround = true;
+    p.fallStartY = p.pos.y;
+    return true;
+  }
+
   private updatePlayerMovement(p: Entity, meta: PlayerMeta): void {
     // Any locomotion key counts as a deliberate action for the anti-AFK pet gate.
     const mv = meta.moveInput;
@@ -3203,8 +3314,10 @@ export class Sim {
       meta.lastActiveTick = this.tickCount;
     }
     if (this.updateChargeMovement(p)) return;
+    if (this.updateRootDashMovement(p)) return;
     if (this.updateFollowMovement(p, meta)) return;
     if (this.updateFearMovement(p)) return;
+    if (this.updateAutoAttackPursuitMovement(p, meta)) return;
     const inp = meta.moveInput;
     // Convention: facing f points along (sin f, cos f); the camera sits behind
     // the player, so screen-right is the world vector (-cos f, sin f).

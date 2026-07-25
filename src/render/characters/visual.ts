@@ -4,6 +4,7 @@
 // mid-distance band. All geometry/materials are shared caches — dispose()
 // only releases mixer bindings.
 import * as THREE from 'three';
+import { ROOT_DASH_DURATION } from '../../sim/combat/effect_dispatch';
 import type { OverheadEmoteId } from '../../world_api';
 import { GFX } from '../gfx';
 import {
@@ -277,12 +278,26 @@ export class CharacterVisual {
     return this.currentIsOneShot;
   }
 
-  playAttack(): void {
+  // skipIfMoving: the attack one-shot is a standing-only pose on every rig
+  // here (no per-bone blending with locomotion), so playing it while
+  // walking/running freezes the legs into the swing for its duration, then
+  // snaps back to the walk cycle, a glide/moonwalk artifact. Only players hit
+  // this now (auto-attack pursuit walks them in while swinging); mobs already
+  // attack while moving on purpose in some kits (e.g. a kiting caster's
+  // ranged bolt) and dropping their swing pose would remove a combat cue with
+  // no artifact to fix, so the caller opts in per entity kind (renderer.ts
+  // triggerAttack). The swing always lands and shows its FCT/VFX regardless.
+  playAttack(skipIfMoving = false): void {
     if (this.deadLock) return;
+    if (skipIfMoving && this.isMovingBaseState()) return;
     const clips = this.def.clips.attack;
     if (clips.length === 0) return;
     const name = clips[this.attackIdx++ % clips.length];
     this.playOneShot(name, this.def.attackTimeScale ?? 1.3);
+  }
+
+  private isMovingBaseState(): boolean {
+    return this.baseState === 'walk' || this.baseState === 'walkBack' || this.baseState === 'run';
   }
 
   playHit(): void {
@@ -291,6 +306,16 @@ export class CharacterVisual {
     if (!clips || clips.length === 0) return;
     this.hitCooldown = HIT_REACT_COOLDOWN;
     this.playOneShot(clips[Math.floor(Math.random() * clips.length)], 1.2);
+  }
+
+  playRoll(): void {
+    if (this.deadLock) return;
+    const clip = this.def.clips.roll;
+    const action = clip ? this.action(clip) : null;
+    if (!clip || !action) return;
+    // compressed to match the sim's fixed dash window so the roll finishes
+    // exactly when the actual movement does, not the clip's own baked length
+    this.playOneShot(clip, action.getClip().duration / ROOT_DASH_DURATION);
   }
 
   playEmote(id: OverheadEmoteId): void {
@@ -703,6 +728,7 @@ function clipNamesOf(def: VisualDef): string[] {
     c.jump,
     c.walkBack,
     c.flourish,
+    c.roll,
     ...Object.values(c.emote ?? {}).flatMap((spec) => spec.clips),
   ].filter((n): n is string => !!n);
 }

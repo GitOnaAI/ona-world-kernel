@@ -2556,7 +2556,7 @@
     pointer-events: none;
     text-shadow: 1px 1px 3px #000;
     animation: fct-rise 1.1s ease-out forwards;
-    font-size: 17px;
+    font-size: 20px;
     /* Centering uses the individual `translate` property (not the `transform` shorthand) so
        the rise below can animate `translate` on the compositor instead of the old layout
        `margin-top`, while the crit pop animates the independent `scale` property. The two
@@ -2568,6 +2568,12 @@
   }
   .fct.crit {
     font-size: 26px;
+    /* Crit reads as its own thing regardless of kind (ability/auto/taken all
+       share this on a crit): the classic-MMO crit orange, distinct from every
+       per-kind colour below, notably heal's own green (#3ce63c): a crit taken
+       must never read as a heal. Higher specificity than the single
+       .fct-<kind> classes below, so it wins. */
+    color: #ff9d1f;
     animation: fct-crit 1.2s ease-out forwards;
   }
   @keyframes fct-rise {
@@ -2597,7 +2603,7 @@
   }
   /* Combat-text size, Interface > Combat Text Size (--fct-scale, default 1). */
   .fct {
-    font-size: calc(17px * var(--fct-scale, 1));
+    font-size: calc(20px * var(--fct-scale, 1));
   }
   .fct.crit {
     font-size: calc(26px * var(--fct-scale, 1));
@@ -2616,7 +2622,8 @@
      in TS). Each class carries the exact hex the live fct() passed, grouped by colour:
      miss/dodge keyed self (#bbb) vs other (#fff); damage done by ability (#ffe97a) vs
      auto-attack (#fff); damage taken (#ff5544); heal (#3ce63c); xp (#b974ff); rested
-     xp (#4a9eff); the self note (#ff8c66). Crit stays the separate .fct.crit class. */
+     xp (#4a9eff); the self note (#ff8c66). Crit overrides all of these to orange
+     (#ff9d1f) via the separate, higher-specificity .fct.crit class above. */
   .fct-miss-self,
   .fct-dodge-self {
     color: #bbb;

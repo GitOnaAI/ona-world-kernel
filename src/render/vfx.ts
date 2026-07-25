@@ -551,11 +551,38 @@ export class Vfx {
   meleeSpark(targetId: number, crit: boolean): void {
     const at = this.anchor(targetId, 0.55);
     if (!at) return;
-    // a single slash arc reads as the hit itself...
-    const steel = new THREE.Color(0xffe6c0).multiplyScalar(hdr(crit ? 2.0 : 1.5));
-    this.spawn(at.x, at.y + 0.1, at.z, 0, 0.4, 0, steel, crit ? 1.0 : 0.75, 0.18, 0, SPR.slash);
+    // a single slash arc reads as the hit itself, bigger and brighter than before
+    const steel = new THREE.Color(0xffe6c0).multiplyScalar(hdr(crit ? 2.4 : 1.6));
+    this.spawn(at.x, at.y + 0.1, at.z, 0, 0.4, 0, steel, crit ? 1.3 : 0.85, 0.2, 0, SPR.slash);
+    // a crit adds a bright soft flash: an HDR-boosted sprite blooms through the
+    // composer on the higher tiers, reading as a flash of light without the cost
+    // (or point-light budget contention) of a real dynamic THREE.PointLight
+    if (crit) {
+      const flash = new THREE.Color(0xfff4d0).multiplyScalar(hdr(2.6));
+      this.spawn(at.x, at.y + 0.15, at.z, 0, 0.1, 0, flash, 1.6, 0.22, 0, SPR.flash);
+    }
+    // a short trailing streak of sparks along the follow-through of the swing,
+    // rather than a single flat pop
+    const trailCount = crit ? 5 : 3;
+    for (let i = 0; i < trailCount; i++) {
+      const t = i / trailCount;
+      const a = Math.random() * Math.PI * 2;
+      this.spawn(
+        at.x + Math.sin(a) * 0.15 * t,
+        at.y + 0.1 + 0.05 * t,
+        at.z + Math.cos(a) * 0.15 * t,
+        Math.sin(a) * (1.5 + t * 2),
+        0.6 + t,
+        Math.cos(a) * (1.5 + t * 2),
+        steel,
+        (crit ? 0.5 : 0.35) * (1 - t * 0.4),
+        0.16 + t * 0.05,
+        0,
+        SPR.sparkle,
+      );
+    }
     // ...backed by a steel-spark shower big enough to read at 1600x900
-    this.burst(at, 'physical', crit ? 20 : 9, crit ? 1.4 : 0.85);
+    this.burst(at, 'physical', crit ? 30 : 14, crit ? 1.7 : 1.05);
   }
 
   levelUpPillar(targetId: number): void {

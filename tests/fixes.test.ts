@@ -1530,6 +1530,55 @@ describe('warrior charge', () => {
   });
 });
 
+describe('rootwarden bramble roll', () => {
+  function dashSetup() {
+    const sim = new Sim({ seed: SEED, playerClass: 'rootwarden' });
+    (sim as any).grantXp(99999); // learn bramble_roll (level 1, already known at level 1)
+    const p = sim.player;
+    // open ground: away from any zone hub AND far enough from the world rim
+    // (WORLD_MAX_X=180) to clear the dense edge tree belt (34yd), which the
+    // original x=150 (only 30yd from the rim) landed inside of and
+    // occasionally blocked the roll on an obstacle
+    teleportTo(sim, 20, 20);
+    p.facing = 0; // facing world +z
+    return { sim, p };
+  }
+
+  it('rolls a fixed ~10yd forward over 1s when cast with no movement key held', () => {
+    const { sim, p } = dashSetup();
+    const start = { ...p.pos };
+    sim.castAbility('bramble_roll');
+    expect(p.dashTimeLeft).toBeGreaterThan(0);
+    for (let i = 0; i < 20; i++) sim.tick(); // 1s roll = 20 ticks at 20Hz
+    expect(p.dashTimeLeft).toBeLessThan(0.01);
+    expect(dist2d(start, p.pos)).toBeGreaterThan(9.5);
+    expect(dist2d(start, p.pos)).toBeLessThanOrEqual(10.5);
+  });
+
+  it('rolls sideways along the held strafe direction instead of facing', () => {
+    const { sim, p } = dashSetup();
+    sim.moveInput.strafeRight = true;
+    const start = { ...p.pos };
+    sim.castAbility('bramble_roll');
+    for (let i = 0; i < 20; i++) sim.tick();
+    // facing 0 (north): screen-right is world (-cos f, sin f), so a right-strafe
+    // roll moves along -x, not +z (see updatePlayerMovement's facing convention)
+    expect(p.pos.x - start.x).toBeLessThan(-9);
+    expect(Math.abs(p.pos.z - start.z)).toBeLessThan(1);
+  });
+
+  it('keeps the direction fixed once in flight, ignoring input changes mid-roll', () => {
+    const { sim, p } = dashSetup();
+    const start = { ...p.pos };
+    sim.castAbility('bramble_roll');
+    sim.tick();
+    sim.moveInput.strafeRight = true; // must not steer the already-launched roll
+    for (let i = 0; i < 19; i++) sim.tick();
+    expect(Math.abs(p.pos.x - start.x)).toBeLessThan(1);
+    expect(p.pos.z - start.z).toBeGreaterThan(9.5);
+  });
+});
+
 describe('mob tap rights', () => {
   function wolf(sim: Sim): Entity {
     return [...sim.entities.values()].find(

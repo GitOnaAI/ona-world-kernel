@@ -1220,6 +1220,11 @@ async function startGame(
       input.setMouseCameraEnabled(v);
       return;
     }
+    if (key === 'freeCamera') {
+      const v = settings.set('freeCamera', !!value);
+      input.setFreeCameraEnabled(v);
+      return;
+    }
     if (key === 'lockCursorOnRotate') {
       const v = settings.set('lockCursorOnRotate', !!value);
       input.setLockCursorOnRotate(v);
@@ -1928,6 +1933,8 @@ async function startGame(
       clickMoving,
       cameraDriven: input.isMouseCameraMode() && cameraMoveActive(),
       orbiting: input.leftDown && input.isCameraDragActive(),
+      freeCamera: input.isFreeCameraMode(),
+      turning: mi.turnLeft || mi.turnRight,
     });
     input.camYaw = next.camYaw;
     lastInterpFacing = next.lastInterpFacing; // track through mouselook too, no snap on release

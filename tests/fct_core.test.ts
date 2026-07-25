@@ -135,7 +135,7 @@ describe('describeFct: ttl is a pure function of kind (constant across kinds)', 
   it('pins the named constants to the live fct() values', () => {
     expect(FCT_JITTER_RANGE).toBe(30);
     expect(FCT_TTL_MS).toBe(1250);
-    expect(FCT_ANCHOR_HEAD_OFFSET).toBe(2.2);
+    expect(FCT_ANCHOR_HEAD_OFFSET).toBe(3);
     expect(FCT_RISE_PX).toBe(76);
   });
 

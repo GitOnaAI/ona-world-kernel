@@ -23,6 +23,7 @@ function expectedClipNames(clips: ClipMap): string[] {
     clips.jump,
     clips.walkBack,
     clips.flourish,
+    clips.roll,
     ...clips.attack,
     ...(clips.hit ?? []),
     ...Object.values(clips.emote ?? {}).flatMap((spec) => spec.clips),
@@ -67,6 +68,18 @@ describe('character visual manifest', () => {
     expect(
       [...new Set(expectedClipNames(visual.clips))].filter((name) => !animationNames.has(name)),
     ).toEqual([]);
+  });
+
+  it('resolves the Rootwarden dodge-roll clip from its separate animUrls GLB', async () => {
+    const visual = VISUALS.player_rootwarden;
+    const rollClip = visual.clips.roll;
+    expect(rollClip).toBeTruthy();
+    expect(visual.animUrls?.length).toBeGreaterThan(0);
+    const animationNames = new Set<string>();
+    for (const url of visual.animUrls ?? []) {
+      for (const name of await glbAnimationNames(`public/${url}`)) animationNames.add(name);
+    }
+    expect(animationNames.has(rollClip ?? '')).toBe(true);
   });
 
   it('keeps held weapons and props available on low graphics', () => {

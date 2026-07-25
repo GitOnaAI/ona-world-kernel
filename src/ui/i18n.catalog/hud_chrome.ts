@@ -317,6 +317,12 @@ export const hudChromeStrings = {
     lockCursorOnRotate: 'Lock Cursor While Rotating',
     keybindHelpLockCursorOnRotate:
       'Keeps the mouse cursor inside the window while you drag to rotate the camera, so it cannot reach the screen edge or move to another monitor. Turn off if you prefer a free cursor.',
+    // Keybind panel toggle: stop the camera from easing back in behind the
+    // character whenever a movement key is held (off by default, the classic
+    // follow-cam behavior).
+    freeCamera: 'Free Camera',
+    keybindHelpFreeCamera:
+      'Keeps the camera exactly where you orbit it. Off, the camera eases back in behind your character whenever you walk or strafe. On, walking never reorients the camera, only dragging to rotate (or turning with A/D) does.',
     // Interface panel toggle: nameplate glyph/outline, inspect block, player
     // card, and the Developers leaderboard tab (on by default).
     showDevBadges: 'Show Developer Badges',

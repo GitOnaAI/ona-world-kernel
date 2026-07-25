@@ -20,6 +20,8 @@ export const pending: Record<string, readonly string[]> = {
     "entities.abilities.ancestral_shot.name",
     "entities.abilities.bond_kindred_spirit.description",
     "entities.abilities.bond_kindred_spirit.name",
+    "entities.abilities.bramble_roll.description",
+    "entities.abilities.bramble_roll.name",
     "entities.abilities.entangling_shot.description",
     "entities.abilities.entangling_shot.name",
     "entities.abilities.mark_of_the_fox.description",
@@ -80,6 +82,8 @@ export const pending: Record<string, readonly string[]> = {
     "entities.zones.kharzoth_dominion.pois.4.label",
     "entities.zones.kharzoth_dominion.pois.5.label",
     "entities.zones.kharzoth_dominion.pois.6.label",
-    "entities.zones.kharzoth_dominion.welcome"
+    "entities.zones.kharzoth_dominion.welcome",
+    "hudChrome.options.freeCamera",
+    "hudChrome.options.keybindHelpFreeCamera"
   ]
 };

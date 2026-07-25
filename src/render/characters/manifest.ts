@@ -34,6 +34,8 @@ export interface ClipMap {
   walkBack?: string;
   /** one-shot played on respawn (skeleton awaken / boss taunt) */
   flourish?: string;
+  /** one-shot played on a dodge-roll movement ability (rootwarden bramble roll) */
+  roll?: string;
   /** player-facing overhead emote one-shots; clips are sourced from the GLB. */
   emote?: Partial<Record<OverheadEmoteId, EmoteClipSpec>>;
 }
@@ -372,12 +374,10 @@ export const SKINS: Record<string, (string | null)[]> = {
   // Seeded with just the default (white) texture; `skin --apply` appends the
   // green/red/blue color variants here (registerClassSkin), bumping
   // SKIN_COUNTS.rootwarden (src/sim/content/skins.ts) in lockstep.
-  player_rootwarden: [
-    null,
-    `${SKINS_DIR}/rootwarden/alt_a.png`,
-    `${SKINS_DIR}/rootwarden/alt_b.png`,
-    `${SKINS_DIR}/rootwarden/alt_c.png`,
-  ],
+  // Color alts (alt_a/b/c) were painted against the old body's UV layout and
+  // no longer match this body's new segmented mesh/atlas; disabled (base
+  // only) until they're regenerated against the new texture.
+  player_rootwarden: [null],
   // Combat Mech chromas — every index is a real full-model texture (no null
   // default; the embedded base texture is not one of the rewards).
   player_mech: MECH_CHROMAS.map(mechChromaUrl),
@@ -509,13 +509,24 @@ export const VISUALS: Record<string, VisualDef> = {
     weaponSlots: [0],
   },
   player_rootwarden: {
-    // Generated via the asset-pipeline `skinmodel` lane (derived from the
-    // hunter reference model), then copied into chars/players/ alongside the
-    // other 9 base class models so it works like any of them (the `skin`
-    // color-variant lane keys off this directory + CLASS_MODELS.rootwarden).
+    // Body v2: a Tripo-segmented (multi-part), textured raw mesh, bound onto
+    // the KNIGHT reference skeleton via the zero-cost `rig-manual` lane
+    // (lib/manual_rig.mjs) instead of a Tripo retarget. That means this rig's
+    // bone names/joint count follow the reference (hips/spine/chest/
+    // upperarm.l/wrist.r/handslot.r/...), NOT the old Tripo-generated body's
+    // Root/Hip/Pelvis/L_Thigh/... convention. It carries the reference's
+    // FULL clip library natively (all 22 KayKit clips, vs. the old body's 15),
+    // and 2H_Ranged_Shoot (broken on the old body, see git history) plays
+    // correctly on this rig, standing and natural.
+    // Facing: rig-manual aligns the output to the game's +Z convention, so
+    // (unlike the old body) no yaw correction is needed here.
+    // Custom-authored dodge-roll clip: re-based onto THIS rig's bone names
+    // (rebase script recomputed for the reference joint set; the previous
+    // rebase targeted the old body's bone names and no longer applies).
+    animUrls: [`${PLAYERS}/rootwarden_dodge_roll.glb`],
     url: `${PLAYERS}/rootwarden.glb`,
     height: HUMANOID_H,
-    clips: kaykit(['2H_Ranged_Shoot']),
+    clips: { ...kaykit(['Spellcast_Shoot']), roll: 'DodgeRoll' },
     attach: [{ url: `${WEAPONS}/crossbow_1handed.glb`, bone: 'handslot.r' }],
     weaponSlots: [0],
   },

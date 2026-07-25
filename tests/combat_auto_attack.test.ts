@@ -317,3 +317,58 @@ describe('startAutoAttack while casting (the aggro-before-damage bug)', () => {
     expect(p.inCombat).toBe(true);
   });
 });
+
+// Sim-side auto-attack pursuit (updateAutoAttackPursuitMovement in sim.ts): while
+// p.autoAttack is on, the player should turn to face and walk toward its target
+// until in range, then let the normal updatePlayerAutoAttack swing gate fire.
+describe('auto-attack pursuit movement', () => {
+  it('turns to face and walks toward an out-of-range target until a swing lands', () => {
+    const { sim, p } = makeSim('warrior', 20);
+    const mob = spawnDummy(sim, p, 15, 20); // 20yd away, well beyond MELEE_RANGE (5)
+    p.facing = 0; // deliberately facing away from the target
+    startAutoAttack(sim.ctx, p.id);
+    const events = capture(sim);
+    const z0 = p.pos.z;
+    landProjectiles(sim, events, (e) => e.type === 'damage' && e.sourceId === p.id, 20 * 15);
+    expect(events.some((e) => e.type === 'damage' && e.sourceId === p.id)).toBe(true);
+    expect(p.pos.z).toBeGreaterThan(z0); // walked toward the mob (+z)
+    const facingDiff = Math.abs(
+      ((Math.atan2(mob.pos.x - p.pos.x, mob.pos.z - p.pos.z) - p.facing + Math.PI) %
+        (2 * Math.PI)) -
+        Math.PI,
+    );
+    expect(facingDiff).toBeLessThan(0.1); // ended up facing the mob
+  });
+
+  it('eases the turn toward the target instead of snapping it in one tick', () => {
+    const { sim, p } = makeSim('warrior', 20);
+    spawnDummy(sim, p, 15, 20); // dummy is dead ahead (+z); face the opposite way
+    p.facing = Math.PI; // 180 degrees off
+    startAutoAttack(sim.ctx, p.id);
+    sim.tick();
+    // a full about-face in a single 1/20s tick would land facing near 0; the
+    // eased turn should still be most of the way around after just one tick
+    expect(Math.abs(p.facing)).toBeGreaterThan(Math.PI / 2);
+  });
+
+  it('a manual movement key cedes control back instead of auto-turning', () => {
+    const { sim, p, meta } = makeSim('warrior', 20);
+    spawnDummy(sim, p, 15, 20);
+    p.facing = 0;
+    startAutoAttack(sim.ctx, p.id);
+    meta.moveInput.forward = true; // player is steering manually
+    sim.tick();
+    expect(p.facing).toBe(0); // pursuit did not touch facing this tick
+  });
+
+  it('does nothing while auto-attack is off', () => {
+    const { sim, p } = makeSim('warrior', 20);
+    spawnDummy(sim, p, 15, 20);
+    p.facing = 0;
+    expect(p.autoAttack).toBe(false);
+    const z0 = p.pos.z;
+    for (let i = 0; i < 20; i++) sim.tick();
+    expect(p.facing).toBe(0);
+    expect(p.pos.z).toBe(z0);
+  });
+});

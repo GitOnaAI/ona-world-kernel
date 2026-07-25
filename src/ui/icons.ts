@@ -2452,6 +2452,7 @@ const ABILITY_RECIPES: Record<string, IconRecipe> = {
   trueroot_shot: r('steel', 'gold', ['crosshair', { p: 'arrow', ...BR }]),
   ancestors_haste: r('nature', 'gold', ['leaf'], ['motion']),
   root_barrage: r('nature', 'venom', ['tendrils', { p: 'arrow', ...BR }], ['arcs']),
+  bramble_roll: r('earth', 'leafGreen', ['boot', { p: 'tendrils', ...BR }], ['motion']),
 };
 
 const ITEM_RECIPES: Record<string, IconRecipe> = {
@@ -2699,6 +2700,7 @@ const CREST_RECIPES: Record<string, IconRecipe> = {
   class_mage: r('arcane', 'arcanePink', ['sigil_rune'], ['sparkle', 'glow']),
   class_warlock: r('shadow', 'shadowPurple', ['skull'], ['glow']),
   class_druid: r('nature', 'leafGreen', ['paw'], ['sparkle']),
+  class_rootwarden: r('nature', 'earthBrown', ['tendrils'], ['glow']),
   // mob families
   family_beast: r('earth', 'earthBrown', ['paw']),
   family_humanoid: r('steel', 'steel', ['sword']),

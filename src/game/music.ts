@@ -19,6 +19,7 @@ export type MusicZone =
   | 'vale_legacy'
   | 'marsh'
   | 'peaks'
+  | 'volcano'
   | 'dungeon_hollow_crypt'
   | 'dungeon_sunken_bastion'
   | 'dungeon_gravewyrm_sanctum';
@@ -59,15 +60,16 @@ export function musicZoneForLocation(
   inDungeon: boolean,
   dungeonId: string | null = null,
 ): MusicZone {
-  // Paint-only biomes (custom maps) borrow the closest shipped theme.
+  // Paint-only biomes (custom maps) borrow the closest shipped theme; desert
+  // has no dedicated theme of its own and reads closest to the volcano band.
   const biomeMusic: MusicZone =
-    biome === 'vale' || biome === 'marsh' || biome === 'peaks'
+    biome === 'vale' || biome === 'marsh' || biome === 'peaks' || biome === 'volcano'
       ? biome
       : biome === 'beach'
         ? 'vale'
         : biome === 'cave'
           ? 'marsh'
-          : 'peaks';
+          : 'volcano';
   if (inDungeon) return dungeonId ? dungeonMusicZoneForDungeon(dungeonId) : 'dungeon_hollow_crypt';
   if (inHub) return TOWN_MUSIC[zoneId] ?? biomeMusic;
   return ZONE_MUSIC[zoneId] ?? biomeMusic;
@@ -1192,6 +1194,117 @@ function composePeaks(): Theme {
   return { bpm: 100, bars: 24, events: ev };
 }
 
+function composeVolcano(): Theme {
+  const ev: NoteEvent[] = [];
+  // "The Long Shift". C aeolian, 92 bpm, ABA over 24 bars. Kharzoth Dominion
+  // is a slave-empire's mining band worked around a live volcano, so the A
+  // section is a grinding chain-gang march: a low horn ostinato, a woodblock
+  // chain-clank, and a warDrum overseer's cadence. The B section drops the
+  // percussion to a heartbeat and lifts into the relative major (Eb) for an
+  // oboe hymn, Vharaeth's whisper to the ancestors carried under the ash. The
+  // reprise restates the march at full weight with the whisper motif echoing
+  // high and quiet over it, hope smuggled under the yoke.
+  const Cm = { root: 48, minor: true },
+    Ab = { root: 44 },
+    Bb = { root: 46 },
+    Fm = { root: 41, minor: true },
+    Gm = { root: 43, minor: true },
+    Eb = { root: 39 };
+  const A8: ChordDef[] = [Cm, Ab, Bb, Cm, Fm, Gm, Ab, Bb];
+  const B8: ChordDef[] = [Eb, Bb, Fm, Gm, Eb, Ab, Bb, Cm];
+  const chords: ChordDef[] = [...A8, ...B8, ...A8];
+
+  chords.forEach((c, bar) => {
+    const b0 = bar * 4;
+    const inB = bar >= 8 && bar < 16;
+    const t = triad(c);
+    if (!inB) {
+      // the chain-gang cadence: overseer's warDrum on 1 and 3, chain-clank answering
+      pushNote(ev, b0, c.root - 24, 0.8, 0.4, 'warDrum');
+      pushNote(ev, b0 + 2, c.root - 24, 0.8, 0.32, 'warDrum');
+      pushDrumHits(ev, b0, [1, 1.5, 3, 3.5], 'woodBlock', 0.14, 65);
+      // low horn ostinato: root-fifth-octave grind
+      const ost = [c.root, c.root + 7, c.root + 12, c.root + 7];
+      for (const [i, n] of ost.entries())
+        pushNote(ev, b0 + i, n, 0.9, i === 0 ? 0.22 : 0.14, 'horn');
+    } else {
+      // the whisper: drums fall to a soft heartbeat, harp catching ember-light
+      pushDrumHits(ev, b0, [0, 2], 'frameDrum', 0.08, 43);
+      for (const [i, n] of [t[0], t[2], t[1] + 12].entries()) {
+        pushNote(ev, b0 + 1 + i, n + 12, 0.9, 0.09, 'harp');
+      }
+    }
+    pushNote(ev, b0, c.root - 12, 1.6, 0.34, 'bass');
+    pushNote(ev, b0 + 2, c.root - 5, 1.4, 0.22, 'bass');
+    // ash haze: a held minor pad under everything
+    pushVoicing(
+      ev,
+      b0,
+      t.map((n) => n - 12),
+      4.05,
+      inB ? 0.14 : 0.09,
+      'pad',
+    );
+  });
+
+  // A: the overseer's cadence call
+  const cadence: Phrase = [
+    [0, 60, 0.75],
+    [0.75, 63, 0.25],
+    [1, 65, 1],
+    [2, 60, 0.75],
+    [2.75, 58, 0.25],
+    [3, 56, 1],
+    [4, 60, 0.75],
+    [4.75, 63, 0.25],
+    [5, 68, 1],
+    [6, 65, 0.75],
+    [6.75, 63, 0.25],
+    [7, 60, 1],
+  ];
+  pushPhrase(ev, 0, cadence, 0.22, 'brassStab');
+  pushPhrase(ev, 16, cadence, 0.22, 'brassStab');
+  // B: Vharaeth's whisper, the ancestors' hope in Eb major
+  const whisper: Phrase = [
+    [0, 63, 1.5],
+    [1.5, 65, 0.5],
+    [2, 67, 2],
+    [4, 70, 1],
+    [5, 68, 0.5],
+    [5.5, 67, 0.5],
+    [6, 65, 2],
+    [8, 63, 1],
+    [9, 65, 1],
+    [10, 67, 1.5],
+    [11.5, 65, 0.5],
+    [12, 63, 2],
+    [14, 60, 1],
+    [15, 63, 1],
+    [16, 67, 1.5],
+    [17.5, 70, 0.5],
+    [18, 72, 1.5],
+    [19.5, 70, 0.5],
+    [20, 68, 1],
+    [21, 67, 1],
+    [22, 65, 1],
+    [23, 63, 3],
+  ];
+  pushPhrase(ev, 32, whisper, 0.24, 'oboe');
+  // reprise: the march returns at full weight, the whisper echoing high and quiet above it
+  pushPhrase(
+    ev,
+    64,
+    whisper.slice(0, 12).map(([b, m, d]) => [b, m + 12, d] as Phrase[number]),
+    0.09,
+    'flute',
+  );
+  pushPhrase(ev, 64, cadence, 0.24, 'brassStab');
+  pushPhrase(ev, 80, cadence, 0.24, 'brassStab');
+
+  ev.sort((a, b) => a.beat - b.beat);
+  return { bpm: 92, bars: 24, events: ev };
+}
+
 /** Hollow Crypt: "Sleep, Neighbors". D minor over a phrygian creep, 100 bpm.
  *  A violated village graveyard: a funeral bell tolls over an unmoving D
  *  pedal, the chapel hymn starts and breaks off, bones skitter in the wood
@@ -1737,6 +1850,7 @@ const STORAGE_KEY = 'ev_music_on';
 //   vale_legacy  7 -> A (original vale is A dorian)
 //   marsh  2 -> E (marsh is E aeolian)
 //   peaks  0 -> D (peaks anthem is D major)
+//   volcano  10 -> C (the volcano march is C aeolian)
 //   dungeon_hollow_crypt      0 -> D
 //   dungeon_sunken_bastion    2 -> E
 //   dungeon_gravewyrm_sanctum 9 -> B
@@ -1748,6 +1862,7 @@ const COMBAT_TRANSPOSE: Record<MusicZone, number> = {
   vale_legacy: 7,
   marsh: 2,
   peaks: 0,
+  volcano: 10,
   dungeon_hollow_crypt: 0,
   dungeon_sunken_bastion: 2,
   dungeon_gravewyrm_sanctum: 9,
@@ -1762,6 +1877,7 @@ export function buildMusicThemes(withOverrides = true): Record<string, Theme> {
     vale_legacy: composeLegacyVale(),
     marsh: composeMarsh(),
     peaks: composePeaks(),
+    volcano: composeVolcano(),
     dungeon_hollow_crypt: composeDungeonHollowCrypt(),
     dungeon_sunken_bastion: composeDungeonSunkenBastion(),
     dungeon_gravewyrm_sanctum: composeDungeonGravewyrmSanctum(),
@@ -1788,6 +1904,7 @@ export const THEME_TRIM: Record<string, number> = {
   vale_legacy: 1.35,
   marsh: 1.85,
   peaks: 2.05,
+  volcano: 2.05,
   dungeon_hollow_crypt: 2.95,
   dungeon_sunken_bastion: 2.95,
   dungeon_gravewyrm_sanctum: 1.8,

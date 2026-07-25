@@ -308,6 +308,12 @@ function extractModule(name: string, pack: Pack, gltf: GLTF): void {
     }
   });
   if (!geos.length) throw new Error(`dungeon module has no meshes: ${name}`);
+  // uv presence must agree for merging (mergeGeometries refuses a mismatched set):
+  // a module can mix textured meshes with untextured utility geometry (e.g. a
+  // collision-only block), so drop uv everywhere if even one mesh lacks it,
+  // rather than letting the whole module fail to load.
+  const allHaveUv = geos.every((g) => g.getAttribute('uv'));
+  if (!allHaveUv) for (const g of geos) g.deleteAttribute('uv');
   const merged = geos.length === 1 ? geos[0] : mergeGeometries(geos, false);
   if (!merged) throw new Error(`dungeon module merge failed: ${name}`);
   moduleAssets.set(name, { geo: merged, pack });

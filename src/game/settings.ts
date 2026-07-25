@@ -121,6 +121,13 @@ export const SETTING_RANGES = {
 
 export const BOOL_SETTINGS = {
   mouseCamera: { def: false },
+  // off by default: normally the camera eases back in behind the character
+  // whenever you move (see camera_follow.ts SETTLE_RATE), so an orbited camera
+  // returns to dead-behind on the next step forward. On, that settle is
+  // skipped: walking/strafing never reorients the camera, only manual drag
+  // (or classic A/D turning, which still rotates the camera with the
+  // character) does.
+  freeCamera: { def: false },
   // on by default: while a camera drag is active, pointer-lock the canvas so the
   // OS cursor cannot leave the window during rotation (otherwise it hits the
   // screen edge and the camera freezes, or slips onto a second monitor).

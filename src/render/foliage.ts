@@ -22,7 +22,6 @@ import {
 import { loadGltf } from './assets/loader';
 import { registerPreload } from './assets/preload';
 import { configureMaskedDoubleSidedVegetationMaterial, GFX, sharedUniforms } from './gfx';
-import { grassTuftTexture } from './textures';
 
 // Vegetation: trees, rocks, ground dressing and the grass ring.
 //
@@ -72,16 +71,16 @@ const BUCKET_DEPTH = 240;
 
 const MODEL_DIR = 'models/foliage/';
 const FOLIAGE_MODEL_URLS_HIGH = {
-  // pine_3 is shipped but unused: its 462-tri canopy reads as a dead pole
-  pine: [1, 2, 4, 5].map((i) => `${MODEL_DIR}pine_${i}.glb`),
+  pine: [1, 2, 3].map((i) => `${MODEL_DIR}pine_${i}.glb`),
   oak: [1, 2, 3, 4, 5].map((i) => `${MODEL_DIR}oak_${i}.glb`),
   twisted: [1, 2, 3].map((i) => `${MODEL_DIR}twisted_${i}.glb`),
   dead: [1, 2, 3].map((i) => `${MODEL_DIR}dead_${i}.glb`),
   rock: [1, 2, 3].map((i) => `${MODEL_DIR}rock_${i}.glb`),
-  bush: [`${MODEL_DIR}bush.glb`],
+  bush: [1, 2, 3, 4].map((i) => `${MODEL_DIR}bush_${i}.glb`),
   bushFlowers: [`${MODEL_DIR}bush_flowers.glb`],
   fern: [`${MODEL_DIR}fern.glb`],
   mushroom: [`${MODEL_DIR}mushroom.glb`],
+  grassTuft: [1, 2, 3, 4].map((i) => `${MODEL_DIR}grass_tuft_${i}.glb`),
 };
 const FOLIAGE_MODEL_URLS_LOW = {
   pine: [1].map((i) => `${MODEL_DIR}pine_${i}.glb`),
@@ -89,10 +88,11 @@ const FOLIAGE_MODEL_URLS_LOW = {
   twisted: [1].map((i) => `${MODEL_DIR}twisted_${i}.glb`),
   dead: [1].map((i) => `${MODEL_DIR}dead_${i}.glb`),
   rock: [1].map((i) => `${MODEL_DIR}rock_${i}.glb`),
-  bush: [`${MODEL_DIR}bush.glb`],
+  bush: [1, 2].map((i) => `${MODEL_DIR}bush_${i}.glb`),
   bushFlowers: [`${MODEL_DIR}bush_flowers.glb`],
   fern: [`${MODEL_DIR}fern.glb`],
   mushroom: [`${MODEL_DIR}mushroom.glb`],
+  grassTuft: [1, 2].map((i) => `${MODEL_DIR}grass_tuft_${i}.glb`),
 };
 const MODEL_URLS = GFX.leanFoliage ? FOLIAGE_MODEL_URLS_LOW : FOLIAGE_MODEL_URLS_HIGH;
 
@@ -376,6 +376,13 @@ const MAT_POLICY: Record<string, MatPolicy> = {
   Bark_DeadTree: { leaf: false, windMul: 0, roughness: 0.95 },
   Rocks: { leaf: false, windMul: 0, roughness: 1.0 },
   Mushrooms: { leaf: false, windMul: 0, roughness: 0.9 },
+  // KayKit Forest Nature Pack (pine/oak/twisted/dead/bush): one fused
+  // trunk+canopy mesh per model (no separate bark part to carry shadows), so
+  // it's classified as leaf so the whole silhouette casts a shadow and sways
+  // gently; the shared "forest" source material is renamed per category at
+  // conversion time so rocks (no sway) never share a cache entry with a tree.
+  kaykit_foliage: { leaf: true, windMul: 0.6, roughness: 0.85 },
+  kaykit_rock: { leaf: false, windMul: 0, roughness: 1.0 },
 };
 const DEFAULT_POLICY: MatPolicy = { leaf: false, windMul: 0, roughness: 0.95 };
 const LEAF_ALPHA_TEST = 0.4;
@@ -631,10 +638,11 @@ export function buildFoliageMaterialPrewarmGroup(): THREE.Group {
     ...MODEL_URLS.twisted,
     ...MODEL_URLS.dead,
     ...MODEL_URLS.rock,
-    MODEL_URLS.bush[0],
+    ...MODEL_URLS.bush,
     MODEL_URLS.bushFlowers[0],
     MODEL_URLS.fern[0],
     MODEL_URLS.mushroom[0],
+    ...MODEL_URLS.grassTuft,
   ];
   for (const url of speciesUrls) {
     for (const part of extractParts(url)) add(part.geometry, part.material);
@@ -1083,13 +1091,42 @@ function buildTrees(
 // Ground dressing: bushes, ferns, mushrooms on a deterministic hash grid
 // ---------------------------------------------------------------------------
 
-type DressKind = 'bush' | 'bushFlowers' | 'fern' | 'mushroom';
+type DressKind = 'bush' | 'bushFlowers' | 'fern' | 'mushroom' | 'grassTuft';
 
 interface DressingSpot {
   x: number;
   z: number;
   kind: DressKind;
+  variant: number;
   scale: number;
+}
+
+function variantCountFor(kind: DressKind): number {
+  if (kind === 'bush') return MODEL_URLS.bush.length;
+  if (kind === 'grassTuft') return MODEL_URLS.grassTuft.length;
+  return 1;
+}
+
+// Smooth (bilinear + smoothstep) value noise over a coarse grid, used only to
+// modulate dressing density so bush/grassTuft form small clustered patches
+// instead of a uniform scatter. Mean ~0.5, so callers rescale around that.
+const DRESS_CLUSTER_SCALE = 1 / 40;
+function clusterNoise(x: number, z: number, salt: number): number {
+  const gx = x * DRESS_CLUSTER_SCALE;
+  const gz = z * DRESS_CLUSTER_SCALE;
+  const x0 = Math.floor(gx);
+  const z0 = Math.floor(gz);
+  const fx = gx - x0;
+  const fz = gz - z0;
+  const h00 = hashAt(x0, z0, salt);
+  const h10 = hashAt(x0 + 1, z0, salt);
+  const h01 = hashAt(x0, z0 + 1, salt);
+  const h11 = hashAt(x0 + 1, z0 + 1, salt);
+  const sx = fx * fx * (3 - 2 * fx);
+  const sz = fz * fz * (3 - 2 * fz);
+  const a = h00 + (h10 - h00) * sx;
+  const b = h01 + (h11 - h01) * sx;
+  return a + (b - a) * sz;
 }
 
 const DRESS_STEP_HIGH = 12;
@@ -1113,20 +1150,24 @@ function dressStep(): number {
 
 function dressKindFor(biome: BiomeId, r: number): DressKind {
   if (biome === 'vale') {
-    if (r < 0.36) return 'bush';
-    if (r < 0.46) return 'bushFlowers';
-    if (r < 0.8) return 'fern';
+    if (r < 0.2) return 'bush';
+    if (r < 0.28) return 'bushFlowers';
+    if (r < 0.6) return 'grassTuft';
+    if (r < 0.85) return 'fern';
     return 'mushroom';
   }
   if (biome === 'marsh') {
-    if (r < 0.3) return 'bush';
-    if (r < 0.62) return 'fern';
+    if (r < 0.2) return 'bush';
+    if (r < 0.45) return 'grassTuft';
+    if (r < 0.72) return 'fern';
     return 'mushroom';
   }
   if (biome === 'beach' || biome === 'desert') return 'bush';
   if (biome === 'cave') return r < 0.5 ? 'mushroom' : 'fern';
   if (biome === 'volcano') return 'bush';
-  return r < 0.62 ? 'bush' : 'fern';
+  if (r < 0.35) return 'bush';
+  if (r < 0.7) return 'grassTuft';
+  return 'fern';
 }
 
 const DRESS_SCALE: Record<DressKind, [number, number]> = {
@@ -1134,6 +1175,7 @@ const DRESS_SCALE: Record<DressKind, [number, number]> = {
   bushFlowers: [0.9, 0.7],
   fern: [0.85, 0.6],
   mushroom: [0.9, 0.8],
+  grassTuft: [0.6, 0.5],
 };
 
 function tooSteep(x: number, z: number, seed: number): boolean {
@@ -1153,7 +1195,11 @@ function generateDressing(seed: number): DressingSpot[] {
     for (let gz = WORLD_MIN_Z + 16; gz < WORLD_MAX_Z - 16; gz += step) {
       const r = hashAt(gx, gz, 41);
       const biome = zoneBiomeAt(gz);
-      const density = DRESS_DENSITY[biome] * (GFX.leanFoliage ? DRESS_DENSITY_LOW_SCALE : 1);
+      // 0.25..1.75 patch modulator (mean ~1): small clustered clumps of
+      // dressing with clearer gaps between them, rather than a flat scatter.
+      const cluster = 0.25 + 1.5 * clusterNoise(gx, gz, 141);
+      const density =
+        DRESS_DENSITY[biome] * (GFX.leanFoliage ? DRESS_DENSITY_LOW_SCALE : 1) * cluster;
       if (r > density) continue;
       const x = gx + (hashAt(gx, gz, 42) - 0.5) * step;
       const z = gz + (hashAt(gx, gz, 43) - 0.5) * step;
@@ -1177,18 +1223,22 @@ function generateDressing(seed: number): DressingSpot[] {
       if (tooSteep(x, z, seed)) continue;
       const kind = dressKindFor(biome, hashAt(gx, gz, 44));
       const [sMin, sRange] = DRESS_SCALE[kind];
-      out.push({ x, z, kind, scale: (sMin + hashAt(gx, gz, 45) * sRange) * scaleBoost });
+      const variant = Math.floor(hashAt(gx, gz, 48) * variantCountFor(kind));
+      out.push({ x, z, kind, variant, scale: (sMin + hashAt(gx, gz, 45) * sRange) * scaleBoost });
     }
   }
   return out;
 }
 
 function buildDressing(parent: THREE.Group, seed: number, registry: BucketMesh[]): void {
-  const kindParts: Record<DressKind, ModelPart[]> = {
-    bush: extractParts(MODEL_URLS.bush[0]),
-    bushFlowers: extractParts(MODEL_URLS.bushFlowers[0]),
-    fern: extractParts(MODEL_URLS.fern[0]),
-    mushroom: extractParts(MODEL_URLS.mushroom[0]),
+  // variant index -> extracted parts; bush/grassTuft carry several models,
+  // the rest a single one (see variantCountFor).
+  const kindParts: Record<DressKind, ModelPart[][]> = {
+    bush: MODEL_URLS.bush.map(extractParts),
+    bushFlowers: [extractParts(MODEL_URLS.bushFlowers[0])],
+    fern: [extractParts(MODEL_URLS.fern[0])],
+    mushroom: [extractParts(MODEL_URLS.mushroom[0])],
+    grassTuft: MODEL_URLS.grassTuft.map(extractParts),
   };
   const buckets = new Map<string, DressingSpot[]>();
   for (const spot of generateDressing(seed)) {
@@ -1219,46 +1269,56 @@ function buildDressing(parent: THREE.Group, seed: number, registry: BucketMesh[]
       if (list) list.push(s);
       else byKind.set(s.kind, [s]);
     }
-    // Keep all four low-cost dressing kinds. Recent low-tier telemetry has
+    // Keep all five low-cost dressing kinds. Recent low-tier telemetry has
     // dressing well below both call and triangle budgets, so variety here is
     // higher ROI than adding more far canopy or post-processing work.
-    const maxKinds = 4;
+    const maxKinds = 5;
     const kept = [...byKind.entries()].sort((a, b) => b[1].length - a[1].length).slice(0, maxKinds);
     for (const [kind, list] of kept) {
-      for (const part of kindParts[kind]) {
-        const im = new THREE.InstancedMesh(part.geometry, part.material, list.length);
-        list.forEach((s, i) => {
-          const y = terrainHeight(s.x, s.z, seed);
-          q.setFromAxisAngle(up, hashAt(s.x, s.z, 46) * Math.PI * 2);
-          m.compose(v.set(s.x, y - 0.04 * s.scale, s.z), q, sv.set(s.scale, s.scale, s.scale));
-          im.setMatrixAt(i, m);
-          if (kind === 'mushroom') {
-            // mushrooms keep their painted cap colors — brightness jitter only
-            im.setColorAt(i, c.setScalar(0.85 + hashAt(s.x, s.z, 47) * 0.3));
-          } else {
-            im.setColorAt(
-              i,
-              softTint(
-                s.x,
-                s.z,
-                DRESS_TINT[zoneBiomeAt(s.z)],
-                c,
-                GFX.leanFoliage ? DRESS_TINT_SOFTEN_LOW : DRESS_TINT_SOFTEN,
-              ),
-            );
-          }
-        });
-        im.receiveShadow = true; // dressing casts nothing: too small to matter
-        parent.add(im);
-        registry.push({
-          mesh: im,
-          x: bx,
-          z: bz,
-          radius: bRadius,
-          maxDist: lodDists().dressFar,
-          lod: 'dressing',
-          ...bucketMeshCost(im),
-        });
+      const variants = kindParts[kind];
+      const byVariant = new Map<number, DressingSpot[]>();
+      for (const s of list) {
+        const vi = s.variant % variants.length;
+        const arr = byVariant.get(vi);
+        if (arr) arr.push(s);
+        else byVariant.set(vi, [s]);
+      }
+      for (const [variantIdx, vlist] of byVariant) {
+        for (const part of variants[variantIdx]) {
+          const im = new THREE.InstancedMesh(part.geometry, part.material, vlist.length);
+          vlist.forEach((s, i) => {
+            const y = terrainHeight(s.x, s.z, seed);
+            q.setFromAxisAngle(up, hashAt(s.x, s.z, 46) * Math.PI * 2);
+            m.compose(v.set(s.x, y - 0.04 * s.scale, s.z), q, sv.set(s.scale, s.scale, s.scale));
+            im.setMatrixAt(i, m);
+            if (kind === 'mushroom') {
+              // mushrooms keep their painted cap colors, brightness jitter only
+              im.setColorAt(i, c.setScalar(0.85 + hashAt(s.x, s.z, 47) * 0.3));
+            } else {
+              im.setColorAt(
+                i,
+                softTint(
+                  s.x,
+                  s.z,
+                  DRESS_TINT[zoneBiomeAt(s.z)],
+                  c,
+                  GFX.leanFoliage ? DRESS_TINT_SOFTEN_LOW : DRESS_TINT_SOFTEN,
+                ),
+              );
+            }
+          });
+          im.receiveShadow = true; // dressing casts nothing: too small to matter
+          parent.add(im);
+          registry.push({
+            mesh: im,
+            x: bx,
+            z: bz,
+            radius: bRadius,
+            maxDist: lodDists().dressFar,
+            lod: 'dressing',
+            ...bucketMeshCost(im),
+          });
+        }
       }
     }
   }
@@ -1404,15 +1464,18 @@ function buildGrassRing(parent: THREE.Group, seed: number): GrassRing {
   // the legacy sprite size
   const lush = !GFX.leanFoliage;
   const lowPlusGrassScale = GFX.lowPlus ? 1.08 : 1;
-  const quad = new THREE.PlaneGeometry(
-    lush ? 1.45 : 1.1 * lowPlusGrassScale,
-    lush ? 0.9 : 0.7 * lowPlusGrassScale,
-  );
-  quad.translate(0, lush ? 0.42 : 0.35 * lowPlusGrassScale, 0);
-  const quad2 = quad.clone().rotateY(Math.PI / 2);
-  const geo = mergeGeometries([quad, quad2]);
+  // Real KayKit grass-blade geometry (Forest Nature Pack) instead of the old
+  // procedural cross-quad + canvas texture: extractParts bakes a FRESH
+  // geometry per call (never shared with the dressing layer's own grassTuft
+  // instances), so scaling it here is safe. The raw blade is ~0.38u wide,
+  // narrower than the old 1.45u cross quad, so it's widened to read as a
+  // similar-sized tuft at the same instance density.
+  const grassPart = extractParts(MODEL_URLS.grassTuft[0])[0];
+  const geo = grassPart.geometry.clone();
+  const grassModelScale = (lush ? 2.1 : 1.7) * lowPlusGrassScale;
+  geo.scale(grassModelScale, grassModelScale, grassModelScale);
+  const grassMap = (grassPart.material as THREE.MeshStandardMaterial).map;
 
-  const tuftTex = grassTuftTexture(lush ? 30 : 18);
   let quality = 1;
   const minRadiusScale = lush ? 0.58 : 0.48;
   const activeRadius = (): number =>
@@ -1421,16 +1484,20 @@ function buildGrassRing(parent: THREE.Group, seed: number): GrassRing {
     uPlayerPos: { value: new THREE.Vector2(1e6, 1e6) },
     uFadeFar: { value: activeRadius() },
   };
+  // alphaTest stays even though the KayKit texture itself is opaque: the
+  // player-distance fade shader (applyGrassShader) writes its falloff into
+  // diffuseColor.a, and alpha-test discard is what actually makes that fade
+  // vanish tufts near uFadeFar instead of rendering them fully opaque.
   const mat = configureMaskedDoubleSidedVegetationMaterial(
     lush
       ? new THREE.MeshStandardMaterial({
-          map: tuftTex,
+          map: grassMap,
           alphaTest: 0.3,
-          roughness: 0.9,
+          roughness: 0.85,
         })
       : new THREE.MeshLambertMaterial({
-          map: tuftTex,
-          alphaTest: 0.35,
+          map: grassMap,
+          alphaTest: 0.3,
         }),
   );
   applyGrassShader(mat, uniforms);

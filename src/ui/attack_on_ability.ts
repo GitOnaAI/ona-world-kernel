@@ -51,6 +51,7 @@ const EFFECT_CLASS: Record<AbilityEffect['type'], AutoAttackClass> = {
   gainResource: 'other',
   selfDamagePctMax: 'other',
   charge: 'other',
+  dash: 'other',
   sunder: 'other',
   taunt: 'other',
   tamePet: 'other',

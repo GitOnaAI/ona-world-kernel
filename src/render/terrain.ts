@@ -131,12 +131,15 @@ const BIOME_PALETTE: Record<
     sand: 0x655741,
   },
   // Cooler and greyer than the vale/marsh's warm greens, pushing toward sage
-  // and stone since altitude thins out the lush growth. Pushed further blue-
-  // grey than a first pass so peaks are unmistakably a different biome.
+  // and stone since altitude thins out the lush growth. Base-to-mid slopes
+  // (below the rock/snow blend, see ROCK_SLOPE_START/the h>22 band) lean
+  // darker green than a first pass so the mountain foot reads as one piece
+  // with the tree canopy tint (PINE_TINT.peaks in foliage.ts) instead of a
+  // grey band between the grass and the forest.
   peaks: {
-    grass: 0x7a8878,
-    grassDark: 0x5c6862,
-    grassYellow: 0x9aa192,
+    grass: 0x5f7a5c,
+    grassDark: 0x455a48,
+    grassYellow: 0x8a9a7c,
     dirt: 0x8a7d6a,
     sand: 0xbdb49c,
   },

@@ -231,6 +231,7 @@ export const CLASSES: Record<PlayerClass, ClassDef> = {
     ranged: { min: 5, max: 9, speed: 2.3, maxRange: 35, minRange: 8 },
     abilities: [
       'thornclaw_strike',
+      'bramble_roll',
       'mark_of_the_hawk',
       'venomroot_sting',
       'ancestral_shot',
@@ -2381,6 +2382,25 @@ export const ABILITIES: Record<string, AbilityDef> = {
     channel: { duration: 3, ticks: 6 },
     effects: [{ type: 'aoeDamage', min: 12, max: 16, radius: 8 }],
     description: 'Rains thorns on the target area, dealing $d damage to enemies caught in it.',
+  },
+  bramble_roll: {
+    id: 'bramble_roll',
+    name: 'Bramble Roll',
+    class: 'rootwarden',
+    learnLevel: 1,
+    // A 2 sec cooldown made this a permanent +21% run speed (10yd/1sec roll
+    // vs RUN_SPEED 7yd/s, sustained over the cycle), not a utility escape.
+    // Matched to this class's own low-end ability cost (wildroot_bite: 10)
+    // and this repo's other burst-mobility tool (warrior charge: 15 sec).
+    cost: 10,
+    castTime: 0,
+    cooldown: 15,
+    range: 0,
+    school: 'physical',
+    requiresTarget: false,
+    offGcd: true,
+    effects: [{ type: 'dash', distance: 10 }],
+    description: 'A swift roll through the underbrush, dashing you 10 yards.',
   },
 
   // ====================== PRIEST ======================

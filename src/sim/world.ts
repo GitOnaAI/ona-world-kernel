@@ -634,76 +634,180 @@ export function zoneBiomeAt(z: number): BiomeId {
   return zones[zones.length - 1].biome;
 }
 
+// Low-frequency density modulator: turns the uniform per-cell scatter into
+// natural-looking groves and clearings (a fixed wavelength of a few dozen
+// world units) instead of an even speckle. Centered so the biome thresholds
+// below stay the intended AVERAGE density, not a floor.
+const CLUSTER_SCALE = 0.025;
+function clusterMod(gx: number, gz: number, seed: number): number {
+  return 0.5 + fbm2(gx * CLUSTER_SCALE, gz * CLUSTER_SCALE, seed + 131, 3);
+}
+
+// Mountain slopes (the inter-zone ridge walls, or any locally steep ground)
+// stay bare, regardless of which zone band they fall in: biomeAt is Z-BAND
+// based, so a ridge wall inside a 'vale' band still reports biome 'vale' and
+// would otherwise grow the valley's forest right up its face. Well under
+// PLAYER_MAX_CLIMB_SLOPE (pathfind.ts, 1.5: genuinely impassable) on purpose:
+// the cutoff tracks comfortably walkable ground, not the wall's own edge, so
+// no tree ever reads as climbing the visible rock face.
+const STEEP_DECOR_LIMIT = 0.15;
+// Absolute-height backstop for tall ground that isn't locally steep (a broad
+// plateau, say): above this, no decorations either.
+const DECOR_HEIGHT_LIMIT = 14;
+
+// The world-boundary rim (the mountains that enclose the whole playable map,
+// as opposed to the inter-zone ridge walls) is a deliberate EXCEPTION to the
+// bare-mountain rule above: a thick tree belt there hides the map edge from
+// view, screening the void beyond instead of exposing it. It still respects
+// the steepness/height bare-mountain check below, though: the dense canopy
+// sits at the FOOT of the rising wall (still walkable ground), never climbing
+// the slope itself, or it would read as trees floating up the cliff face.
+const RIM_TREE_BELT = 34;
+// A second, finer placement pass runs across just this belt so it reads as a
+// genuinely dense tree wall (~5x the areal count of one coarse-grid pass, not
+// just a near-100% chance per already-sparse cell, which saturates well
+// short of 5x).
+const RIM_FINE_STEP = 4.5;
+
+function decorationAt(
+  gx: number,
+  gz: number,
+  step: number,
+  seed: number,
+  w: ReturnType<typeof world>,
+  out: Decoration[],
+): void {
+  const r = hash2(Math.round(gx), Math.round(gz), seed + 31);
+  const ox = (hash2(Math.round(gx), Math.round(gz), seed + 57) - 0.5) * step;
+  const oz = (hash2(Math.round(gx), Math.round(gz), seed + 91) - 0.5) * step;
+  const x = gx + ox,
+    z = gz + oz;
+  if (isExcludedDecoration(x, z)) return;
+  for (const zone of w.content.zones) {
+    const dx = x - zone.hub.x,
+      dz = z - zone.hub.z;
+    if (Math.hypot(dx, dz) < zone.hub.radius + 4) return;
+  }
+  if (roadDistance(x, z) < 5) return;
+  const h = terrainHeight(x, z, seed);
+  if (h < waterLevel() + 1) return;
+  const biome = biomeAt(gx, gz);
+  // background mountains (peaks) and any locally steep/tall ground (the
+  // inter-zone ridge walls, or the rim's OWN rising slope) stay bare: this
+  // applies inside the rim tree belt too, so the dense canopy below never
+  // climbs the mountain, only screens its foot.
+  if (biome === 'peaks') return;
+  // A forward-difference gradient reusing h (already sampled above for the
+  // water check) instead of terrainSteepnessAt's cached-but-cold-per-seed
+  // central difference: 2 extra terrainHeight calls here instead of 4, and
+  // terrainHeight is the expensive part (layered fbm2 + ridge/rim noise).
+  // The whole decoration grid is scanned once per unique seed with no cache
+  // reuse across seeds (STEEPNESS_CACHE_MAX_SEEDS=4), so this is on the hot
+  // path for any test/host that constructs many Sims (tests/delves.test.ts,
+  // tests/lockpick_hud_sync.test.ts sweep 80-200 seeds each). Precision loss
+  // is fine: STEEP_DECOR_LIMIT is a generous cosmetic threshold, well under
+  // the real movement climb gate, which stays on the exact, unchanged,
+  // shared terrainSteepnessAt.
+  const e = STEEPNESS_SAMPLE;
+  const baseSteepness = Math.hypot(
+    (groundHeight(x + e, z, seed) - h) / e,
+    (groundHeight(x, z + e, seed) - h) / e,
+  );
+  if (h >= DECOR_HEIGHT_LIMIT || baseSteepness >= STEEP_DECOR_LIMIT) return;
+
+  const distToEdge = Math.min(WORLD_MAX_X - Math.abs(x), z - w.minZ, w.maxZ - z);
+  let kind: Decoration['kind'] | null = null;
+  if (distToEdge < RIM_TREE_BELT) {
+    kind = r < 0.85 ? 'tree' : r < 0.95 ? 'tree2' : 'rock';
+  } else {
+    // clusterMod averages ~1 (0.5 + fbm2's own ~0.5 mean, range ~[0.5, 1.5]),
+    // so the gate multiplier below IS the target average density directly,
+    // same value as the flat per-cell gate this replaced.
+    const mod = clusterMod(gx, gz, seed);
+    // density gate + kind mix per biome (vale/default lean green: rock is a
+    // minority of the mix, not the majority, at this overall density)
+    if (biome === 'vale') {
+      if (r > 0.48 * mod) return;
+      kind = r < 0.5 ? 'tree' : r < 0.62 ? 'tree2' : 'rock';
+    } else if (biome === 'marsh') {
+      if (r > 0.34 * mod) return;
+      kind = r < 0.08 ? 'tree' : r < 0.26 ? 'tree2' : 'rock';
+    } else if (biome === 'beach') {
+      if (r > 0.14 * mod) return;
+      kind = r < 0.05 ? 'tree' : r < 0.08 ? 'tree2' : 'rock';
+    } else if (biome === 'desert') {
+      if (r > 0.1 * mod) return;
+      kind = r < 0.025 ? 'tree2' : 'rock';
+    } else if (biome === 'volcano') {
+      if (r > 0.2) return;
+      kind = 'rock';
+    } else if (biome === 'cave') {
+      if (r > 0.16) return;
+      kind = 'rock';
+    } else {
+      if (r > 0.44 * mod) return;
+      kind = r < 0.5 ? 'tree' : r < 0.62 ? 'tree2' : 'rock';
+    }
+  }
+  if (!kind) return;
+
+  for (const c of w.content.camps) {
+    const dx = x - c.center.x,
+      dz = z - c.center.z;
+    if (Math.hypot(dx, dz) < c.radius + 3) return;
+  }
+  out.push({
+    kind,
+    x,
+    z,
+    scale: 0.7 + hash2(Math.round(gx), Math.round(gz), seed + 13) * 0.9,
+    variant: Math.floor(hash2(Math.round(gx), Math.round(gz), seed + 77) * 3),
+    biome,
+  });
+}
+
 export function generateDecorations(seed: number): Decoration[] {
   const w = world();
   const out: Decoration[] = [];
   const step = 10;
-  const xHalf = WORLD_MAX_X - 14;
+  // Reaches almost to the true boundary (was a flat 14yd margin) so the dense
+  // rim tree belt below has room to actually meet the rising mountain wall.
+  // Margin matches where terrainHeight's rim peaks (WORLD_MAX_X - 6 etc.), so
+  // the +-5yd jitter below never lands past the risen wall into the outside
+  // fade zone.
+  const xHalf = WORLD_MAX_X - 6;
+  const zLo = w.minZ + 6;
+  const zHi = w.maxZ - 6;
   for (let gx = -xHalf; gx < xHalf; gx += step) {
-    for (let gz = w.minZ + 14; gz < w.maxZ - 14; gz += step) {
-      const r = hash2(Math.round(gx), Math.round(gz), seed + 31);
-      // biomeAt so painted areas grow the right mix; without paint this is the
-      // zone-band biome exactly (byte-identical built-in world).
-      const biome = biomeAt(gx, gz);
-      // density gate + kind mix per biome
-      let kind: Decoration['kind'] | null = null;
-      if (biome === 'vale') {
-        if (r > 0.48) continue;
-        kind = r < 0.3 ? 'tree' : r < 0.4 ? 'tree2' : 'rock';
-      } else if (biome === 'marsh') {
-        if (r > 0.34) continue;
-        kind = r < 0.08 ? 'tree' : r < 0.26 ? 'tree2' : 'rock';
-      } else if (biome === 'beach') {
-        if (r > 0.14) continue;
-        kind = r < 0.05 ? 'tree' : r < 0.08 ? 'tree2' : 'rock';
-      } else if (biome === 'desert') {
-        if (r > 0.1) continue;
-        kind = r < 0.025 ? 'tree2' : 'rock';
-      } else if (biome === 'volcano') {
-        if (r > 0.2) continue;
-        kind = 'rock';
-      } else if (biome === 'cave') {
-        if (r > 0.16) continue;
-        kind = 'rock';
-      } else {
-        if (r > 0.44) continue;
-        kind = r < 0.2 ? 'tree' : r < 0.24 ? 'tree2' : 'rock';
-      }
-      const ox = (hash2(Math.round(gx), Math.round(gz), seed + 57) - 0.5) * step;
-      const oz = (hash2(Math.round(gx), Math.round(gz), seed + 91) - 0.5) * step;
-      const x = gx + ox,
-        z = gz + oz;
-      if (isExcludedDecoration(x, z)) continue;
-      let inHub = false;
-      for (const zone of w.content.zones) {
-        const dx = x - zone.hub.x,
-          dz = z - zone.hub.z;
-        if (Math.sqrt(dx * dx + dz * dz) < zone.hub.radius + 4) {
-          inHub = true;
-          break;
-        }
-      }
-      if (inHub) continue;
-      if (terrainHeight(x, z, seed) < waterLevel() + 1) continue;
-      if (roadDistance(x, z) < 5) continue;
-      let inCamp = false;
-      for (const c of w.content.camps) {
-        const dx = x - c.center.x,
-          dz = z - c.center.z;
-        if (Math.sqrt(dx * dx + dz * dz) < c.radius + 3) {
-          inCamp = true;
-          break;
-        }
-      }
-      if (inCamp) continue;
-      out.push({
-        kind,
-        x,
-        z,
-        scale: 0.7 + hash2(Math.round(gx), Math.round(gz), seed + 13) * 0.9,
-        variant: Math.floor(hash2(Math.round(gx), Math.round(gz), seed + 77) * 3),
-        biome,
-      });
+    for (let gz = zLo; gz < zHi; gz += step) {
+      decorationAt(gx, gz, step, seed, w, out);
+    }
+  }
+  // Finer pass, ONLY over the four boundary strips (not a full-map rescan at
+  // 1/2 the step), seeded on a distinct grid (offset by a fraction of
+  // RIM_FINE_STEP) so it adds MORE trees rather than resampling the same
+  // coarse-grid points. The west/east strips run the FULL z range (so they
+  // own the corners); the south/north strips skip the x range the west/east
+  // strips already covered, so a corner cell is never visited by both (was a
+  // literal duplicate decoration: same seed, same (gx,gz), overlapping
+  // colliders and z-fighting canopies).
+  const fs = RIM_FINE_STEP;
+  const fo = fs * 0.37;
+  const fineSeed = seed + 977;
+  for (let gz = zLo + fo; gz < zHi; gz += fs) {
+    for (let gx = -xHalf + fo; gx < -xHalf + RIM_TREE_BELT; gx += fs) {
+      decorationAt(gx, gz, fs, fineSeed, w, out);
+    }
+    for (let gx = xHalf - RIM_TREE_BELT; gx < xHalf; gx += fs) {
+      decorationAt(gx, gz, fs, fineSeed, w, out);
+    }
+  }
+  for (let gx = -xHalf + fo + RIM_TREE_BELT; gx < xHalf - RIM_TREE_BELT; gx += fs) {
+    for (let gz = zLo + fo; gz < zLo + RIM_TREE_BELT; gz += fs) {
+      decorationAt(gx, gz, fs, fineSeed, w, out);
+    }
+    for (let gz = zHi - RIM_TREE_BELT; gz < zHi; gz += fs) {
+      decorationAt(gx, gz, fs, fineSeed, w, out);
     }
   }
   return out;

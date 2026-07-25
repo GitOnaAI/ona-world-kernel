@@ -1511,7 +1511,11 @@ export class Renderer {
     if (groundHeight(x, z, this.sim.cfg.seed) < wl && y <= wl + 0.3) return 'water';
     const biome = zoneBiomeAt(z);
     if (biome === 'vale') return 'grass';
-    if (biome === 'marsh') return 'dirt';
+    // Kharzoth's loose volcanic ash/gravel reads closer to dirt than to the
+    // hard-stone dungeon-hall timbre; no dedicated 'ash' clip exists yet
+    // (would need a new pre-rendered SFX, see gen_sfx.mjs), so this is the
+    // closest existing surface until one is generated.
+    if (biome === 'marsh' || biome === 'volcano') return 'dirt';
     return this.weatherOn ? 'snow' : 'stone'; // peaks: snowy when weather is on
   }
 
@@ -2865,6 +2869,9 @@ export class Renderer {
       case 'heal2':
         if (ev.amount > 0 || ev.crit) this.vfx.healGlow(ev.targetId);
         break;
+      case 'dash':
+        this.triggerRoll(ev.entityId);
+        break;
       case 'aura': {
         const tgt = this.sim.entities.get(ev.targetId);
         if (ev.gained && tgt?.kind === 'player') this.vfx.buffSwirl(ev.targetId);
@@ -3520,12 +3527,22 @@ export class Renderer {
 
   triggerAttack(entityId: number): void {
     const v = this.views.get(entityId);
-    if (v) this.activeVisual(v)?.playAttack();
+    if (!v) return;
+    // Only players walk into their swing (auto-attack pursuit); skip the pose
+    // there to avoid the standing-only clip's moonwalk artifact. Mobs keep
+    // their existing move-and-attack visual (e.g. a kiting caster's bolt).
+    const isPlayer = this.sim.entities.get(entityId)?.kind === 'player';
+    this.activeVisual(v)?.playAttack(isPlayer);
   }
 
   triggerHit(entityId: number): void {
     const v = this.views.get(entityId);
     if (v) this.activeVisual(v)?.playHit();
+  }
+
+  triggerRoll(entityId: number): void {
+    const v = this.views.get(entityId);
+    if (v) this.activeVisual(v)?.playRoll();
   }
 
   private isHostileSelectionTarget(target: Entity): boolean {

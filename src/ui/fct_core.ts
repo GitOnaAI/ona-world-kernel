@@ -115,7 +115,7 @@ export interface FctDescriptor {
   /**
    * The world anchor the painter projects via worldToScreen. y carries the head offset
    * (FCT_ANCHOR_HEAD_OFFSET * scale), matching the live fct() that projects
-   * pos.y + 2.2 * scale.
+   * pos.y + FCT_ANCHOR_HEAD_OFFSET * scale.
    */
   readonly anchor: { readonly x: number; readonly y: number; readonly z: number };
   /**
@@ -135,8 +135,10 @@ export interface FctDescriptor {
 export const FCT_JITTER_RANGE = 30;
 /** Entry lifetime in ms. Live fct(): setTimeout(() => el.remove(), 1250). */
 export const FCT_TTL_MS = 1250;
-/** Head offset above the entity origin, scaled by entity scale. Live fct(): pos.y + 2.2 * scale. */
-export const FCT_ANCHOR_HEAD_OFFSET = 2.2;
+/** Head offset above the entity origin, scaled by entity scale. Live fct(): pos.y + 3 * scale.
+ *  Above the nameplate/HP bar overhead anchor (height * scale + NAMEPLATE_ANCHOR_LIFT,
+ *  nameplate_view.ts), so combat text reads clearly above the UI chrome, not behind/under it. */
+export const FCT_ANCHOR_HEAD_OFFSET = 3;
 /**
  * Base author-space rise over the entry's life. No production code reads this (the painter rises
  * off the .fct / .fct.crit CSS class, never a descriptor field, so a crit never under-rises); it

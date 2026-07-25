@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { cameraFollowShouldSettle, cameraIsManual, updateFollowCameraYaw, wrapAngle } from '../src/game/camera_follow';
+import {
+  cameraFollowShouldSettle,
+  cameraIsManual,
+  updateFollowCameraYaw,
+  wrapAngle,
+} from '../src/game/camera_follow';
 
 describe('camera follow', () => {
   it('wraps angles to the shortest signed turn', () => {
@@ -16,6 +21,7 @@ describe('camera follow', () => {
       mouselook: false,
       moving: false,
       orbiting: false,
+      turning: true,
     });
     expect(next.camYaw).toBeGreaterThan(1.0);
     expect(next.camYaw).toBeLessThan(1.2);
@@ -32,6 +38,7 @@ describe('camera follow', () => {
       mouselook: false,
       moving: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBeGreaterThan(0);
     expect(next.camYaw).toBeLessThan(0.13);
@@ -46,6 +53,7 @@ describe('camera follow', () => {
       mouselook: true,
       moving: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBe(2.0);
     expect(next.lastInterpFacing).toBe(0.6);
@@ -60,9 +68,66 @@ describe('camera follow', () => {
       mouselook: false,
       moving: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBeLessThan(Math.PI);
     expect(next.camYaw).toBeGreaterThan(Math.PI - 0.2);
+  });
+
+  it('free camera skips the settle ease, so an orbited camera holds its offset while walking', () => {
+    const next = updateFollowCameraYaw({
+      camYaw: Math.PI,
+      interpFacing: 0,
+      lastInterpFacing: 0,
+      frameDt: 1 / 60,
+      mouselook: false,
+      moving: true,
+      orbiting: false,
+      freeCamera: true,
+      turning: false,
+    });
+    expect(next.camYaw).toBe(Math.PI);
+  });
+
+  it('free camera holds still even while the sim auto-faces an auto-attack target (not a manual turn)', () => {
+    // Reproduces the reported "free camera sometimes fails" bug: the auto-attack
+    // pursuit system (sim.ts) eases the player's facing toward its target every
+    // tick, even standing still, purely to keep re-aiming, with no turn key
+    // held. Before the `turning` gate, the rigid turn-delta term mistook that
+    // for a manual A/D turn and dragged the camera along regardless of freeCamera.
+    const next = updateFollowCameraYaw({
+      camYaw: Math.PI,
+      interpFacing: 0.4, // the target drifted; sim eased p.facing toward it
+      lastInterpFacing: 0.2,
+      frameDt: 1 / 60,
+      mouselook: false,
+      moving: false,
+      orbiting: false,
+      freeCamera: true,
+      turning: false, // no A/D held: this facing change came from auto-attack re-aim
+    });
+    expect(next.camYaw).toBe(Math.PI);
+  });
+
+  it('free camera still tracks a real facing rotation (turning keeps the relative angle)', () => {
+    // Same setup as "animates character turn deltas under the global yaw-speed
+    // cap" above, but with moving+freeCamera on: the rigid turn-delta term
+    // still runs (only the settle-toward-facing ease is skipped), so the
+    // result matches that non-moving case exactly.
+    const next = updateFollowCameraYaw({
+      camYaw: 1.0,
+      interpFacing: 0.4,
+      lastInterpFacing: 0.2,
+      frameDt: 1 / 60,
+      mouselook: false,
+      moving: true,
+      orbiting: false,
+      freeCamera: true,
+      turning: true,
+    });
+    expect(next.camYaw).toBeGreaterThan(1.0);
+    expect(next.camYaw).toBeLessThan(1.2);
+    expect(next.camYaw).toBeCloseTo(1.06);
   });
 
   it('settles medium moving offsets quickly but not instantly', () => {
@@ -74,6 +139,7 @@ describe('camera follow', () => {
       mouselook: false,
       moving: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBeLessThan(1.2);
     expect(next.camYaw).toBeGreaterThan(0);
@@ -81,14 +147,19 @@ describe('camera follow', () => {
   });
 
   it('treats keyboard turning as active follow movement', () => {
-    expect(cameraFollowShouldSettle({
-      forward: false,
-      back: false,
-      strafeLeft: false,
-      strafeRight: false,
-      turnLeft: true,
-      turnRight: false,
-    }, false)).toBe(true);
+    expect(
+      cameraFollowShouldSettle(
+        {
+          forward: false,
+          back: false,
+          strafeLeft: false,
+          strafeRight: false,
+          turnLeft: true,
+          turnRight: false,
+        },
+        false,
+      ),
+    ).toBe(true);
   });
 
   it('does not auto-follow while the camera drives the facing (mouse-camera move)', () => {
@@ -103,6 +174,7 @@ describe('camera follow', () => {
       moving: true,
       cameraDriven: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBe(1.0);
     expect(next.lastInterpFacing).toBe(0.2); // still tracked so re-coupling won't snap
@@ -117,6 +189,7 @@ describe('camera follow', () => {
       mouselook: false,
       moving: true,
       orbiting: true,
+      turning: false,
     });
     expect(next.camYaw).toBe(1);
   });
@@ -131,6 +204,7 @@ describe('camera follow', () => {
       moving: true,
       clickMoving: true,
       orbiting: false,
+      turning: false,
     });
     expect(next.camYaw).toBeLessThan(Math.PI);
     expect(next.camYaw).toBeGreaterThan(Math.PI - 0.04);
@@ -139,8 +213,8 @@ describe('camera follow', () => {
   it('treats mouse-camera mode as manual control even though mouselook reports false', () => {
     // Right-mouse mouselook already counts as manual; Mouse Camera mode reports
     // mouselook=false on desktop but must be folded in so it takes the same path.
-    expect(cameraIsManual(true, false)).toBe(true);   // classic right-mouse mouselook
-    expect(cameraIsManual(false, true)).toBe(true);   // Mouse Camera mode (always on)
+    expect(cameraIsManual(true, false)).toBe(true); // classic right-mouse mouselook
+    expect(cameraIsManual(false, true)).toBe(true); // Mouse Camera mode (always on)
     expect(cameraIsManual(true, true)).toBe(true);
     expect(cameraIsManual(false, false)).toBe(false); // classic, hands off — follow runs
   });
@@ -158,18 +232,28 @@ describe('camera follow', () => {
       let intended = Math.PI;
       let lastInterpFacing: number | null = camYaw;
       for (let f = 0; f < 90; f++) {
-        camYaw += dragPerFrame;        // the player's drag this frame
-        intended += dragPerFrame;      // where the drag actually asked the camera to point
+        camYaw += dragPerFrame; // the player's drag this frame
+        intended += dragPerFrame; // where the drag actually asked the camera to point
         const next = updateFollowCameraYaw({
-          camYaw, interpFacing: camYaw, frameDt: dt, lastInterpFacing,
-          mouselook: manual, moving: true, orbiting: false,
+          camYaw,
+          interpFacing: camYaw,
+          frameDt: dt,
+          lastInterpFacing,
+          mouselook: manual,
+          moving: true,
+          orbiting: false,
+          // Isolates the mouselook/cameraDriven gate under test: with the old,
+          // unfixed wiring (manual=false) the rigid turn-delta term must still
+          // run here to reproduce the historical drift, so `turning` stays
+          // true regardless of `manual` rather than modeling a real key press.
+          turning: true,
         });
         camYaw = next.camYaw;
         lastInterpFacing = next.lastInterpFacing;
       }
       return Math.abs(wrapAngle(camYaw - intended));
     };
-    expect(simulate(true)).toBeCloseTo(0, 6);   // fixed: camera goes exactly where dragged
+    expect(simulate(true)).toBeCloseTo(0, 6); // fixed: camera goes exactly where dragged
     expect(simulate(false)).toBeGreaterThan(0.5); // old wiring: drifts >0.5 rad (~30°+)
   });
 
@@ -183,6 +267,7 @@ describe('camera follow', () => {
       moving: true,
       clickMoving: true,
       orbiting: false,
+      turning: false,
     });
     const small = updateFollowCameraYaw({
       camYaw: 0.25,
@@ -193,6 +278,7 @@ describe('camera follow', () => {
       moving: true,
       clickMoving: true,
       orbiting: false,
+      turning: false,
     });
     expect(Math.PI - large.camYaw).toBeGreaterThan(0);
     expect(Math.PI - large.camYaw).toBeLessThan(0.01);

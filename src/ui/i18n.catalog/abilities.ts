@@ -1232,6 +1232,11 @@ const classAbilityNamesEn = {
         'Root Barrage',
         'Rains thorns on the target area, dealing {damage} damage to enemies caught in it.',
       ],
+      [
+        'bramble_roll',
+        'Bramble Roll',
+        'A swift roll through the underbrush, dashing you 10 yards.',
+      ],
     ]),
   },
 };

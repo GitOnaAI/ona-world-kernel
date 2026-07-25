@@ -348,6 +348,8 @@ export const en: EnTranslations = {
       "clickFeedback": "Click Marker",
       "lockCursorOnRotate": "Lock Cursor While Rotating",
       "keybindHelpLockCursorOnRotate": "Keeps the mouse cursor inside the window while you drag to rotate the camera, so it cannot reach the screen edge or move to another monitor. Turn off if you prefer a free cursor.",
+      "freeCamera": "Free Camera",
+      "keybindHelpFreeCamera": "Keeps the camera exactly where you orbit it. Off, the camera eases back in behind your character whenever you walk or strafe. On, walking never reorients the camera, only dragging to rotate (or turning with A/D) does.",
       "showDevBadges": "Show Developer Badges",
       "showOwnNameplate": "Show My Nameplate",
       "uiScale": "UI Scale",
@@ -4533,6 +4535,10 @@ export const en: EnTranslations = {
       "root_barrage": {
         "name": "Root Barrage",
         "description": "Rains thorns on the target area, dealing {damage} damage to enemies caught in it."
+      },
+      "bramble_roll": {
+        "name": "Bramble Roll",
+        "description": "A swift roll through the underbrush, dashing you 10 yards."
       },
       "bear_charge": {
         "name": "Bruin Rush",

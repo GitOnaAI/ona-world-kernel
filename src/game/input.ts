@@ -133,6 +133,8 @@ export class Input {
   hoverActive = false;
   private hoverKind: HoverCursorKind = 'default';
   private mouseCameraEnabled = false;
+  // Free Camera (settings: freeCamera, default off). See camera_follow.ts.
+  private freeCameraEnabled = false;
   // "Lock cursor while rotating" (settings: lockCursorOnRotate, default on).
   // When on, an active camera drag pointer-locks the canvas so the OS cursor
   // cannot reach the screen edge (camera freeze) or slip to a second monitor.
@@ -299,6 +301,14 @@ export class Input {
 
   isMouseCameraMode(): boolean {
     return this.mouseCameraEnabled;
+  }
+
+  isFreeCameraMode(): boolean {
+    return this.freeCameraEnabled;
+  }
+
+  setFreeCameraEnabled(on: boolean): void {
+    this.freeCameraEnabled = on;
   }
 
   isAttackMoveEnabled(): boolean {

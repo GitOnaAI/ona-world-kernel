@@ -117,7 +117,11 @@ describe('world.lockpickState is the single board source of truth', () => {
       if (run.objectState[chestId].looted) opened++;
     }
     expect(opened).toBe(N);
-  });
+    // 80 full Sim constructions (fresh overworld decoration/collider build per
+    // unique seed, see tests/delves.test.ts's identical rationale): bump the
+    // timeout so it stays green under parallel-worker load (runs well under
+    // this alone).
+  }, 15000);
 
   it('console sim.lockpickEngage leaves state live at col 0 (board would paint it)', () => {
     const sim = makeSim(42);

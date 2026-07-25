@@ -1312,6 +1312,12 @@ export class OptionsWindow {
     this.settingToggleKeybind(el, t('hud.options.mouseCamera'), 'mouseCamera');
     this.settingToggleKeybind(
       el,
+      t('hudChrome.options.freeCamera'),
+      'freeCamera',
+      t('hudChrome.options.keybindHelpFreeCamera'),
+    );
+    this.settingToggleKeybind(
+      el,
       t('hudChrome.options.lockCursorOnRotate'),
       'lockCursorOnRotate',
       t('hudChrome.options.keybindHelpLockCursorOnRotate'),

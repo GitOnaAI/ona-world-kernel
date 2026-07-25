@@ -36,6 +36,13 @@ import { consumeNextAttackCrit } from './empower_next';
 import { exclusiveAuraConflicts } from './exclusive_aura';
 
 const CHARGE_MAX_DURATION = 3; // seconds before a blocked charge gives up
+// rootwarden bramble roll: no classic-era formula exists for a dodge-roll dash
+// mechanic, so duration is a fixed invented value (approved as an explicit
+// exception to the "no invented balance numbers" rule for this one mechanic).
+// Exported: render/characters/visual.ts scales the roll animation clip to
+// this same window (src/CLAUDE.md dependency-direction exception (a), render
+// may import pure sim data), instead of hand-duplicating the number.
+export const ROOT_DASH_DURATION = 1; // seconds the roll takes to cover its distance
 
 function isStealthToggle(ability: AbilityDef): boolean {
   return ability.effects.some((e) => e.type === 'selfBuff' && e.kind === 'stealth');
@@ -706,6 +713,34 @@ export function runEffects(
         p.chargePath = ctx.findChargePath(p, target);
         if (p.resourceType === 'rage') p.resource = Math.min(p.maxResource, p.resource + 9);
         ctx.enterCombat(p, target);
+        break;
+      }
+      case 'dash': {
+        // Direction is captured ONCE here (unlike charge, which re-steers toward
+        // a target every tick): whatever movement keys are held right now,
+        // transformed to world space the same way updatePlayerMovement does,
+        // defaulting to straight-ahead when no movement key is held.
+        const inp = meta.moveInput;
+        let mx = 0;
+        let mz = 0;
+        if (inp.forward) mz += 1;
+        if (inp.back) mz -= 1;
+        if (inp.strafeLeft) mx -= 1;
+        if (inp.strafeRight) mx += 1;
+        if (mx === 0 && mz === 0) mz = 1;
+        const len = Math.hypot(mx, mz);
+        mx /= len;
+        mz /= len;
+        const sin = Math.sin(p.facing);
+        const cos = Math.cos(p.facing);
+        const speed = eff.distance / ROOT_DASH_DURATION;
+        p.dashDir = {
+          x: (mz * sin - mx * cos) * speed,
+          y: 0,
+          z: (mz * cos + mx * sin) * speed,
+        };
+        p.dashTimeLeft = ROOT_DASH_DURATION;
+        ctx.emit({ type: 'dash', entityId: p.id });
         break;
       }
       case 'sunder': {

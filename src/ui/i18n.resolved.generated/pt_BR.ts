@@ -348,6 +348,8 @@ export const pt_BR: EnTranslations = {
       "clickFeedback": "Marcador de clique",
       "lockCursorOnRotate": "Bloquear cursor ao girar",
       "keybindHelpLockCursorOnRotate": "Mantém o cursor do mouse dentro da janela enquanto você arrasta para girar a câmera, para que ele não alcance a borda da tela nem passe para outro monitor. Desative se preferir um cursor livre.",
+      "freeCamera": "Free Camera",
+      "keybindHelpFreeCamera": "Keeps the camera exactly where you orbit it. Off, the camera eases back in behind your character whenever you walk or strafe. On, walking never reorients the camera, only dragging to rotate (or turning with A/D) does.",
       "showDevBadges": "Exibir Insígnias de Desenvolvedor",
       "showOwnNameplate": "Mostrar Minha Placa de Nome",
       "uiScale": "Escala da interface",
@@ -4533,6 +4535,10 @@ export const pt_BR: EnTranslations = {
       "root_barrage": {
         "name": "Root Barrage",
         "description": "Rains thorns on the target area, dealing {damage} damage to enemies caught in it."
+      },
+      "bramble_roll": {
+        "name": "Bramble Roll",
+        "description": "A swift roll through the underbrush, dashing you 10 yards."
       },
       "bear_charge": {
         "name": "Investida de Bruin",

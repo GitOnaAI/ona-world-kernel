@@ -13,6 +13,20 @@ export interface CameraFollowInput {
   // value the camera itself just produced, which feeds back into a wobble. We
   // still advance lastInterpFacing so re-coupling later doesn't snap.
   cameraDriven?: boolean;
+  // Free Camera setting: skip the settle-toward-facing ease below even while
+  // moving, so an orbited camera stays where the player put it instead of
+  // drifting back behind the character on the next forward/strafe step. The
+  // rigid turn-delta term (gated by `turning` below) stays active either way,
+  // so a real A/D key-turn still keeps the camera's relative angle.
+  freeCamera?: boolean;
+  // True only while an actual turn key (A/D, classic keyboard turning) is held
+  // this frame. Gates the rigid turn-delta term below: without this, ANY source
+  // of a facing change (the sim auto-facing a player at their auto-attack
+  // target every tick, /follow always facing its leader, fear/charge/dash
+  // snapping facing) would be mistaken for a manual turn and drag the camera
+  // along with it, a real bug found when Free Camera "sometimes" failed to
+  // hold still during auto-attack against a target whose bearing drifted.
+  turning: boolean;
 }
 
 export interface CameraFollowResult {
@@ -49,13 +63,15 @@ export function cameraIsManual(mouselookActive: boolean, mouseCameraMode: boolea
 }
 
 export function cameraFollowShouldSettle(mi: CameraFollowMoveInput, clickMoving: boolean): boolean {
-  return clickMoving
-    || mi.forward
-    || mi.back
-    || mi.turnLeft
-    || mi.turnRight
-    || mi.strafeLeft
-    || mi.strafeRight;
+  return (
+    clickMoving ||
+    mi.forward ||
+    mi.back ||
+    mi.turnLeft ||
+    mi.turnRight ||
+    mi.strafeLeft ||
+    mi.strafeRight
+  );
 }
 
 export function wrapAngle(d: number): number {
@@ -92,12 +108,15 @@ export function updateFollowCameraYaw(input: CameraFollowInput): CameraFollowRes
   if (!input.mouselook && !input.cameraDriven) {
     if (input.orbiting) return { camYaw, lastInterpFacing: input.interpFacing };
     let targetYaw = camYaw;
-    if (input.lastInterpFacing !== null && !input.clickMoving) targetYaw += wrapAngle(input.interpFacing - input.lastInterpFacing);
-    if (input.moving && !input.orbiting) {
+    if (input.lastInterpFacing !== null && !input.clickMoving && input.turning)
+      targetYaw += wrapAngle(input.interpFacing - input.lastInterpFacing);
+    if (input.moving && !input.orbiting && !input.freeCamera) {
       const delta = wrapAngle(input.interpFacing - targetYaw);
       const clickMoveScale = input.clickMoving ? clickMoveSettleScale(Math.abs(delta)) : 1;
       const rate = input.clickMoving ? CLICK_MOVE_SETTLE_RATE * clickMoveScale : SETTLE_RATE;
-      const maxStep = input.clickMoving ? CLICK_MOVE_MAX_SETTLE_STEP * clickMoveScale : MAX_SETTLE_STEP;
+      const maxStep = input.clickMoving
+        ? CLICK_MOVE_MAX_SETTLE_STEP * clickMoveScale
+        : MAX_SETTLE_STEP;
       const step = delta * (1 - Math.exp(-Math.max(0, input.frameDt) * rate));
       targetYaw += clamp(step, -maxStep, maxStep);
     }

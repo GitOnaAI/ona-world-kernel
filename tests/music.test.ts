@@ -244,4 +244,14 @@ describe('world music zone selection', () => {
   it('keeps the Thornpeak hub on the Highwatch town theme', () => {
     expect(musicZoneForLocation('thornpeak_heights', 'peaks', true, false)).toBe('town_highwatch');
   });
+
+  it('plays the dedicated volcano march in the Kharzoth Dominion overworld', () => {
+    // Previously fell through to the peaks anthem: volcano had no dedicated
+    // theme of its own (see composeVolcano / musicZoneForLocation).
+    expect(musicZoneForLocation('kharzoth_dominion', 'volcano', false, false)).toBe('volcano');
+  });
+
+  it('also plays the volcano march at the Ashroot Refuge hub (no dedicated town theme yet)', () => {
+    expect(musicZoneForLocation('kharzoth_dominion', 'volcano', true, false)).toBe('volcano');
+  });
 });
