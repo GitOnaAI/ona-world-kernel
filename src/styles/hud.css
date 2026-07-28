@@ -3567,6 +3567,41 @@
     opacity: var(--lhv-opacity);
   }
 
+  /* ---------- hit flash (ponytail: prototype only, not a real feature yet) ---------- */
+  /* Screen-flash "you landed a melee hit" cue (src/ui/hud.ts triggerHitFlash),
+     replacing the localized 3D glow sprites the ragnarokSlash VFX prototype
+     dropped (src/render/vfx.ts). A one-shot opacity pop: hidden at rest,
+     re-triggered by toggling .flash-active off then back on. Sits above the
+     world, below the HUD frames, never eats pointer events. Reduce Motion is
+     covered for free by the global body.reduce-motion rule below (Interface
+     & Comfort settings): collapsing the animation to ~0 duration on a pop
+     that already ends at opacity:0 is equivalent to no flash at all, so no
+     extra override is needed here (contrast the low-health vignette above,
+     whose LOOPING breathe needs an explicit held-frame override instead). */
+  #hit-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 70%
+    );
+  }
+  #hit-flash.flash-active {
+    animation: hit-flash-pop 0.16s ease-out;
+  }
+  @keyframes hit-flash-pop {
+    0% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
   /* ---------- death overlay ---------- */
   #death-overlay {
     position: absolute;

@@ -31,6 +31,7 @@ import type { BiomeId } from '../sim/types';
 import { ALL_CLASSES, type Entity, type SimEvent } from '../sim/types';
 import { groundHeight, waterLevelAt, zoneBiomeAt } from '../sim/world';
 import { tEntity } from '../ui/entity_i18n';
+import { ITEM_WEAPON_VARIANTS } from '../ui/weapon_variants';
 import type { IWorld } from '../world_api';
 import { isVisuallyDead } from './anim_state';
 import { AOE_RING_LIFETIME, aoeRingAnim } from './aoe_ring';
@@ -667,6 +668,26 @@ function isPersistentPortalObject(e: Entity): boolean {
   return (
     e.kind === 'object' && (e.templateId === 'dungeon_door' || e.templateId === 'dungeon_exit')
   );
+}
+
+// ponytail: prototype only. Weapon families whose swing reads as a wide slash
+// worth a trail (sword, axe); everything else (dagger, staff, wand, mace/
+// hammer, bow/crossbow, spear, unarmed, or a mob with no mainhandItemId at
+// all) keeps the original meleeSpark instead. Checked against the
+// ITEM_WEAPON_VARIANTS key (e.g. "sword_a", "adv_axe_1handed"), the one place
+// this codebase already classifies weapon shape, rather than the raw item id.
+function isTrailWeapon(itemId: string | null): boolean {
+  if (!itemId) return false;
+  const key = ITEM_WEAPON_VARIANTS[itemId];
+  return !!key && (key.includes('sword') || key.includes('axe'));
+}
+
+// ponytail: prototype only. Which plane the weapon trail is drawn in, read off
+// the KayKit swing clip that is playing: a "Slice" travels side to side, every
+// other melee clip here is a "Chop" that travels top to bottom. Unknown (or
+// no swing yet) falls back to vertical, the majority case across the rigs.
+function swingIsVertical(attackClip: string | null): boolean {
+  return !attackClip || !attackClip.includes('Slice');
 }
 
 function markSharedGeometry<T extends THREE.BufferGeometry>(geometry: T): T {
@@ -1398,13 +1419,17 @@ export class Renderer {
     }
 
     // particle system: projectiles, impacts, heal glows, ambience
-    this.vfx = new Vfx(this.scene, (id, frac) => {
-      const v = this.views.get(id);
-      if (!v) return null;
-      const e = this.sim.entities.get(id);
-      const h = v.height * (e?.scale ?? 1) * frac;
-      return new THREE.Vector3(v.group.position.x, v.group.position.y + h, v.group.position.z);
-    });
+    this.vfx = new Vfx(
+      this.scene,
+      (id, frac) => {
+        const v = this.views.get(id);
+        if (!v) return null;
+        const e = this.sim.entities.get(id);
+        const h = v.height * (e?.scale ?? 1) * frac;
+        return new THREE.Vector3(v.group.position.x, v.group.position.y + h, v.group.position.z);
+      },
+      this.camera,
+    );
     this.vfx.setViewportScale(this.webgl.domElement.clientHeight * this.webgl.getPixelRatio(), 60);
 
     // ambient precipitation: biome-driven snow/rain that rides with the camera
@@ -2857,15 +2882,40 @@ export class Renderer {
         if (ev.radius) this.spawnAoeRing(ev.x, ev.z, ev.radius, ev.school);
         break;
       }
-      case 'damage':
+      case 'damage': {
+        // ponytail: prototype. The weapon trail belongs to the SWING, so it
+        // fires on every physical attack (hit, miss, dodge, parry alike);
+        // only the impact cues (victim flinch, meleeSpark, the HUD screen
+        // flash and impact SFX) stay gated on a landed blow below.
+        // ragnarokSlash draws one big arc in FRONT of the attacker, riding
+        // its RENDERED transform (interpolated group, not the sim pose) and
+        // the swing clip actually playing, so the arc lies along the
+        // direction the animation moves. Only sword/axe attackers get it;
+        // every other weapon (dagger/staff/wand/mace/bow/unarmed, or a mob
+        // with no mainhandItemId) keeps the original meleeSpark, unchanged.
+        const attacker = ev.school === 'physical' ? this.sim.entities.get(ev.sourceId) : undefined;
+        const trailWeapon = !!attacker && isTrailWeapon(attacker.mainhandItemId);
         // every melee/ranged swing animates the attacker for all to see
-        if (ev.school === 'physical' && ev.sourceId !== -1) this.triggerAttack(ev.sourceId);
+        if (ev.school === 'physical' && ev.sourceId !== -1) {
+          this.triggerAttack(ev.sourceId);
+          const attackerView = trailWeapon ? this.views.get(ev.sourceId) : undefined;
+          if (attackerView) {
+            const attackerVisual = this.activeVisual(attackerView);
+            this.vfx.ragnarokSlash(
+              attackerView.group.position,
+              attackerView.group.rotation.y,
+              swingIsVertical(attackerVisual?.lastAttackClip ?? null),
+              ev.school,
+            );
+          }
+        }
         if (ev.kind === 'hit' && ev.amount > 0) {
           // landed blows flinch the victim (rate-limited inside the visual)
           this.triggerHit(ev.targetId);
-          if (ev.school === 'physical') this.vfx.meleeSpark(ev.targetId, ev.crit);
+          if (ev.school === 'physical' && !trailWeapon) this.vfx.meleeSpark(ev.targetId, ev.crit);
         }
         break;
+      }
       case 'heal2':
         if (ev.amount > 0 || ev.crit) this.vfx.healGlow(ev.targetId);
         break;

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { loadTexture } from './assets/loader';
 import { registerPreload } from './assets/preload';
 import { GFX } from './gfx';
+import { WeaponTrail } from './weapon_trail';
 
 // Spell & ambience particle system. One pooled THREE.Points cloud drawn with
 // additive blending; projectiles are lightweight emitters that home on their
@@ -202,10 +203,18 @@ export class Vfx {
   private tmpColor = new THREE.Color();
   private quality = 1;
 
+  // ponytail: prototype only. The quad-drawn sword/axe swing arc, owned here
+  // so ragnarokSlash stays the one entry point the renderer calls; ticked
+  // from update() below alongside the particle cloud.
+  private readonly weaponTrail: WeaponTrail;
+  private readonly trailColor = new THREE.Color();
+
   constructor(
     scene: THREE.Scene,
     private anchor: EntityAnchor,
+    camera: THREE.Camera,
   ) {
+    this.weaponTrail = new WeaponTrail(scene, camera);
     this.pos = new Float32Array(CAPACITY * 3);
     this.vel = new Float32Array(CAPACITY * 3);
     this.col = new Float32Array(CAPACITY * 3);
@@ -585,6 +594,39 @@ export class Vfx {
     this.burst(at, 'physical', crit ? 30 : 14, crit ? 1.7 : 1.05);
   }
 
+  // ponytail: prototype only. A sharp fan-shaped weapon trail and NOTHING
+  // else: no flash sprite, no starburst ring, no sparkles (those all read as
+  // "glow", which is exactly what this iteration drops). The "hit landed"
+  // cue moves to a screen flash owned by Hud (triggerHitFlash in
+  // src/ui/hud.ts) instead of a 3D sprite.
+  //
+  // ONE big arc per swing, drawn by the quad-based WeaponTrail rather than
+  // this particle cloud: see weapon_trail.ts for why a point sprite cannot
+  // do it (110px size clamp, always camera-facing). `origin` is the
+  // attacker's feet, `facing` its rendered yaw (0 = +Z, the sim convention),
+  // `vertical` the swing plane. The caller (renderer.ts) owns both
+  // decisions: whether the attacker holds a trail-worthy weapon (sword/axe)
+  // and which swing clip is playing.
+  // Preview: window.__game.renderer.vfx.ragnarokSlash(pos, facing, vertical).
+  ragnarokSlash(
+    origin: THREE.Vector3,
+    facing: number,
+    vertical: boolean,
+    school = 'physical',
+  ): void {
+    const base = new THREE.Color(SCHOOL_COLORS[school] ?? SCHOOL_COLORS.physical);
+    // pull toward max saturation and a near-white-hot core: SCHOOL_COLORS are
+    // tuned as tints for subtler existing effects; this wants the vivid hue
+    // itself, bright enough that the arc clips to solid and blooms
+    const hsl = { h: 0, s: 0, l: 0 };
+    base.getHSL(hsl);
+    // 2.6 is the FLOOR, not a bloom boost: spread over a quad instead of a
+    // 110px point sprite, an additive arc at plain 1.0 washes out against lit
+    // daytime ground. hdr() then adds the extra punch on the composer tiers.
+    this.trailColor.setHSL(hsl.h, 1, 0.66).multiplyScalar(2.6 * hdr(1.6));
+    this.weaponTrail.spawn(origin, facing, vertical, this.trailColor);
+  }
+
   levelUpPillar(targetId: number): void {
     const at = this.anchor(targetId, 0);
     if (!at) return;
@@ -688,6 +730,7 @@ export class Vfx {
   // ---------------------------------------------------------------------
 
   update(dt: number): void {
+    this.weaponTrail.update(dt);
     // projectiles home on their (moving) target
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const pr = this.projectiles[i];

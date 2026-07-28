@@ -99,6 +99,7 @@ export class CharacterVisual {
   private wasDead = false;
   private initialized = false;
   private attackIdx = 0;
+  private lastAttackClipName: string | null = null;
   private hitCooldown = 0;
   private pendingDt = 0;
   private swimPitch = 0;
@@ -293,7 +294,16 @@ export class CharacterVisual {
     const clips = this.def.clips.attack;
     if (clips.length === 0) return;
     const name = clips[this.attackIdx++ % clips.length];
+    this.lastAttackClipName = name;
     this.playOneShot(name, this.def.attackTimeScale ?? 1.3);
+  }
+
+  /** Clip name of the swing this visual is playing, or null if it has never
+   *  swung. The renderer reads it to orient the weapon-trail VFX to the
+   *  animation actually on screen (a chop travels vertically, a slice
+   *  horizontally); see swingIsVertical in renderer.ts. */
+  get lastAttackClip(): string | null {
+    return this.lastAttackClipName;
   }
 
   private isMovingBaseState(): boolean {

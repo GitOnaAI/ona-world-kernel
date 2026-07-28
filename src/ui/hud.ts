@@ -744,6 +744,10 @@ export class Hud {
   private emoteWheelHover: OverheadEmoteId | 'edit' | null = null;
   private emoteWheelSlots: OverheadEmoteId[] = [];
   private emoteWheelEl: HTMLDivElement | null = null;
+  // ponytail: prototype only. Screen-flash "you landed a hit" cue, replacing
+  // the localized glow sprites in vfx.ts's ragnarokSlash prototype. Lazily
+  // created like emoteWheelEl above; see triggerHitFlash.
+  private hitFlashEl: HTMLDivElement | null = null;
   private emoteWheelPinned = false;
   private chatLogEl = $('#chatlog');
   private lastVoicedYell: VoicedYellState | null = null;
@@ -2638,6 +2642,24 @@ export class Hud {
       this.sim.playEmote(choice);
       audio.click();
     }
+  }
+
+  // ponytail: prototype only, not a real HUD component yet (no pure-core/
+  // painter split; see the "authoring a new HUD component" recipe if this
+  // graduates past prototype). Restarts a CSS opacity-pop animation on a
+  // lazily created full-viewport overlay; honors prefers-reduced-motion via
+  // the CSS rule (hud.css), never checked here.
+  private triggerHitFlash(): void {
+    let el = this.hitFlashEl;
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'hit-flash';
+      document.getElementById('ui')?.appendChild(el);
+      this.hitFlashEl = el;
+    }
+    el.classList.remove('flash-active');
+    void el.offsetWidth; // force reflow so re-adding the class restarts the animation
+    el.classList.add('flash-active');
   }
 
   private showEmoteWheel(pinned = false): void {
@@ -7044,6 +7066,12 @@ export class Hud {
             // see playEventSfx, which runs for every damage event above.
             // Fiesta: every blow you land kicks the camera (bigger on a crit).
             if (this.inFiesta()) this.renderer.addShake(ev.crit ? 0.3 : 0.12);
+            // ponytail: prototype only. Screen flash on your own landed melee
+            // hit, the "hit landed" cue for vfx.ts's ragnarokSlash prototype
+            // (which dropped its own flash/glow sprites). Scoped to physical
+            // like the sword-trail VFX; spell hits keep their existing
+            // projectile/beam/nova identity instead.
+            if (!ev.school || ev.school === 'physical') this.triggerHitFlash();
           } else if (hitShape && hitShape.kind === 'damage-taken') {
             this.fctPainter.spawn({ ...hitShape, text: `-${ev.amount}`, target: tgt }, now);
             this.combatLog(
